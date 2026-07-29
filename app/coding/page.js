@@ -20,9 +20,11 @@ const PROJECT_STATUS_ACTIVE = "active";
 const PROJECT_STATUS_COMPLETED = "completed";
 const GITHUB_REPO_PROJECT_ID_PREFIX = "github-repo-";
 const REPO_STATUS_TAG_ACTIVE = "active";
+const REPO_STATUS_TAG_PAUSED = "paused";
 const REPO_STATUS_TAG_MAINTAINED = "maintained";
 const REPO_STATUS_TAG_NOT_STARTED = "not-started";
 const REPO_FILTER_ACTIVE = "active";
+const REPO_FILTER_PAUSED = "paused";
 const REPO_FILTER_MAINTAINED = "maintained";
 const REPO_FILTER_NOT_STARTED = "not-started";
 const REPO_FILTER_COMPLETED = "completed";
@@ -774,6 +776,17 @@ export default function CodingPage() {
                 <button
                   type="button"
                   role="tab"
+                  aria-selected={repoStatusFilter === REPO_FILTER_PAUSED}
+                  className={`coding-status-toggle-btn ${
+                    repoStatusFilter === REPO_FILTER_PAUSED ? "is-active" : ""
+                  }`}
+                  onClick={() => setRepoStatusFilter(REPO_FILTER_PAUSED)}
+                >
+                  Paused
+                </button>
+                <button
+                  type="button"
+                  role="tab"
                   aria-selected={repoStatusFilter === REPO_FILTER_MAINTAINED}
                   className={`coding-status-toggle-btn ${
                     repoStatusFilter === REPO_FILTER_MAINTAINED ? "is-active" : ""
@@ -841,11 +854,13 @@ export default function CodingPage() {
                     ? "No archived legacy repos."
                     : repoStatusFilter === REPO_FILTER_COMPLETED
                       ? "No completed repos."
-                    : repoStatusFilter === REPO_FILTER_MAINTAINED
-                      ? "No maintained repos. Add topic status-maintained and sync."
-                      : repoStatusFilter === REPO_FILTER_NOT_STARTED
-                        ? "No not started repos. Add topic status-not-started and sync."
-                        : "No active repos. Add topic status-active and sync."}
+                      : repoStatusFilter === REPO_FILTER_PAUSED
+                        ? "No paused repos. Add topic status-paused and sync."
+                        : repoStatusFilter === REPO_FILTER_MAINTAINED
+                          ? "No maintained repos. Add topic status-maintained and sync."
+                          : repoStatusFilter === REPO_FILTER_NOT_STARTED
+                            ? "No not started repos. Add topic status-not-started and sync."
+                            : "No active repos. Add topic status-active and sync."}
                 </p>
               ) : (
                 visibleRepos.map((project) => (
@@ -1130,6 +1145,10 @@ function normalizeRepoStatusTag(rawValue) {
     .trim()
     .toLowerCase();
 
+  if (normalized === REPO_STATUS_TAG_PAUSED) {
+    return REPO_STATUS_TAG_PAUSED;
+  }
+
   if (normalized === REPO_STATUS_TAG_MAINTAINED) {
     return REPO_STATUS_TAG_MAINTAINED;
   }
@@ -1146,6 +1165,10 @@ function mapRepoTopicsToStatusTag(rawTopics) {
     ? rawTopics.map((topic) => String(topic || "").trim().toLowerCase())
     : [];
   const topicSet = new Set(normalizedTopics);
+
+  if (topicSet.has("status-paused")) {
+    return REPO_STATUS_TAG_PAUSED;
+  }
 
   if (topicSet.has("status-not-started")) {
     return REPO_STATUS_TAG_NOT_STARTED;
