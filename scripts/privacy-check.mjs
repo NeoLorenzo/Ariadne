@@ -74,7 +74,9 @@ function inspectText(fileLabel, text, findings) {
     }
   }
 
-  if (text.includes(PRIVATE_SEED_IDENTIFIER)) {
+  const approvedSeedCleanup = `drop function if exists public.${PRIVATE_SEED_IDENTIFIER}();`;
+  const textWithoutApprovedCleanup = text.replaceAll(approvedSeedCleanup, "");
+  if (textWithoutApprovedCleanup.includes(PRIVATE_SEED_IDENTIFIER)) {
     findings.push(`${fileLabel}: private academic seed routine is prohibited`);
   }
 }

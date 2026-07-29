@@ -1,18 +1,19 @@
--- Run after deploying refresh-substack-signal with legacy JWT verification disabled.
--- The function accepts only the fixed signal key and writes through a newer-only RPC.
+-- The signal refresh function now requires an authorized owner JWT.
+-- Remove the retired anonymous schedule; the signed-in dashboard refreshes the signal.
+do $$
+declare
+  refresh_job_id bigint;
+begin
+  if to_regclass('cron.job') is not null then
+    select jobid
+    into refresh_job_id
+    from cron.job
+    where jobname = 'refresh-lorenzo-roque-substack-signal'
+    limit 1;
 
-create extension if not exists pg_cron;
-create extension if not exists pg_net;
-
-select cron.schedule(
-  'refresh-lorenzo-roque-substack-signal',
-  '0 */6 * * *',
-  $$
-  select net.http_post(
-    url := 'https://jhpsggjphoqyygthqfki.supabase.co/functions/v1/refresh-substack-signal',
-    headers := '{}'::jsonb,
-    body := '{"signalKey":"lorenzo-roque-substack"}'::jsonb,
-    timeout_milliseconds := 5000
-  ) as request_id;
-  $$
-);
+    if refresh_job_id is not null then
+      perform cron.unschedule(refresh_job_id);
+    end if;
+  end if;
+end;
+$$;

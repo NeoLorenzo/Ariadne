@@ -1,6 +1,7 @@
 const SUBSTACK_ARCHIVE_URL =
   "https://lorenzoroque.substack.com/api/v1/archive?sort=new&offset=0&limit=1";
 const SIGNAL_KEY = "lorenzo-roque-substack";
+const AUTHORIZED_EMAIL = "theneolorenzo@gmail.com";
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -16,6 +17,17 @@ Deno.serve(async (request) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const publishableKey =
+      request.headers.get("apikey") || Deno.env.get("SUPABASE_ANON_KEY");
+    const authorization = request.headers.get("authorization");
+    if (!supabaseUrl || !publishableKey) {
+      return jsonResponse({ error: "Supabase authentication is unavailable." }, 500);
+    }
+    if (!(await isAuthorizedOwner({ supabaseUrl, publishableKey, authorization }))) {
+      return jsonResponse({ error: "Not authorized." }, 403);
+    }
+
     const requestBody = await request.json().catch(() => null);
     if (requestBody?.signalKey !== SIGNAL_KEY) {
       return jsonResponse({ error: "Unsupported signal key." }, 400);
@@ -38,7 +50,6 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "Substack returned no valid publication date." }, 502);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceRoleKey) {
       return jsonResponse({ error: "Supabase server credentials are unavailable." }, 500);
@@ -83,6 +94,36 @@ Deno.serve(async (request) => {
     );
   }
 });
+
+async function isAuthorizedOwner({
+  supabaseUrl,
+  publishableKey,
+  authorization
+}: {
+  supabaseUrl: string;
+  publishableKey: string;
+  authorization: string | null;
+}) {
+  if (!authorization?.toLowerCase().startsWith("bearer ")) {
+    return false;
+  }
+
+  try {
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: publishableKey,
+        Authorization: authorization
+      }
+    });
+    if (!userResponse.ok) {
+      return false;
+    }
+    const user = await userResponse.json();
+    return String(user?.email || "").trim().toLowerCase() === AUTHORIZED_EMAIL;
+  } catch {
+    return false;
+  }
+}
 
 function jsonResponse(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {

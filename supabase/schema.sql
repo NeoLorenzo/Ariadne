@@ -745,6 +745,7 @@ with check (auth.uid() = user_id and lower(coalesce(auth.jwt()->>'email', '')) =
 
 -- Personal academic records are intentionally never seeded from repository code.
 -- Existing live rows remain owner-only under the policies above.
+drop function if exists public.seed_goat_academics_for_current_user();
 
 -- 10) Durable owner-only cache for external dashboard signals
 create table if not exists public.external_signal_cache (
