@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
+import {
+  clearGitHubProviderToken,
+  prepareGitHubOAuth,
+  readGitHubProviderToken
+} from "@/lib/auth/githubProviderToken";
 import { supabase } from "@/lib/supabase/client";
 import {
   readLastKnownSyncUserId,
@@ -207,7 +212,7 @@ export default function CodingPage() {
           data: { session }
         } = await supabase.auth.getSession();
         const user = session?.user || null;
-        setHasGitHubProviderToken(Boolean(String(session?.provider_token || "").trim()));
+        setHasGitHubProviderToken(Boolean(readGitHubProviderToken(session)));
         const nextUserId = user?.id || null;
         if (!isMounted) {
           return;
@@ -328,7 +333,7 @@ export default function CodingPage() {
       window.setTimeout(async () => {
         let usedCachedSnapshot = false;
         const nextUserId = session?.user?.id || null;
-        setHasGitHubProviderToken(Boolean(String(session?.provider_token || "").trim()));
+        setHasGitHubProviderToken(Boolean(readGitHubProviderToken(session)));
         setCloudUserId(nextUserId);
 
         if (!nextUserId) {
@@ -620,12 +625,16 @@ export default function CodingPage() {
       return;
     }
 
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
     const redirectTo =
       typeof window !== "undefined"
         ? `${window.location.origin}${basePath || ""}/coding`
         : undefined;
 
+    prepareGitHubOAuth(session);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
@@ -635,6 +644,7 @@ export default function CodingPage() {
     });
 
     if (error) {
+      clearGitHubProviderToken();
       throw new Error(error.message || "Unable to start GitHub sign-in.");
     }
   };
@@ -656,7 +666,7 @@ export default function CodingPage() {
         data: { session }
       } = await supabase.auth.getSession();
       const userId = session?.user?.id || null;
-      const providerToken = String(session?.provider_token || "").trim();
+      const providerToken = readGitHubProviderToken(session);
 
       if (!userId) {
         setGitHubSyncStatus("Redirecting to GitHub sign-in...");
@@ -727,6 +737,14 @@ export default function CodingPage() {
 
       setGitHubSyncStatus(`Synced ${repos.length} repositories.`);
     } catch (error) {
+      if (error instanceof GitHubApiError && error.status === 401) {
+        clearGitHubProviderToken();
+        setHasGitHubProviderToken(false);
+        setGitHubSyncStatus("GitHub authorization expired. Redirecting to reconnect...");
+        await startGitHubSignIn();
+        return;
+      }
+
       const message = String(error?.message || "GitHub sync failed.");
       setGitHubSyncStatus(message);
     } finally {
@@ -1288,7 +1306,7 @@ async function fetchAllGitHubRepos(providerToken) {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`GitHub API ${response.status}: ${errorBody || "request failed"}`);
+      throw new GitHubApiError(response.status, errorBody);
     }
 
     const reposPage = await response.json();
@@ -1305,4 +1323,12 @@ async function fetchAllGitHubRepos(providerToken) {
   }
 
   return allRepos;
+}
+
+class GitHubApiError extends Error {
+  constructor(status, responseBody) {
+    super(`GitHub API ${status}: ${responseBody || "request failed"}`);
+    this.name = "GitHubApiError";
+    this.status = status;
+  }
 }
