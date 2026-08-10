@@ -57,12 +57,14 @@ export default function TasksPage() {
   const [taskRecoveryState, setTaskRecoveryState] = useState({ status: "idle", backup: null, message: "" });
   const [hideCompletedSubtasks, setHideCompletedSubtasks] = useState(false);
   const [areSubtasksExpanded, setAreSubtasksExpanded] = useState(true);
+  const [draggedSubtaskId, setDraggedSubtaskId] = useState("");
   const [, setCloudReadState] = useState("idle");
   const [, setCloudReadSource] = useState("none");
   const [, setCloudReadErrorMessage] = useState("");
   const undoTimeoutRef = useRef(null);
   const averagePressureRef = useRef(null);
   const descriptionRef = useRef(null);
+  const draggedSubtaskIdRef = useRef("");
   const skipNextCloudWriteRef = useRef(false);
   const skipInitialPersistenceRef = useRef(true);
   const tasksRef = useRef([]);
@@ -977,6 +979,8 @@ export default function TasksPage() {
   );
 
   const openAddModal = () => {
+    draggedSubtaskIdRef.current = "";
+    setDraggedSubtaskId("");
     setEditingTaskId("");
     setTaskFormError("");
     setForm(EMPTY_FORM);
@@ -984,6 +988,8 @@ export default function TasksPage() {
   };
 
   const closeTaskModal = () => {
+    draggedSubtaskIdRef.current = "";
+    setDraggedSubtaskId("");
     setIsTaskModalOpen(false);
     setEditingTaskId("");
     setTaskFormError("");
@@ -1196,6 +1202,51 @@ export default function TasksPage() {
     [subtasks[index], subtasks[nextIndex]] = [subtasks[nextIndex], subtasks[index]];
     return { ...current, subtasks };
   });
+
+  const reorderDraftSubtask = (subtaskId, targetSubtaskId, placeAfterTarget) => setForm((current) => {
+    if (!subtaskId || !targetSubtaskId || subtaskId === targetSubtaskId) return current;
+
+    const subtasks = [...(current.subtasks || [])];
+    const sourceIndex = subtasks.findIndex((item) => item.id === subtaskId);
+    if (sourceIndex < 0) return current;
+
+    const [movedSubtask] = subtasks.splice(sourceIndex, 1);
+    const targetIndex = subtasks.findIndex((item) => item.id === targetSubtaskId);
+    if (targetIndex < 0) return current;
+
+    subtasks.splice(targetIndex + (placeAfterTarget ? 1 : 0), 0, movedSubtask);
+    return { ...current, subtasks };
+  });
+
+  const startDraftSubtaskDrag = (event, subtaskId) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    draggedSubtaskIdRef.current = subtaskId;
+    setDraggedSubtaskId(subtaskId);
+  };
+
+  const dragDraftSubtask = (event) => {
+    const subtaskId = draggedSubtaskIdRef.current;
+    if (!subtaskId) return;
+
+    event.preventDefault();
+    const hoveredElement = document.elementFromPoint(event.clientX, event.clientY);
+    const hoveredRow = hoveredElement?.closest?.(".task-editor-subtask-row");
+    const targetSubtaskId = hoveredRow?.dataset?.subtaskId || "";
+    if (!targetSubtaskId || targetSubtaskId === subtaskId) return;
+
+    const bounds = hoveredRow.getBoundingClientRect();
+    reorderDraftSubtask(subtaskId, targetSubtaskId, event.clientY > bounds.top + bounds.height / 2);
+  };
+
+  const finishDraftSubtaskDrag = (event) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    draggedSubtaskIdRef.current = "";
+    setDraggedSubtaskId("");
+  };
 
   const toggleTaskSubtask = (taskId, subtaskId) => setTasks((currentTasks) => currentTasks.map((task) =>
     task.id === taskId ? {
@@ -1471,7 +1522,29 @@ export default function TasksPage() {
                     </div>
                     {areSubtasksExpanded ? <div className="task-editor-subtask-list">
                       {(form.subtasks || []).filter((subtask) => !hideCompletedSubtasks || !subtask.completed).map((subtask, index) => (
-                        <div className="task-editor-subtask-row" key={subtask.id}>
+                        <div
+                          className={`task-editor-subtask-row${draggedSubtaskId === subtask.id ? " is-dragging" : ""}`}
+                          key={subtask.id}
+                          data-subtask-id={subtask.id}
+                        >
+                          <button
+                            type="button"
+                            className="task-editor-drag-handle"
+                            aria-label={`Reorder ${subtask.title || "subtask"}`}
+                            title="Drag to reorder"
+                            onPointerDown={(event) => startDraftSubtaskDrag(event, subtask.id)}
+                            onPointerMove={dragDraftSubtask}
+                            onPointerUp={finishDraftSubtaskDrag}
+                            onPointerCancel={finishDraftSubtaskDrag}
+                            onKeyDown={(event) => {
+                              if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                                event.preventDefault();
+                                moveDraftSubtask(subtask.id, event.key === "ArrowUp" ? -1 : 1);
+                              }
+                            }}
+                          >
+                            ⠿
+                          </button>
                           <button type="button" className={`task-editor-completion task-editor-subtask-completion${subtask.completed ? " is-complete" : ""}`} onClick={() => updateDraftSubtask(subtask.id, { completed: !subtask.completed })} aria-label={`Mark ${subtask.title || "subtask"} ${subtask.completed ? "incomplete" : "complete"}`}>{subtask.completed ? "✓" : ""}</button>
                           <div className={`task-editor-subtask-content${subtask.completed ? " is-complete" : ""}`}>
                             <input value={subtask.title} onChange={(event) => updateDraftSubtask(subtask.id, { title: event.target.value })} placeholder="Sub-task title" aria-label="Subtask title" />
