@@ -9,6 +9,7 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  allowedDevOrigins: ["192.168.1.*", "**.sslip.io"],
   images: {
     unoptimized: true
   },

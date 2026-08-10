@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { key: "lab", href: "/lab", label: "Lab", icon: "lab" }
 ];
 
-export default function AppShell({ activeNavItem = "", children }) {
+export default function AppShell({ activeNavItem = "", hideMobileNav = false, children }) {
   const isMobileExperience = useIsMobileExperience();
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
 
@@ -46,7 +46,7 @@ export default function AppShell({ activeNavItem = "", children }) {
     <main
       className={`page-shell ${isMobileExperience ? "is-mobile-experience" : "is-desktop-experience"}${
         !isMobileExperience && !isNavCollapsed ? " is-nav-expanded" : ""
-      }`}
+      }${isMobileExperience && hideMobileNav ? " is-mobile-nav-hidden" : ""}`}
     >
       <div className="page-container">
         <div className="app-layout">

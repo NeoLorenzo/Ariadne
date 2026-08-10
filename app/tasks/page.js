@@ -62,6 +62,7 @@ export default function TasksPage() {
   const [, setCloudReadErrorMessage] = useState("");
   const undoTimeoutRef = useRef(null);
   const averagePressureRef = useRef(null);
+  const descriptionRef = useRef(null);
   const skipNextCloudWriteRef = useRef(false);
   const skipInitialPersistenceRef = useRef(true);
   const tasksRef = useRef([]);
@@ -70,6 +71,20 @@ export default function TasksPage() {
   const cloudSnapshotSignaturesRef = useRef({});
   const isCloudWriteInFlightRef = useRef(false);
   const hasPendingCloudWriteRef = useRef(false);
+
+  useEffect(() => {
+    const descriptionField = descriptionRef.current;
+    if (!descriptionField) return;
+
+    if (!isMobileExperience || !isTaskModalOpen) {
+      descriptionField.style.height = "";
+      return;
+    }
+
+    descriptionField.style.height = "auto";
+    const maximumHeight = Number.parseFloat(window.getComputedStyle(descriptionField).maxHeight) || 112;
+    descriptionField.style.height = `${Math.min(descriptionField.scrollHeight, maximumHeight)}px`;
+  }, [form.description, isMobileExperience, isTaskModalOpen]);
 
   useEffect(() => {
     try {
@@ -1195,35 +1210,37 @@ export default function TasksPage() {
   ));
 
   return (
-    <AppShell currentPageLabel="Tasks" activeNavItem="tasks">
+    <AppShell currentPageLabel="Tasks" activeNavItem="tasks" hideMobileNav={isTaskModalOpen}>
       <section className="tasks-workspace">
         <section className="task-board-modal">
-          <header className="task-board-header">
-            <h2 className="task-board-title">Tasks</h2>
-            <p className={`task-board-sync-badge is-${cloudSyncBadge.tone}`}>{cloudSyncBadge.label}</p>
-            {averageTimePressure !== null ? <p
-              ref={averagePressureRef}
-              className="task-board-average-pressure"
-              style={{ color: getTimePressureColor(averageTimePressure) }}
-            >
-              {averagePressureLabel}: {formatTimePressure(averageTimePressure)}
-            </p> : null}
-            <label className="task-board-sort">
-              <span>Sort</span>
-              <select
-                className="task-board-sort-select"
-                value={sortMode}
-                onChange={(event) => changeSortMode(event.target.value)}
+          <div className="task-board-toolbar">
+            <header className="task-board-header">
+              <h2 className="task-board-title">Tasks</h2>
+              <p className={`task-board-sync-badge is-${cloudSyncBadge.tone}`}>{cloudSyncBadge.label}</p>
+              {averageTimePressure !== null ? <p
+                ref={averagePressureRef}
+                className="task-board-average-pressure"
+                style={{ color: getTimePressureColor(averageTimePressure) }}
               >
-                <option value="due-date">Due date</option>
-                <option value="priority">Priority</option>
-              </select>
-            </label>
-            <span className="task-board-list-count">{displayedTasks.length}</span>
+                {averagePressureLabel}: {formatTimePressure(averageTimePressure)}
+              </p> : null}
+              <label className="task-board-sort">
+                <span>Sort</span>
+                <select
+                  className="task-board-sort-select"
+                  value={sortMode}
+                  onChange={(event) => changeSortMode(event.target.value)}
+                >
+                  <option value="due-date">Due date</option>
+                  <option value="priority">Priority</option>
+                </select>
+              </label>
+              <span className="task-board-list-count">{displayedTasks.length}</span>
+            </header>
             <button type="button" className="task-board-add-btn" onClick={openAddModal} aria-label="Add task">
               +
             </button>
-          </header>
+          </div>
           {displayedTasks.length === 0 ? (
             <div className="task-board-empty-state">
               <p className="task-board-empty">No tasks yet.</p>
@@ -1391,6 +1408,7 @@ export default function TasksPage() {
                       required
                     />
                     <textarea
+                      ref={descriptionRef}
                       id="task-description"
                       className="task-editor-description-input"
                       value={form.description}
@@ -1398,7 +1416,7 @@ export default function TasksPage() {
                         setForm((current) => ({ ...current, description: event.target.value }))
                       }
                       placeholder="Add details for this task"
-                      rows={5}
+                      rows={isMobileExperience ? 1 : 5}
                     />
                     </div>
                   </header>
