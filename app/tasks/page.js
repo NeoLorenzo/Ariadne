@@ -89,6 +89,17 @@ export default function TasksPage() {
   }, [form.description, isMobileExperience, isTaskModalOpen]);
 
   useEffect(() => {
+    if (!isTaskModalOpen) return;
+
+    document
+      .querySelectorAll(".task-editor-wrapping-title")
+      .forEach((titleField) => {
+        titleField.style.height = "auto";
+        titleField.style.height = `${titleField.scrollHeight}px`;
+      });
+  }, [form.title, form.subtasks, isTaskModalOpen]);
+
+  useEffect(() => {
     try {
       const savedSortMode = window.localStorage.getItem(TASK_SORT_STORAGE_KEY);
       if (savedSortMode === "due-date" || savedSortMode === "priority") {
@@ -1444,18 +1455,18 @@ export default function TasksPage() {
                   <header className="task-editor-content-header ff-modal-header">
                     <button type="button" className={`task-editor-completion${form.completed ? " is-complete" : ""}`} onClick={() => setForm((current) => ({ ...current, completed: !current.completed }))} aria-label={form.completed ? "Mark task incomplete" : "Mark task complete"}>{form.completed ? "✓" : ""}</button>
                     <div className="task-editor-main-content">
-                    <input
+                    <textarea
                       id="task-title"
-                      type="text"
-                      className="task-editor-title-input"
+                      className="task-editor-title-input task-editor-wrapping-title"
                       value={form.title}
                       onChange={(event) => {
-                        setForm((current) => ({ ...current, title: event.target.value }));
+                        setForm((current) => ({ ...current, title: event.target.value.replace(/\r?\n/g, " ") }));
                         if (taskFormError) {
                           setTaskFormError("");
                         }
                       }}
                       placeholder="Write task title"
+                      rows={1}
                       required
                     />
                     <textarea
@@ -1547,8 +1558,15 @@ export default function TasksPage() {
                           </button>
                           <button type="button" className={`task-editor-completion task-editor-subtask-completion${subtask.completed ? " is-complete" : ""}`} onClick={() => updateDraftSubtask(subtask.id, { completed: !subtask.completed })} aria-label={`Mark ${subtask.title || "subtask"} ${subtask.completed ? "incomplete" : "complete"}`}>{subtask.completed ? "✓" : ""}</button>
                           <div className={`task-editor-subtask-content${subtask.completed ? " is-complete" : ""}`}>
-                            <input value={subtask.title} onChange={(event) => updateDraftSubtask(subtask.id, { title: event.target.value })} placeholder="Sub-task title" aria-label="Subtask title" />
-                            <input value={subtask.description || ""} onChange={(event) => updateDraftSubtask(subtask.id, { description: event.target.value })} placeholder="Add description" aria-label="Subtask description" />
+                            <textarea
+                              className="task-editor-subtask-title task-editor-wrapping-title"
+                              value={subtask.title}
+                              onChange={(event) => updateDraftSubtask(subtask.id, { title: event.target.value.replace(/\r?\n/g, " ") })}
+                              placeholder="Sub-task title"
+                              aria-label="Subtask title"
+                              rows={1}
+                            />
+                            <input className="task-editor-subtask-description" value={subtask.description || ""} onChange={(event) => updateDraftSubtask(subtask.id, { description: event.target.value })} placeholder="Add description" aria-label="Subtask description" />
                           </div>
                           <button type="button" className="task-editor-remove-subtask" onClick={() => removeDraftSubtask(subtask.id)} aria-label="Delete subtask">×</button>
                         </div>
