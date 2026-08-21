@@ -88,7 +88,7 @@ export default function StrategicObjectives({ directionId, userId }) {
 
   return (
     <section className="objectives-panel" aria-labelledby="strategic-objectives-title">
-      <SectionHeader className="objectives-header" titleId="strategic-objectives-title" eyebrow="Advancing this direction" title="Strategic objectives" actions={activeObjectives.length ? <GhostButton disabled={atLimit} onClick={openCreate} title={atLimit ? "Three active objectives already exist" : undefined}>+ Add objective</GhostButton> : null} />
+      <SectionHeader className="objectives-header" titleId="strategic-objectives-title" title="Strategic objectives" actions={activeObjectives.length ? <GhostButton disabled={atLimit} onClick={openCreate} title={atLimit ? "Three active objectives already exist" : undefined}>+ Add objective</GhostButton> : null} />
       {message ? <p className="objectives-message" role="status">{message}</p> : null}
 
       {activeObjectives.length ? (
@@ -176,14 +176,39 @@ export default function StrategicObjectives({ directionId, userId }) {
 }
 
 function ObjectiveCard({ objective, objectives, userId, index, count, onEdit, onMove, onStatus, onDelete }) {
-  return <ListRow as="article" className={`objective-card is-${objective.status}`}>
-    <div className="objective-row-content">
-      <div className="objective-row-title"><h4>{objective.title}</h4>{objective.status !== "active" ? <StatusIndicator status={objective.status} /> : null}</div>
-      <p className="objective-success">{objective.successCondition}</p>
-      <OutcomeGoals objective={objective} objectives={objectives} userId={userId} />
-    </div>
-    <details className="objective-row-menu"><summary aria-label="More objective actions">•••</summary><div className="objective-menu"><button type="button" onClick={onEdit}>Edit</button>{onMove ? <><button type="button" disabled={index === 0} onClick={() => onMove(-1)}>Move up</button><button type="button" disabled={index === count - 1} onClick={() => onMove(1)}>Move down</button></> : null}{objective.status !== "active" ? <button type="button" onClick={() => onStatus("active")}>Make active</button> : null}{objective.status !== "paused" ? <button type="button" onClick={() => onStatus("paused")}>Pause</button> : null}{objective.status !== "completed" ? <button type="button" onClick={() => onStatus("completed")}>Complete</button> : null}{objective.status !== "abandoned" ? <button type="button" onClick={() => onStatus("abandoned")}>Abandon</button> : null}<button className="is-danger" type="button" onClick={onDelete}>Delete permanently</button></div></details>
-  </ListRow>;
+  return (
+    <article className={`objective-card objective-surface is-${objective.status}`}>
+      <header className="objective-card-header">
+        <div className="objective-card-title-group">
+          <h4 className="objective-card-title">{objective.title}</h4>
+          {objective.status !== "active" ? <StatusIndicator status={objective.status} /> : null}
+        </div>
+        <details className="objective-row-menu">
+          <summary aria-label="More objective actions">•••</summary>
+          <div className="objective-menu">
+            <button type="button" onClick={onEdit}>Edit</button>
+            {onMove ? (
+              <>
+                <button type="button" disabled={index === 0} onClick={() => onMove(-1)}>Move up</button>
+                <button type="button" disabled={index === count - 1} onClick={() => onMove(1)}>Move down</button>
+              </>
+            ) : null}
+            {objective.status !== "active" ? <button type="button" onClick={() => onStatus("active")}>Make active</button> : null}
+            {objective.status !== "paused" ? <button type="button" onClick={() => onStatus("paused")}>Pause</button> : null}
+            {objective.status !== "completed" ? <button type="button" onClick={() => onStatus("completed")}>Complete</button> : null}
+            {objective.status !== "abandoned" ? <button type="button" onClick={() => onStatus("abandoned")}>Abandon</button> : null}
+            <button className="is-danger" type="button" onClick={onDelete}>Delete permanently</button>
+          </div>
+        </details>
+      </header>
+      {objective.successCondition || objective.description ? (
+        <p className="objective-success">{objective.successCondition || objective.description}</p>
+      ) : null}
+      <div className="objective-goals-wrapper">
+        <OutcomeGoals objective={objective} objectives={objectives} userId={userId} />
+      </div>
+    </article>
+  );
 }
 
 function capitalize(value) { return `${value.charAt(0).toUpperCase()}${value.slice(1)}`; }

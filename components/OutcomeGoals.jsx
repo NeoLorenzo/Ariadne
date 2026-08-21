@@ -112,45 +112,77 @@ export default function OutcomeGoals({ objective, objectives, userId }) {
     }));
   };
 
-  return <div className="outcome-goals-summary">
-    {goalsByDueDate.length ? <div className="objective-goal-summary-list">
-      {goalsByDueDate.map((goal) => {
-        const progress = calculateGoalProgress(goal);
-        const timing = getGoalTiming(goal);
-        return <article key={goal.id} className="objective-goal-summary">
-          <button className="objective-goal-summary-heading" type="button" onClick={() => setView({ type: "manage" })}>
-            <strong>{goal.title}</strong>
-            {goal.status !== "active" ? <StatusIndicator status={goal.status} /> : null}
-          </button>
-          <div className="objective-goal-summary-progress">
-            <GoalProgressControl goal={goal} progress={progress} onAdjust={adjustCurrent} />
-            <span
-              className={`objective-goal-summary-timing is-${timing.tone}`}
-              title={`Goal timing: ${timing.label}`}
-            >
-              {timing.label}
-            </span>
-          </div>
-          <button className="objective-goal-summary-chevron" type="button" aria-label={`Manage ${goal.title}`} onClick={() => setView({ type: "manage" })}>›</button>
-        </article>;
-      })}
-    </div> : null}
-    <GhostButton className="objective-add-goal" onClick={openCreate}>+ Add goal</GhostButton>
+  return (
+    <div className="outcome-goals-summary">
+      {goalsByDueDate.length ? (
+        <div className="objective-goal-grid">
+          {goalsByDueDate.map((goal) => {
+            const progress = calculateGoalProgress(goal);
+            const timing = getGoalTiming(goal);
+            return (
+              <article key={goal.id} className={`goal-card-surface is-${goal.status}`}>
+                <div className="goal-card-header">
+                  <button
+                    className="goal-card-heading"
+                    type="button"
+                    onClick={() => setView({ type: "manage" })}
+                  >
+                    <strong className="goal-card-title">{goal.title}</strong>
+                  </button>
+                  {goal.status !== "active" ? <StatusIndicator status={goal.status} /> : null}
+                </div>
 
-    {view ? <div className="direction-dialog-layer" role="presentation"><button className="direction-dialog-backdrop" type="button" aria-label="Close" onClick={() => setView(null)} />
-      {view.type === "create" || view.type === "edit" ? <ModalShell ref={dialogRef} as="form" className="direction-dialog outcome-goals-dialog entity-edit-dialog" role="dialog" aria-modal="true" aria-label={view.type === "create" ? "Add outcome goal" : "Edit outcome goal"} onSubmit={handleSave}>
-        <GoalForm draft={draft} setDraft={setDraft} objectives={objectives} meaningfulChange={meaningfulChange} revisionReason={revisionReason} setRevisionReason={setRevisionReason} message={message} />
-        <ModalFooter><SecondaryButton onClick={() => setView(null)}>Cancel</SecondaryButton><PrimaryButton type="submit">{view.type === "create" ? "Add goal" : "Save changes"}</PrimaryButton></ModalFooter>
-      </ModalShell> : view.type === "history" ? <ModalShell ref={dialogRef} className="direction-dialog outcome-goals-dialog" role="dialog" aria-modal="true" aria-labelledby="outcome-goals-dialog-title">
-        <ModalHeader titleId="outcome-goals-dialog-title" title="Goal revision history" onClose={() => setView(null)} />
-        <GoalHistory goal={view.goal} revisions={revisions} message={historyMessage} deletingRevisionId={deletingRevisionId} onDelete={removeRevision} />
-      </ModalShell> : <ModalShell ref={dialogRef} className="direction-dialog outcome-goals-dialog" role="dialog" aria-modal="true" aria-labelledby="outcome-goals-dialog-title">
-        <ModalHeader titleId="outcome-goals-dialog-title" title={objective.title} onClose={() => setView(null)} />
-        <GoalManager activeGoals={activeGoals} inactiveGoals={inactiveGoals} onAdd={openCreate} onEdit={openEdit} onHistory={showHistory} onDelete={remove} onAdjust={adjustCurrent} />
-        {activeGoals.length ? <ModalFooter><GhostButton onClick={openCreate}>+ Add goal</GhostButton></ModalFooter> : null}
-      </ModalShell>}
-    </div> : null}
-  </div>;
+                <div className="goal-card-body">
+                  <GoalProgressControl goal={goal} progress={progress} onAdjust={adjustCurrent} />
+                </div>
+
+                <footer className="goal-card-footer">
+                  <span
+                    className={`goal-card-timing is-${timing.tone}`}
+                    title={`Goal timing: ${timing.label}`}
+                  >
+                    {timing.label}
+                  </span>
+                  <button
+                    className="goal-card-chevron"
+                    type="button"
+                    aria-label={`Manage ${goal.title}`}
+                    onClick={() => setView({ type: "manage" })}
+                  >
+                    ›
+                  </button>
+                </footer>
+              </article>
+            );
+          })}
+        </div>
+      ) : null}
+      <GhostButton className="objective-add-goal" onClick={openCreate}>+ Add goal</GhostButton>
+
+      {view ? (
+        <div className="direction-dialog-layer" role="presentation">
+          <button className="direction-dialog-backdrop" type="button" aria-label="Close" onClick={() => setView(null)} />
+          {view.type === "create" || view.type === "edit" ? (
+            <ModalShell ref={dialogRef} as="form" className="direction-dialog outcome-goals-dialog entity-edit-dialog" role="dialog" aria-modal="true" aria-label={view.type === "create" ? "Add outcome goal" : "Edit outcome goal"} onSubmit={handleSave}>
+              <GoalForm draft={draft} setDraft={setDraft} objectives={objectives} meaningfulChange={meaningfulChange} revisionReason={revisionReason} setRevisionReason={setRevisionReason} message={message} />
+              <ModalFooter><SecondaryButton onClick={() => setView(null)}>Cancel</SecondaryButton><PrimaryButton type="submit">{view.type === "create" ? "Add goal" : "Save changes"}</PrimaryButton></ModalFooter>
+            </ModalShell>
+          ) : view.type === "history" ? (
+            <ModalShell ref={dialogRef} className="direction-dialog outcome-goals-dialog" role="dialog" aria-modal="true" aria-labelledby="outcome-goals-dialog-title">
+              <ModalHeader titleId="outcome-goals-dialog-title" title="Goal revision history" onClose={() => setView(null)} />
+              <GoalHistory goal={view.goal} revisions={revisions} message={historyMessage} deletingRevisionId={deletingRevisionId} onDelete={removeRevision} />
+            </ModalShell>
+          ) : (
+            <ModalShell ref={dialogRef} className="direction-dialog outcome-goals-dialog" role="dialog" aria-modal="true" aria-labelledby="outcome-goals-dialog-title">
+              <ModalHeader titleId="outcome-goals-dialog-title" title={objective.title} onClose={() => setView(null)} />
+              <GoalManager activeGoals={activeGoals} inactiveGoals={inactiveGoals} onAdd={openCreate} onEdit={openEdit} onHistory={showHistory} onDelete={remove} onAdjust={adjustCurrent} />
+              {activeGoals.length ? <ModalFooter><GhostButton onClick={openCreate}>+ Add goal</GhostButton></ModalFooter> : null}
+            </ModalShell>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function GoalManager({ activeGoals, inactiveGoals, onAdd, onEdit, onHistory, onDelete, onAdjust }) {

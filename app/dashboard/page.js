@@ -272,12 +272,20 @@ export default function DashboardPage() {
     error: "Try copy again"
   }[copyState.status] || "Copy all data";
 
+  const [isNoticeBoardExpanded, setIsNoticeBoardExpanded] = useState(false);
+  const INITIAL_NOTICE_LIMIT = 4;
+
+  const visibleNoticeItems = useMemo(() => {
+    if (isNoticeBoardExpanded) return noticeBoardItems;
+    return noticeBoardItems.slice(0, INITIAL_NOTICE_LIMIT);
+  }, [noticeBoardItems, isNoticeBoardExpanded]);
+
   return (
     <AppShell currentPageLabel="Dashboard" activeNavItem="dashboard">
       <section className="dashboard-workspace">
-        <section className="dashboard-modal">
-          <header className="dashboard-modal-header">
-            <h2 className="dashboard-modal-title">Dashboard</h2>
+        <div className="dashboard-container">
+          <header className="dashboard-header">
+            <h2 className="dashboard-title">Dashboard</h2>
             <SecondaryButton
               className="dashboard-copy-data-btn"
               onClick={copyFullAppData}
@@ -289,85 +297,121 @@ export default function DashboardPage() {
             </SecondaryButton>
           </header>
 
-          <div className="dashboard-modal-body">
+          <div className="dashboard-body">
             <section className="dashboard-strategy" aria-label="Strategy">
               <DirectionPanel userId={authUserId} onDirectionChange={setActiveDirection} />
               <StrategicObjectives directionId={activeDirection?.id} userId={authUserId} />
             </section>
-            <section className="notice-board-modal">
-              <header className="notice-board-header">
-                <h3 className="notice-board-title">Notice board</h3>
-              </header>
-              <hr className="notice-board-divider" />
-              <ol className="notice-board-list">
-                {noticeBoardItems.map((noticeItem) => (
-                  <li
-                    key={noticeItem.id}
-                    className={`notice-board-item ${noticeItem.severity ? `is-${noticeItem.severity}` : ""}`}
+
+            <div className="dashboard-operational-grid">
+              <section className="notice-board-module" aria-label="Notice board">
+                <header className="notice-board-header">
+                  <div className="notice-board-title-group">
+                    <h3 className="notice-board-title">Notice board</h3>
+                    {noticeBoardItems.length ? (
+                      <span className="notice-board-count-pill">{noticeBoardItems.length} issue{noticeBoardItems.length === 1 ? "" : "s"}</span>
+                    ) : null}
+                  </div>
+                  {noticeBoardItems.length > INITIAL_NOTICE_LIMIT ? (
+                    <button
+                      type="button"
+                      className="notice-board-toggle-btn"
+                      aria-expanded={isNoticeBoardExpanded}
+                      onClick={() => setIsNoticeBoardExpanded(!isNoticeBoardExpanded)}
+                    >
+                      {isNoticeBoardExpanded ? "Collapse" : `View all (${noticeBoardItems.length})`}
+                    </button>
+                  ) : null}
+                </header>
+
+                <ul className="notice-board-list">
+                  {visibleNoticeItems.length ? visibleNoticeItems.map((noticeItem) => (
+                    <li
+                      key={noticeItem.id}
+                      className={`notice-board-item ${noticeItem.severity ? `is-${noticeItem.severity}` : ""}`}
+                    >
+                      <div className="notice-board-item-header">
+                        <span className={`notice-severity-badge is-${noticeItem.severity || "info"}`}>
+                          {noticeItem.title}
+                        </span>
+                      </div>
+                      <p className="notice-board-item-text">{noticeItem.text}</p>
+                    </li>
+                  )) : (
+                    <li className="notice-board-empty">No active notices.</li>
+                  )}
+                </ul>
+              </section>
+
+              <section className="signals-module" aria-label="Signals">
+                <header className="signals-module-header">
+                  <h3 className="signals-module-title">Signals</h3>
+                </header>
+
+                <div className="signals-grid">
+                  <article className="signal-card signal-card-substack">
+                    <div className="signal-card-header">
+                      <h4 className="signal-card-title">Lorenzo Roque Substack</h4>
+                      <span className="signal-type-tag">Substack</span>
+                    </div>
+                    <div className="signal-card-body">
+                      <div className="signal-metric-block">
+                        <span className={`signal-hero-number ${resolveSignalRecencyClass(substackDaysSinceLastPublication)}`}>
+                          {formatSignalDayCount(substackDaysSinceLastPublication)}
+                        </span>
+                        <span className="signal-hero-unit">days since last post</span>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article className="signal-card signal-card-protolorenzo">
+                    <div className="signal-card-header">
+                      <h4 className="signal-card-title">ProtoLorenzo</h4>
+                      <span className="signal-type-tag is-youtube">YouTube</span>
+                    </div>
+                    <div className="signal-card-body">
+                      <div className="signal-row">
+                        <span className="signal-field-label">Scheduled</span>
+                        <input
+                          type="date"
+                          className="signal-date-input"
+                          value={protoLorenzoLatestScheduledDate}
+                          onChange={(event) =>
+                            handleProtoLorenzoScheduledDateChange(event.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="signal-row">
+                        <span className="signal-field-label">Backlog</span>
+                        <strong className={`signal-backlog-value ${videoBacklogSeverity ? `is-${videoBacklogSeverity}` : ""}`}>
+                          {formatVideoBacklogDayCount(protoLorenzoVideoBacklogDays)}
+                        </strong>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </section>
+            </div>
+
+            <section className="quick-actions-module" aria-label="Quick actions">
+              <h3 className="quick-actions-title">Quick actions</h3>
+              <div className="quick-actions-list">
+                {DASHBOARD_LINKS.map((dashboardLink) => (
+                  <a
+                    key={dashboardLink.href}
+                    className="quick-action-pill"
+                    href={dashboardLink.href}
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    <p className="notice-board-item-line">
-                      <span className="notice-board-item-title">{noticeItem.title}</span>
-                      <span>{noticeItem.text}</span>
-                    </p>
-                  </li>
+                    <span>{dashboardLink.label}</span>
+                    <span className="quick-action-arrow" aria-hidden="true">↗</span>
+                  </a>
                 ))}
-              </ol>
-            </section>
-
-            <section className="dashboard-links-modal" aria-label="Quick links">
-              {DASHBOARD_LINKS.map((dashboardLink) => (
-                <a
-                  key={dashboardLink.href}
-                  className="dashboard-link-btn"
-                  href={dashboardLink.href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {dashboardLink.label}
-                </a>
-              ))}
-            </section>
-
-            <section className="signals-modal">
-              <header className="signals-modal-header">
-                <h3 className="signals-modal-title">Signals</h3>
-              </header>
-
-              <div className="signals-grid">
-                <article className="signal-card">
-                  <h4 className="signal-card-title">Lorenzo Roque Substack</h4>
-                  <div className="signal-metric-row">
-                    <span>Days since post</span>
-                    <strong className={resolveSignalRecencyClass(substackDaysSinceLastPublication)}>
-                      {formatSignalDayCount(substackDaysSinceLastPublication)}
-                    </strong>
-                  </div>
-                </article>
-
-                <article className="signal-card">
-                  <h4 className="signal-card-title">ProtoLorenzo</h4>
-                  <label className="signal-date-field">
-                    <span>Latest scheduled</span>
-                    <input
-                      type="date"
-                      className="signal-date-input"
-                      value={protoLorenzoLatestScheduledDate}
-                      onChange={(event) =>
-                        handleProtoLorenzoScheduledDateChange(event.target.value)
-                      }
-                    />
-                  </label>
-                  <div className="signal-metric-row">
-                    <span>Backlog</span>
-                    <strong className={videoBacklogSeverity ? `is-${videoBacklogSeverity}` : ""}>
-                      {formatVideoBacklogDayCount(protoLorenzoVideoBacklogDays)}
-                    </strong>
-                  </div>
-                </article>
               </div>
             </section>
           </div>
-        </section>
+        </div>
       </section>
     </AppShell>
   );
