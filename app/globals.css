@@ -3795,13 +3795,41 @@ textarea.task-editor-subtask-title {
 
 /* Todoist-inspired task list */
 .task-board-list { gap: 0; padding: 0; }
+.task-board-completed-section { width: 100%; margin-top: 1.35rem; }
 .task-board-completed-heading {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  margin-top: 1.35rem;
-  padding: 0.55rem 0.15rem 0.45rem;
+  padding: 0.55rem 0.35rem 0.45rem;
+  border: 0;
   border-bottom: 1px solid #454545;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 120ms ease;
+}
+.task-board-completed-heading:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+.task-board-completed-heading:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+.task-board-completed-chevron {
+  color: #858585;
+  font-size: 0.82rem;
+  line-height: 1;
+  width: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: transform 120ms ease;
 }
 .task-board-completed-heading h3 {
   margin: 0;
@@ -3810,17 +3838,19 @@ textarea.task-editor-subtask-title {
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.task-board-completed-heading span {
+.task-board-completed-count {
   display: grid;
   min-width: 1.25rem;
   height: 1.25rem;
   place-items: center;
   border-radius: 999px;
-  background: rgba(255,255,255,.07);
+  background: rgba(255, 255, 255, 0.07);
   color: #858585;
   font-size: 0.65rem;
   font-weight: 700;
+  padding: 0 0.35rem;
 }
+.task-board-completed-list { display: grid; gap: 0; }
 .task-card,
 .task-card.priority-band-none,
 .task-card.priority-band-low,
@@ -3832,14 +3862,50 @@ textarea.task-editor-subtask-title {
   grid-template-columns: 1.25rem minmax(0, 1fr);
   align-items: start;
   gap: 0.68rem;
-  padding: 0.72rem 0.15rem;
+  padding: 0.72rem 0.35rem;
   border: 0;
   border-bottom: 1px solid #373737;
-  border-radius: 0;
+  border-radius: 5px;
   background: transparent;
   box-shadow: none;
 }
 .task-card:hover { background: rgba(255,255,255,.018); }
+
+.task-card.priority-band-critical:not(.is-directional-goal) {
+  background: rgba(248, 113, 113, 0.06);
+}
+.task-card.priority-band-critical:not(.is-directional-goal):hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.task-card.priority-band-high:not(.is-directional-goal) {
+  background: rgba(249, 115, 22, 0.06);
+}
+.task-card.priority-band-high:not(.is-directional-goal):hover {
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.task-card.priority-band-medium:not(.is-directional-goal) {
+  background: rgba(251, 191, 36, 0.05);
+}
+.task-card.priority-band-medium:not(.is-directional-goal):hover {
+  background: rgba(251, 191, 36, 0.09);
+}
+
+.task-card.priority-band-low:not(.is-directional-goal) {
+  background: rgba(56, 189, 248, 0.04);
+}
+.task-card.priority-band-low:not(.is-directional-goal):hover {
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.task-card.priority-band-none:not(.is-directional-goal) {
+  background: transparent;
+}
+.task-card.priority-band-none:not(.is-directional-goal):hover {
+  background: rgba(255, 255, 255, 0.018);
+}
+
 .task-card.is-directional-goal {
   margin: 3px 0;
   padding-right: 8px;
@@ -3871,6 +3937,36 @@ textarea.task-editor-subtask-title {
   font-size: .61rem;
   font-weight: 600;
   letter-spacing: .01em;
+}
+.task-card-priority-pill {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.61rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.task-card-priority-pill.priority-band-critical {
+  border: 1px solid rgba(248, 113, 113, 0.65);
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+}
+.task-card-priority-pill.priority-band-high {
+  border: 1px solid rgba(249, 115, 22, 0.65);
+  background: rgba(249, 115, 22, 0.22);
+  color: #fdba74;
+}
+.task-card-priority-pill.priority-band-medium {
+  border: 1px solid rgba(251, 191, 36, 0.65);
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+.task-card-priority-pill.priority-band-low {
+  border: 1px solid rgba(56, 189, 248, 0.65);
+  background: rgba(14, 165, 233, 0.2);
+  color: #7dd3fc;
 }
 .task-card-description { color: #c5c5c5; font-size: 0.76rem; line-height: 1.38; -webkit-line-clamp: 2; }
 .task-card-date { color: #ef5b57; font-size: 0.68rem; font-weight: 600; }

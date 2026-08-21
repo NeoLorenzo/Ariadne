@@ -57,6 +57,7 @@ export default function TasksPage() {
   const [taskRecoveryState, setTaskRecoveryState] = useState({ status: "idle", backup: null, message: "" });
   const [hideCompletedSubtasks, setHideCompletedSubtasks] = useState(false);
   const [areSubtasksExpanded, setAreSubtasksExpanded] = useState(true);
+  const [isCompletedTasksExpanded, setIsCompletedTasksExpanded] = useState(false);
   const [draggedSubtaskId, setDraggedSubtaskId] = useState("");
   const [, setCloudReadState] = useState("idle");
   const [, setCloudReadSource] = useState("none");
@@ -1271,6 +1272,121 @@ export default function TasksPage() {
     task.id === taskId ? { ...task, completed: !task.completed, updatedAt: Date.now() } : task
   ));
 
+  const renderTaskCard = (task) => {
+    const directionalGoalId = getDirectionalGoalId(task);
+    const priorityScore = calculatePriorityScore(task);
+    const priorityBand = getPriorityScoreBand(priorityScore);
+    const timePressureRatio =
+      timePressureByTaskId[task.id] ?? calculateTimePressure(task);
+    const timePressureColor = getTimePressureColor(timePressureRatio);
+    const description = String(task.description || "").trim();
+    const normalizedDueDate = normalizeDateInput(task.dueDate);
+    const normalizedEstimatedHours = normalizeEstimatedHours(task.estimatedHours);
+    const hasDescription = Boolean(description);
+    const hasDueDate = Boolean(normalizedDueDate);
+    const hasEstimatedTime = normalizedEstimatedHours !== "";
+    const hasTimePressure = hasEstimatedTime
+      && timePressureRatio !== null
+      && timePressureRatio !== undefined;
+    const subtasks = sanitizeSubtaskList(task.subtasks);
+    const completedSubtaskCount = subtasks.filter((subtask) => subtask.completed).length;
+    const taskSyncBadge = taskCloudSyncBadgesByTaskId[task.id] || {
+      label: "Local",
+      tone: "local"
+    };
+
+    return (
+      <article
+        key={task.id}
+        className={`task-card priority-band-${priorityBand}${directionalGoalId ? " is-directional-goal" : ""}${
+          isMobileExperience ? " task-card-mobile-editable" : ""
+        }`}
+        onClick={() => startEditTask(task)}
+        onKeyDown={
+          (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              startEditTask(task);
+            }
+          }
+        }
+        role="button"
+        tabIndex={0}
+      >
+        <button
+          type="button"
+          className={`task-list-completion${task.completed ? " is-complete" : ""}`}
+          onClick={(event) => { event.stopPropagation(); toggleTaskCompleted(task.id); }}
+          aria-label={task.completed ? "Mark task incomplete" : "Mark task complete"}
+        >{task.completed ? "✓" : ""}</button>
+        <div className={`task-card-content${task.completed ? " is-complete" : ""}`}>
+        <header className="task-card-header">
+          <h4 className="task-card-title">{task.title}</h4>
+          {directionalGoalId ? (
+            <span className="task-card-goal-tag">◆ Directional goal</span>
+          ) : priorityScore > 0 ? (
+            <span className={`task-card-priority-pill priority-band-${priorityBand}`}>
+              Priority {priorityScore}
+            </span>
+          ) : null}
+          <span
+            className={`task-card-sync-badge task-card-sync-dot is-${taskSyncBadge.tone}`}
+            title={taskSyncBadge.label}
+            aria-label={taskSyncBadge.label}
+          />
+          <div className="task-card-actions">
+            {!isMobileExperience ? (
+              <button type="button" className="task-card-btn" title="Duplicate" aria-label="Duplicate task" onClick={(event) => { event.stopPropagation(); duplicateTask(task); }}>
+                ⧉
+              </button>
+            ) : null}
+            {!isMobileExperience ? (
+              <button
+                type="button"
+                className="task-card-btn task-card-btn-danger"
+                title="Delete"
+                aria-label="Delete task"
+                onClick={(event) => { event.stopPropagation(); deleteTask(task.id); }}
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
+        </header>
+        {hasDescription ? <p className="task-card-description">{description}</p> : null}
+        {subtasks.length ? (
+          <div className="task-card-subtasks">
+            <div className="task-card-subtask-summary"><span>Subtasks</span><strong>{completedSubtaskCount} / {subtasks.length}</strong></div>
+            <div className="task-card-subtask-progress" aria-hidden="true"><span style={{ width: `${(completedSubtaskCount / subtasks.length) * 100}%` }} /></div>
+            {subtasks.slice(0, 3).map((subtask) => (
+              <label className="task-card-subtask" key={subtask.id}>
+                <input type="checkbox" checked={subtask.completed} onChange={() => toggleTaskSubtask(task.id, subtask.id)} />
+                <span className={subtask.completed ? "is-complete" : ""}>{subtask.title}</span>
+              </label>
+            ))}
+            {subtasks.length > 3 ? <span className="task-card-subtask-more">+{subtasks.length - 3} more</span> : null}
+          </div>
+        ) : null}
+        {hasDueDate ? <p className="task-card-date">{formatDueInDays(task.dueDate, task.dueTime)}</p> : null}
+        {hasEstimatedTime || hasTimePressure ? (
+          <div className="task-card-metrics">
+            {hasEstimatedTime ? (
+              <p className="task-card-estimated-time task-card-chip">
+                Est: {formatEstimatedHours(normalizedEstimatedHours)}
+              </p>
+            ) : null}
+            {hasTimePressure ? (
+              <p className="task-card-time-pressure task-card-chip" style={{ color: timePressureColor }}>
+                Pressure: {formatTimePressure(timePressureRatio)}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        </div>
+      </article>
+    );
+  };
+
   return (
     <AppShell currentPageLabel="Tasks" activeNavItem="tasks" hideMobileNav={isTaskModalOpen}>
       <section className="tasks-workspace">
@@ -1317,129 +1433,28 @@ export default function TasksPage() {
             </div>
           ) : (
             <div className="task-board-list">
-              {displayedTasks.map((task, taskIndex) => {
-                const directionalGoalId = getDirectionalGoalId(task);
-                const priorityScore = calculatePriorityScore(task);
-                const priorityBand = getPriorityScoreBand(priorityScore);
-                const timePressureRatio =
-                  timePressureByTaskId[task.id] ?? calculateTimePressure(task);
-                const timePressureColor = getTimePressureColor(timePressureRatio);
-                const description = String(task.description || "").trim();
-                const normalizedDueDate = normalizeDateInput(task.dueDate);
-                const normalizedEstimatedHours = normalizeEstimatedHours(task.estimatedHours);
-                const hasDescription = Boolean(description);
-                const hasDueDate = Boolean(normalizedDueDate);
-                const hasEstimatedTime = normalizedEstimatedHours !== "";
-                const hasTimePressure = hasEstimatedTime
-                  && timePressureRatio !== null
-                  && timePressureRatio !== undefined;
-                const hasPriority = !task.completed && priorityScore > 0;
-                const subtasks = sanitizeSubtaskList(task.subtasks);
-                const completedSubtaskCount = subtasks.filter((subtask) => subtask.completed).length;
-                const taskSyncBadge = taskCloudSyncBadgesByTaskId[task.id] || {
-                  label: "Local",
-                  tone: "local"
-                };
-                const isFirstCompletedTask =
-                  task.completed && taskIndex === activeTasks.length;
-
-                return (
-                  <Fragment key={task.id}>
-                  {isFirstCompletedTask ? (
-                    <div className="task-board-completed-heading">
-                      <h3>Completed Tasks</h3>
-                      <span>{completedTasks.length}</span>
+              {activeTasks.map(renderTaskCard)}
+              {completedTasks.length > 0 ? (
+                <div className="task-board-completed-section">
+                  <button
+                    type="button"
+                    className="task-board-completed-heading"
+                    onClick={() => setIsCompletedTasksExpanded((current) => !current)}
+                    aria-expanded={isCompletedTasksExpanded}
+                  >
+                    <span className="task-board-completed-chevron" aria-hidden="true">
+                      {isCompletedTasksExpanded ? "⌄" : "›"}
+                    </span>
+                    <h3>Completed Tasks</h3>
+                    <span className="task-board-completed-count">{completedTasks.length}</span>
+                  </button>
+                  {isCompletedTasksExpanded ? (
+                    <div className="task-board-completed-list">
+                      {completedTasks.map(renderTaskCard)}
                     </div>
                   ) : null}
-                  <article
-                    className={`task-card priority-band-${priorityBand}${directionalGoalId ? " is-directional-goal" : ""}${
-                      isMobileExperience ? " task-card-mobile-editable" : ""
-                    }`}
-                    onClick={() => startEditTask(task)}
-                    onKeyDown={
-                      (event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          startEditTask(task);
-                        }
-                      }
-                    }
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <button
-                      type="button"
-                      className={`task-list-completion${task.completed ? " is-complete" : ""}`}
-                      onClick={(event) => { event.stopPropagation(); toggleTaskCompleted(task.id); }}
-                      aria-label={task.completed ? "Mark task incomplete" : "Mark task complete"}
-                    >{task.completed ? "✓" : ""}</button>
-                    <div className={`task-card-content${task.completed ? " is-complete" : ""}`}>
-                    <header className="task-card-header">
-                      <h4 className="task-card-title">{task.title}</h4>
-                      {directionalGoalId ? <span className="task-card-goal-tag">◆ Directional goal</span> : null}
-                      <span
-                        className={`task-card-sync-badge task-card-sync-dot is-${taskSyncBadge.tone}`}
-                        title={taskSyncBadge.label}
-                        aria-label={taskSyncBadge.label}
-                      />
-                      <div className="task-card-actions">
-                        {!isMobileExperience ? (
-                          <button type="button" className="task-card-btn" title="Duplicate" aria-label="Duplicate task" onClick={(event) => { event.stopPropagation(); duplicateTask(task); }}>
-                            ⧉
-                          </button>
-                        ) : null}
-                        {!isMobileExperience ? (
-                          <button
-                            type="button"
-                            className="task-card-btn task-card-btn-danger"
-                            title="Delete"
-                            aria-label="Delete task"
-                            onClick={(event) => { event.stopPropagation(); deleteTask(task.id); }}
-                          >
-                            ×
-                          </button>
-                        ) : null}
-                      </div>
-                    </header>
-                    {hasDescription ? <p className="task-card-description">{description}</p> : null}
-                    {subtasks.length ? (
-                      <div className="task-card-subtasks">
-                        <div className="task-card-subtask-summary"><span>Subtasks</span><strong>{completedSubtaskCount} / {subtasks.length}</strong></div>
-                        <div className="task-card-subtask-progress" aria-hidden="true"><span style={{ width: `${(completedSubtaskCount / subtasks.length) * 100}%` }} /></div>
-                        {subtasks.slice(0, 3).map((subtask) => (
-                          <label className="task-card-subtask" key={subtask.id}>
-                            <input type="checkbox" checked={subtask.completed} onChange={() => toggleTaskSubtask(task.id, subtask.id)} />
-                            <span className={subtask.completed ? "is-complete" : ""}>{subtask.title}</span>
-                          </label>
-                        ))}
-                        {subtasks.length > 3 ? <span className="task-card-subtask-more">+{subtasks.length - 3} more</span> : null}
-                      </div>
-                    ) : null}
-                    {hasDueDate ? <p className="task-card-date">{formatDueInDays(task.dueDate, task.dueTime)}</p> : null}
-                    {hasEstimatedTime || hasTimePressure || hasPriority ? (
-                      <div className="task-card-metrics">
-                        {hasEstimatedTime ? (
-                          <p className="task-card-estimated-time task-card-chip">
-                            Est: {formatEstimatedHours(normalizedEstimatedHours)}
-                          </p>
-                        ) : null}
-                        {hasTimePressure ? (
-                          <p className="task-card-time-pressure task-card-chip" style={{ color: timePressureColor }}>
-                            Pressure: {formatTimePressure(timePressureRatio)}
-                          </p>
-                        ) : null}
-                        {hasPriority ? (
-                          <p className={`task-card-priority-score task-card-chip priority-band-${priorityBand}`}>
-                            Priority: {priorityScore}
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    </div>
-                  </article>
-                  </Fragment>
-                );
-              })}
+                </div>
+              ) : null}
             </div>
           )}
 
