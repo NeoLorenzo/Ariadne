@@ -683,7 +683,8 @@ export default function CodingPage() {
       }
 
       setHasGitHubProviderToken(true);
-      const repos = await fetchAllGitHubRepos(providerToken);
+      const rawRepos = await fetchAllGitHubRepos(providerToken);
+      const repos = rawRepos.filter((repo) => Number(repo?.stargazers_count || 0) > 0);
       const now = Date.now();
 
       setProjects((previousProjects) => {
@@ -727,6 +728,7 @@ export default function CodingPage() {
               completionStatus: archived ? PROJECT_STATUS_COMPLETED : PROJECT_STATUS_ACTIVE,
               repoStatusTag: mapRepoTopicsToStatusTag(repo?.topics),
               isArchived: archived,
+              stargazersCount: Number(repo?.stargazers_count || 0),
               lastCommitAt: pushedAtTimestamp ?? updatedAtTimestamp ?? null,
               updatedAt: now,
               createdAt: existingProject?.createdAt || now
@@ -995,6 +997,7 @@ function sanitizeProject(project) {
     completionStatus: normalizeProjectCompletionStatus(project.completionStatus),
     repoStatusTag: normalizeRepoStatusTag(project.repoStatusTag),
     isArchived: normalizeBooleanFlag(project.isArchived),
+    stargazersCount: Number.isFinite(Number(project.stargazersCount)) ? Number(project.stargazersCount) : null,
     lastCommitAt: normalizeOptionalTimestamp(project.lastCommitAt),
     createdAt: Number.isFinite(Number(project.createdAt)) ? Number(project.createdAt) : now,
     updatedAt: Number.isFinite(Number(project.updatedAt)) ? Number(project.updatedAt) : now
@@ -1006,7 +1009,19 @@ function sanitizeProjectList(rawProjects) {
     return [];
   }
 
-  return rawProjects.map((project) => sanitizeProject(project)).filter(Boolean);
+  return rawProjects
+    .map((project) => sanitizeProject(project))
+    .filter((project) => {
+      if (!project) return false;
+      if (
+        project.id.startsWith(GITHUB_REPO_PROJECT_ID_PREFIX) &&
+        project.stargazersCount !== null &&
+        project.stargazersCount <= 0
+      ) {
+        return false;
+      }
+      return true;
+    });
 }
 
 function getProjectSyncSignature(project) {

@@ -129,29 +129,28 @@ export default function OutcomeGoals({ objective, objectives, userId }) {
                   >
                     <strong className="goal-card-title">{goal.title}</strong>
                   </button>
-                  {goal.status !== "active" ? <StatusIndicator status={goal.status} /> : null}
+                  <div className="goal-card-header-actions">
+                    {goal.status !== "active" ? <StatusIndicator status={goal.status} /> : null}
+                    <span
+                      className={`goal-card-timing-pill is-${timing.tone}`}
+                      title={`Goal timing: ${timing.label}`}
+                    >
+                      {timing.label}
+                    </span>
+                    <button
+                      className="goal-card-chevron"
+                      type="button"
+                      aria-label={`Manage ${goal.title}`}
+                      onClick={() => setView({ type: "manage" })}
+                    >
+                      ›
+                    </button>
+                  </div>
                 </div>
 
                 <div className="goal-card-body">
                   <GoalProgressControl goal={goal} progress={progress} onAdjust={adjustCurrent} />
                 </div>
-
-                <footer className="goal-card-footer">
-                  <span
-                    className={`goal-card-timing is-${timing.tone}`}
-                    title={`Goal timing: ${timing.label}`}
-                  >
-                    {timing.label}
-                  </span>
-                  <button
-                    className="goal-card-chevron"
-                    type="button"
-                    aria-label={`Manage ${goal.title}`}
-                    onClick={() => setView({ type: "manage" })}
-                  >
-                    ›
-                  </button>
-                </footer>
               </article>
             );
           })}

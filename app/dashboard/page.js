@@ -303,95 +303,44 @@ export default function DashboardPage() {
               <StrategicObjectives directionId={activeDirection?.id} userId={authUserId} />
             </section>
 
-            <div className="dashboard-operational-grid">
-              <section className="notice-board-module" aria-label="Notice board">
-                <header className="notice-board-header">
-                  <div className="notice-board-title-group">
-                    <h3 className="notice-board-title">Notice board</h3>
-                    {noticeBoardItems.length ? (
-                      <span className="notice-board-count-pill">{noticeBoardItems.length} issue{noticeBoardItems.length === 1 ? "" : "s"}</span>
-                    ) : null}
-                  </div>
-                  {noticeBoardItems.length > INITIAL_NOTICE_LIMIT ? (
-                    <button
-                      type="button"
-                      className="notice-board-toggle-btn"
-                      aria-expanded={isNoticeBoardExpanded}
-                      onClick={() => setIsNoticeBoardExpanded(!isNoticeBoardExpanded)}
-                    >
-                      {isNoticeBoardExpanded ? "Collapse" : `View all (${noticeBoardItems.length})`}
-                    </button>
+            <section className="notice-board-module" aria-label="Notice board">
+              <header className="notice-board-header">
+                <div className="notice-board-title-group">
+                  <h3 className="notice-board-title">Notice board</h3>
+                  {noticeBoardItems.length ? (
+                    <span className="notice-board-count-pill">{noticeBoardItems.length} issue{noticeBoardItems.length === 1 ? "" : "s"}</span>
                   ) : null}
-                </header>
-
-                <ul className="notice-board-list">
-                  {visibleNoticeItems.length ? visibleNoticeItems.map((noticeItem) => (
-                    <li
-                      key={noticeItem.id}
-                      className={`notice-board-item ${noticeItem.severity ? `is-${noticeItem.severity}` : ""}`}
-                    >
-                      <div className="notice-board-item-header">
-                        <span className={`notice-severity-badge is-${noticeItem.severity || "info"}`}>
-                          {noticeItem.title}
-                        </span>
-                      </div>
-                      <p className="notice-board-item-text">{noticeItem.text}</p>
-                    </li>
-                  )) : (
-                    <li className="notice-board-empty">No active notices.</li>
-                  )}
-                </ul>
-              </section>
-
-              <section className="signals-module" aria-label="Signals">
-                <header className="signals-module-header">
-                  <h3 className="signals-module-title">Signals</h3>
-                </header>
-
-                <div className="signals-grid">
-                  <article className="signal-card signal-card-substack">
-                    <div className="signal-card-header">
-                      <h4 className="signal-card-title">Lorenzo Roque Substack</h4>
-                      <span className="signal-type-tag">Substack</span>
-                    </div>
-                    <div className="signal-card-body">
-                      <div className="signal-metric-block">
-                        <span className={`signal-hero-number ${resolveSignalRecencyClass(substackDaysSinceLastPublication)}`}>
-                          {formatSignalDayCount(substackDaysSinceLastPublication)}
-                        </span>
-                        <span className="signal-hero-unit">days since last post</span>
-                      </div>
-                    </div>
-                  </article>
-
-                  <article className="signal-card signal-card-protolorenzo">
-                    <div className="signal-card-header">
-                      <h4 className="signal-card-title">ProtoLorenzo</h4>
-                      <span className="signal-type-tag is-youtube">YouTube</span>
-                    </div>
-                    <div className="signal-card-body">
-                      <div className="signal-row">
-                        <span className="signal-field-label">Scheduled</span>
-                        <input
-                          type="date"
-                          className="signal-date-input"
-                          value={protoLorenzoLatestScheduledDate}
-                          onChange={(event) =>
-                            handleProtoLorenzoScheduledDateChange(event.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="signal-row">
-                        <span className="signal-field-label">Backlog</span>
-                        <strong className={`signal-backlog-value ${videoBacklogSeverity ? `is-${videoBacklogSeverity}` : ""}`}>
-                          {formatVideoBacklogDayCount(protoLorenzoVideoBacklogDays)}
-                        </strong>
-                      </div>
-                    </div>
-                  </article>
                 </div>
-              </section>
-            </div>
+                {noticeBoardItems.length > INITIAL_NOTICE_LIMIT ? (
+                  <button
+                    type="button"
+                    className="notice-board-toggle-btn"
+                    aria-expanded={isNoticeBoardExpanded}
+                    onClick={() => setIsNoticeBoardExpanded(!isNoticeBoardExpanded)}
+                  >
+                    {isNoticeBoardExpanded ? "Collapse" : `View all (${noticeBoardItems.length})`}
+                  </button>
+                ) : null}
+              </header>
+
+              <ul className="notice-board-list">
+                {visibleNoticeItems.length ? visibleNoticeItems.map((noticeItem) => (
+                  <li
+                    key={noticeItem.id}
+                    className={`notice-board-item ${noticeItem.severity ? `is-${noticeItem.severity}` : ""}`}
+                  >
+                    <div className="notice-board-item-header">
+                      <span className={`notice-severity-badge is-${noticeItem.severity || "info"}`}>
+                        {noticeItem.title}
+                      </span>
+                    </div>
+                    <p className="notice-board-item-text">{noticeItem.text}</p>
+                  </li>
+                )) : (
+                  <li className="notice-board-empty">No active notices.</li>
+                )}
+              </ul>
+            </section>
 
             <section className="quick-actions-module" aria-label="Quick actions">
               <h3 className="quick-actions-title">Quick actions</h3>
