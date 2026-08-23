@@ -17,7 +17,12 @@ const STRENGTH_EXERCISES = [
   "Seated Dumbbell Lateral Raises",
   "Seated Dumbbell Overhead Press"
 ];
-const COGNITIVE_TESTS = ["Mensa Norway"];
+const COGNITIVE_TESTS = [
+  "Mensa Norway",
+  "Forward Digit Span",
+  "Backward Digit Span",
+  "Sequential Digit Span"
+];
 
 function getTodayDateValue() {
   return new Date().toISOString().slice(0, 10);
@@ -70,6 +75,10 @@ export default function LabPage() {
     heightCm: ""
   });
   const [academicNotesDraft, setAcademicNotesDraft] = useState("");
+  const [healthForm, setHealthForm] = useState({
+    bloodTestText: "",
+    miscText: ""
+  });
   const [immutableDraft, setImmutableDraft] = useState("");
   const [miscDraft, setMiscDraft] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
@@ -152,6 +161,10 @@ export default function LabPage() {
             nextLabData.strengthProfile.heightCm === ""
               ? ""
               : String(nextLabData.strengthProfile.heightCm)
+        });
+        setHealthForm({
+          bloodTestText: nextLabData.healthProfile?.bloodTestText || "",
+          miscText: nextLabData.healthProfile?.miscText || ""
         });
         setImmutableDraft(nextLabData.immutableText);
         setMiscDraft(nextLabData.miscText);
@@ -416,6 +429,43 @@ export default function LabPage() {
       }
     }));
     setStatusMessage("Strength profile saved.");
+  };
+
+  const saveHealthForm = async () => {
+    if (!user?.id || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setStatusMessage("");
+    const { data, error } = await supabase
+      .from("goat_health_characteristics")
+      .upsert(
+        {
+          user_id: user.id,
+          blood_test_content: healthForm.bloodTestText,
+          misc_content: healthForm.miscText,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "user_id" }
+      )
+      .select("blood_test_content,misc_content")
+      .single();
+
+    setIsSaving(false);
+    if (error) {
+      setStatusMessage(`Health save failed: ${error.message}`);
+      return;
+    }
+
+    setLabData((current) => ({
+      ...current,
+      healthProfile: {
+        bloodTestText: data?.blood_test_content || "",
+        miscText: data?.misc_content || ""
+      }
+    }));
+    setStatusMessage("Health characteristics saved.");
   };
 
   const saveImmutableText = async () => {
@@ -754,6 +804,50 @@ export default function LabPage() {
                     disabled={isSaving}
                   >
                     Save Academic Notes
+                  </button>
+                </section>
+
+                <section className="goat-lab-card">
+                  <div className="goat-section-header">
+                    <h3>Health Characteristics</h3>
+                  </div>
+                  <div className="goat-stacked-form">
+                    <label>
+                      Latest Blood Test
+                      <textarea
+                        className="goat-misc-textarea"
+                        value={healthForm.bloodTestText}
+                        onChange={(event) =>
+                          setHealthForm((current) => ({
+                            ...current,
+                            bloodTestText: event.target.value
+                          }))
+                        }
+                        placeholder="Plain-text latest blood test results for the LLM context prompt."
+                      />
+                    </label>
+                    <label>
+                      Miscellaneous Health
+                      <textarea
+                        className="goat-misc-textarea"
+                        value={healthForm.miscText}
+                        onChange={(event) =>
+                          setHealthForm((current) => ({
+                            ...current,
+                            miscText: event.target.value
+                          }))
+                        }
+                        placeholder="Plain-text miscellaneous health details for the LLM context prompt."
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    className="lab-primary-btn"
+                    onClick={saveHealthForm}
+                    disabled={isSaving}
+                  >
+                    Save Health
                   </button>
                 </section>
 

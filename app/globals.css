@@ -2650,9 +2650,15 @@ textarea.task-editor-subtask-title {
   align-items: end;
 }
 
+.goat-stacked-form {
+  display: grid;
+  gap: 0.55rem;
+}
+
 .goat-score-form label,
 .goat-compact-form label,
-.goat-inline-form label {
+.goat-inline-form label,
+.goat-stacked-form label {
   display: grid;
   gap: 0.22rem;
   color: #94a3b8;

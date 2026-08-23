@@ -559,6 +559,14 @@ create table if not exists public.goat_misc_characteristics (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.goat_health_characteristics (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  blood_test_content text not null default '',
+  misc_content text not null default '',
+  content text not null default '',
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.goat_immutable_characteristics (
   user_id uuid primary key references auth.users(id) on delete cascade,
   content text not null default '',
@@ -583,6 +591,7 @@ alter table public.goat_strength_lifts enable row level security;
 alter table public.goat_cognitive_tests enable row level security;
 alter table public.goat_academic_stage_results enable row level security;
 alter table public.goat_academic_module_results enable row level security;
+alter table public.goat_health_characteristics enable row level security;
 alter table public.goat_misc_characteristics enable row level security;
 alter table public.goat_immutable_characteristics enable row level security;
 alter table public.goat_academic_notes enable row level security;
@@ -593,6 +602,7 @@ grant select, insert, update, delete on table public.goat_strength_lifts to auth
 grant select, insert, update, delete on table public.goat_cognitive_tests to authenticated;
 grant select, insert, update, delete on table public.goat_academic_stage_results to authenticated;
 grant select, insert, update, delete on table public.goat_academic_module_results to authenticated;
+grant select, insert, update, delete on table public.goat_health_characteristics to authenticated;
 grant select, insert, update, delete on table public.goat_misc_characteristics to authenticated;
 grant select, insert, update, delete on table public.goat_immutable_characteristics to authenticated;
 grant select, insert, update, delete on table public.goat_academic_notes to authenticated;
@@ -603,6 +613,7 @@ revoke all on table public.goat_strength_lifts from anon;
 revoke all on table public.goat_cognitive_tests from anon;
 revoke all on table public.goat_academic_stage_results from anon;
 revoke all on table public.goat_academic_module_results from anon;
+revoke all on table public.goat_health_characteristics from anon;
 revoke all on table public.goat_misc_characteristics from anon;
 revoke all on table public.goat_immutable_characteristics from anon;
 revoke all on table public.goat_academic_notes from anon;
@@ -693,6 +704,21 @@ using (auth.uid() = user_id and lower(coalesce(auth.jwt()->>'email', '')) = 'the
 drop policy if exists "Authorized user can write goat misc" on public.goat_misc_characteristics;
 create policy "Authorized user can write goat misc"
 on public.goat_misc_characteristics
+for all
+to authenticated
+using (auth.uid() = user_id and lower(coalesce(auth.jwt()->>'email', '')) = 'theneolorenzo@gmail.com')
+with check (auth.uid() = user_id and lower(coalesce(auth.jwt()->>'email', '')) = 'theneolorenzo@gmail.com');
+
+drop policy if exists "Authorized user can read goat health" on public.goat_health_characteristics;
+create policy "Authorized user can read goat health"
+on public.goat_health_characteristics
+for select
+to authenticated
+using (auth.uid() = user_id and lower(coalesce(auth.jwt()->>'email', '')) = 'theneolorenzo@gmail.com');
+
+drop policy if exists "Authorized user can write goat health" on public.goat_health_characteristics;
+create policy "Authorized user can write goat health"
+on public.goat_health_characteristics
 for all
 to authenticated
 using (auth.uid() = user_id and lower(coalesce(auth.jwt()->>'email', '')) = 'theneolorenzo@gmail.com')

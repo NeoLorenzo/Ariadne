@@ -31,6 +31,7 @@ revoke all on table
   public.goat_cognitive_tests,
   public.goat_academic_stage_results,
   public.goat_academic_module_results,
+  public.goat_health_characteristics,
   public.goat_misc_characteristics,
   public.goat_immutable_characteristics,
   public.goat_academic_notes,

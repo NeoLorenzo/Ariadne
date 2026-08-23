@@ -504,7 +504,7 @@ function buildDashboardNotices({
 function buildRepoCommitWarningNotices(projectList) {
   const safeProjects = Array.isArray(projectList) ? projectList : [];
   const now = Date.now();
-  const threeDaysMs = 3 * DAY_MS;
+  const oneDayMs = 1 * DAY_MS;
   const weekMs = 7 * DAY_MS;
   const twoWeeksMs = 14 * DAY_MS;
   const threeMonthsMs = 90 * DAY_MS;
@@ -565,13 +565,13 @@ function buildRepoCommitWarningNotices(projectList) {
         };
       }
 
-      if (elapsedMs > threeDaysMs) {
+      if (elapsedMs > oneDayMs) {
         return {
           id: `repo-inactivity-info-${String(project?.id || repoName).toLowerCase()}`,
           title: "Info",
           severity: "info",
           sortWeight: elapsedMs,
-          text: `${repoName} has no commit for ${inactiveDays} days (over 3 days).`
+          text: `${repoName} has no commit for ${inactiveDays} ${inactiveDays === 1 ? "day" : "days"} (over 1 day).`
         };
       }
 
