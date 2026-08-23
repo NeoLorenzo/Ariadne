@@ -79,6 +79,7 @@ export default function LabPage() {
     bloodTestText: "",
     miscText: ""
   });
+  const [cvDraft, setCvDraft] = useState("");
   const [immutableDraft, setImmutableDraft] = useState("");
   const [miscDraft, setMiscDraft] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
@@ -166,6 +167,7 @@ export default function LabPage() {
           bloodTestText: nextLabData.healthProfile?.bloodTestText || "",
           miscText: nextLabData.healthProfile?.miscText || ""
         });
+        setCvDraft(nextLabData.cvText || "");
         setImmutableDraft(nextLabData.immutableText);
         setMiscDraft(nextLabData.miscText);
         setStatusMessage("");
@@ -466,6 +468,36 @@ export default function LabPage() {
       }
     }));
     setStatusMessage("Health characteristics saved.");
+  };
+
+  const saveCvText = async () => {
+    if (!user?.id || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setStatusMessage("");
+    const { data, error } = await supabase
+      .from("goat_cv_characteristics")
+      .upsert(
+        {
+          user_id: user.id,
+          content: cvDraft,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "user_id" }
+      )
+      .select("content")
+      .single();
+
+    setIsSaving(false);
+    if (error) {
+      setStatusMessage(`CV save failed: ${error.message}`);
+      return;
+    }
+
+    setLabData((current) => ({ ...current, cvText: data?.content || "" }));
+    setStatusMessage("CV saved.");
   };
 
   const saveImmutableText = async () => {
@@ -848,6 +880,26 @@ export default function LabPage() {
                     disabled={isSaving}
                   >
                     Save Health
+                  </button>
+                </section>
+
+                <section className="goat-lab-card">
+                  <div className="goat-section-header">
+                    <h3>CV</h3>
+                  </div>
+                  <textarea
+                    className="goat-misc-textarea"
+                    value={cvDraft}
+                    onChange={(event) => setCvDraft(event.target.value)}
+                    placeholder="Paste plain-text CV for the LLM context prompt."
+                  />
+                  <button
+                    type="button"
+                    className="lab-primary-btn"
+                    onClick={saveCvText}
+                    disabled={isSaving}
+                  >
+                    Save CV
                   </button>
                 </section>
 
