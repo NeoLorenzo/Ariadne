@@ -20,15 +20,6 @@ const PROJECT_STATUS_ACTIVE = "active";
 const PROJECT_STATUS_COMPLETED = "completed";
 const GITHUB_REPO_PROJECT_ID_PREFIX = "github-repo-";
 const REPO_STATUS_TAG_ACTIVE = "active";
-const REPO_STATUS_TAG_PAUSED = "paused";
-const REPO_STATUS_TAG_MAINTAINED = "maintained";
-const REPO_STATUS_TAG_NOT_STARTED = "not-started";
-const REPO_FILTER_ACTIVE = "active";
-const REPO_FILTER_PAUSED = "paused";
-const REPO_FILTER_MAINTAINED = "maintained";
-const REPO_FILTER_NOT_STARTED = "not-started";
-const REPO_FILTER_COMPLETED = "completed";
-const REPO_FILTER_ARCHIVED = "archived";
 
 const ALL_COMPANY_CATEGORIES = ["NeoLorenzo Coding"];
 const GITHUB_COMPANY_CATEGORIES = ["NeoLorenzo Coding"];
@@ -44,7 +35,6 @@ const DEFAULT_PROJECTS = [];
 
 export default function CodingPage() {
   const [projects, setProjects] = useState([]);
-  const [repoStatusFilter, setRepoStatusFilter] = useState(REPO_FILTER_ACTIVE);
   const [cloudUserId, setCloudUserId] = useState(null);
   const [cloudVersion, setCloudVersion] = useState(null);
   const [isCloudSyncReady, setIsCloudSyncReady] = useState(false);
@@ -585,27 +575,25 @@ export default function CodingPage() {
     return projects
       .filter((project) => {
         const category = normalizeProjectCategory(project?.category);
-        const completionStatus = normalizeProjectCompletionStatus(project?.completionStatus);
         if (!githubCategorySet.has(category)) {
           return false;
         }
 
-        const isCompleted = completionStatus === PROJECT_STATUS_COMPLETED;
-        const isLegacyArchivedRepo = isLegacyRepoTitle(project?.title);
-
-        if (repoStatusFilter === REPO_FILTER_COMPLETED) {
-          return isCompleted && !isLegacyArchivedRepo;
+        if (project?.isArchived) {
+          return false;
         }
 
-        if (repoStatusFilter === REPO_FILTER_ARCHIVED) {
-          return isCompleted && isLegacyArchivedRepo;
-        }
-
+        const completionStatus = normalizeProjectCompletionStatus(project?.completionStatus);
         if (completionStatus !== PROJECT_STATUS_ACTIVE) {
           return false;
         }
 
-        return normalizeRepoStatusTag(project?.repoStatusTag) === repoStatusFilter;
+        const stars = Number(project?.stargazersCount);
+        if (Number.isFinite(stars) && stars < 1) {
+          return false;
+        }
+
+        return true;
       })
       .sort((left, right) => {
         const leftLastCommitAt = Number(left?.lastCommitAt);
@@ -620,7 +608,7 @@ export default function CodingPage() {
 
         return String(left?.title || "").localeCompare(String(right?.title || ""));
       });
-  }, [projects, githubCategorySet, repoStatusFilter]);
+  }, [projects, githubCategorySet]);
 
   const startGitHubSignIn = async () => {
     if (!supabase) {
@@ -684,7 +672,9 @@ export default function CodingPage() {
 
       setHasGitHubProviderToken(true);
       const rawRepos = await fetchAllGitHubRepos(providerToken);
-      const repos = rawRepos.filter((repo) => Number(repo?.stargazers_count || 0) > 0);
+      const repos = rawRepos.filter(
+        (repo) => Number(repo?.stargazers_count || 0) >= 1 && repo?.archived !== true
+      );
       const now = Date.now();
 
       setProjects((previousProjects) => {
@@ -714,7 +704,6 @@ export default function CodingPage() {
 
             const projectId = `${GITHUB_REPO_PROJECT_ID_PREFIX}${repoId}`;
             const existingProject = existingGitHubProjectsById.get(projectId);
-            const archived = repo?.archived === true;
             const pushedAtTimestamp = parseDateToTimestamp(repo?.pushed_at);
             const updatedAtTimestamp = parseDateToTimestamp(repo?.updated_at);
 
@@ -725,9 +714,9 @@ export default function CodingPage() {
               title: String(repo?.name || "").trim(),
               desc: String(repo?.description || "").trim(),
               repoUrl: normalizeOptionalUrl(repo?.html_url),
-              completionStatus: archived ? PROJECT_STATUS_COMPLETED : PROJECT_STATUS_ACTIVE,
-              repoStatusTag: mapRepoTopicsToStatusTag(repo?.topics),
-              isArchived: archived,
+              completionStatus: PROJECT_STATUS_ACTIVE,
+              repoStatusTag: REPO_STATUS_TAG_ACTIVE,
+              isArchived: false,
               stargazersCount: Number(repo?.stargazers_count || 0),
               lastCommitAt: pushedAtTimestamp ?? updatedAtTimestamp ?? null,
               updatedAt: now,
@@ -763,74 +752,6 @@ export default function CodingPage() {
           <header className="coding-board-header">
             <h2 className="coding-board-title">Programming</h2>
             <div className="coding-board-actions">
-              <div className="coding-status-toggle" role="tablist" aria-label="Repository status filter">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={repoStatusFilter === REPO_FILTER_ACTIVE}
-                  className={`coding-status-toggle-btn ${
-                    repoStatusFilter === REPO_FILTER_ACTIVE ? "is-active" : ""
-                  }`}
-                  onClick={() => setRepoStatusFilter(REPO_FILTER_ACTIVE)}
-                >
-                  Active
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={repoStatusFilter === REPO_FILTER_PAUSED}
-                  className={`coding-status-toggle-btn ${
-                    repoStatusFilter === REPO_FILTER_PAUSED ? "is-active" : ""
-                  }`}
-                  onClick={() => setRepoStatusFilter(REPO_FILTER_PAUSED)}
-                >
-                  Paused
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={repoStatusFilter === REPO_FILTER_MAINTAINED}
-                  className={`coding-status-toggle-btn ${
-                    repoStatusFilter === REPO_FILTER_MAINTAINED ? "is-active" : ""
-                  }`}
-                  onClick={() => setRepoStatusFilter(REPO_FILTER_MAINTAINED)}
-                >
-                  Maintained
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={repoStatusFilter === REPO_FILTER_NOT_STARTED}
-                  className={`coding-status-toggle-btn ${
-                    repoStatusFilter === REPO_FILTER_NOT_STARTED ? "is-active" : ""
-                  }`}
-                  onClick={() => setRepoStatusFilter(REPO_FILTER_NOT_STARTED)}
-                >
-                  Not Started
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={repoStatusFilter === REPO_FILTER_COMPLETED}
-                  className={`coding-status-toggle-btn ${
-                    repoStatusFilter === REPO_FILTER_COMPLETED ? "is-active" : ""
-                  }`}
-                  onClick={() => setRepoStatusFilter(REPO_FILTER_COMPLETED)}
-                >
-                  Completed
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={repoStatusFilter === REPO_FILTER_ARCHIVED}
-                  className={`coding-status-toggle-btn ${
-                    repoStatusFilter === REPO_FILTER_ARCHIVED ? "is-active" : ""
-                  }`}
-                  onClick={() => setRepoStatusFilter(REPO_FILTER_ARCHIVED)}
-                >
-                  Legacy
-                </button>
-              </div>
               <button
                 type="button"
                 className={`coding-github-sync-btn ${areAllGitHubReposSynced ? "is-synced" : ""}`}
@@ -851,19 +772,7 @@ export default function CodingPage() {
             </div>
             <div className="coding-repos-list">
               {visibleRepos.length === 0 ? (
-                <p className="coding-repos-empty">
-                  {repoStatusFilter === REPO_FILTER_ARCHIVED
-                    ? "No archived legacy repos."
-                    : repoStatusFilter === REPO_FILTER_COMPLETED
-                      ? "No completed repos."
-                      : repoStatusFilter === REPO_FILTER_PAUSED
-                        ? "No paused repos. Add topic status-paused and sync."
-                        : repoStatusFilter === REPO_FILTER_MAINTAINED
-                          ? "No maintained repos. Add topic status-maintained and sync."
-                          : repoStatusFilter === REPO_FILTER_NOT_STARTED
-                            ? "No not started repos. Add topic status-not-started and sync."
-                            : "No active repos. Add topic status-active and sync."}
-                </p>
+                <p className="coding-repos-empty">No active repositories.</p>
               ) : (
                 visibleRepos.map((project) => (
                   <RepoCard key={project.id} project={project} />
@@ -878,44 +787,15 @@ export default function CodingPage() {
 }
 
 function RepoCard({ project }) {
-  const repoUrl = normalizeOptionalUrl(project?.repoUrl);
   const formattedLastCommit = formatLastCommitDateTime(project?.lastCommitAt);
-  const isActiveRepo =
-    normalizeProjectCompletionStatus(project?.completionStatus) === PROJECT_STATUS_ACTIVE &&
-    normalizeRepoStatusTag(project?.repoStatusTag) === REPO_STATUS_TAG_ACTIVE;
-  const lastCommitTone = isActiveRepo ? getLastCommitRecencyTone(project?.lastCommitAt) : "info";
+  const lastCommitTone = getLastCommitRecencyTone(project?.lastCommitAt);
   const relativeAge = formatLastCommitRelativeNumber(project?.lastCommitAt);
-  const cardClassName = `coding-repo-card${repoUrl ? " is-clickable" : ""}`;
-
-  if (repoUrl) {
-    return (
-      <a
-        className={cardClassName}
-        href={repoUrl}
-        target="_blank"
-        rel="noreferrer noopener"
-        title="Open repository on GitHub"
-      >
-        <div className="coding-repo-card-header">
-          <h4 className="coding-repo-title">{project?.title || "Untitled Repo"}</h4>
-        </div>
-        <p className="coding-repo-desc">{project?.desc || "No description."}</p>
-        <div className="coding-repo-meta-row">
-          <p className={`coding-repo-last-commit is-${lastCommitTone}`}>
-            Last commit: {formattedLastCommit || "Unknown"}
-          </p>
-          {relativeAge ? <span className={`coding-repo-age-chip is-${lastCommitTone}`}>{relativeAge}</span> : null}
-        </div>
-      </a>
-    );
-  }
 
   return (
-    <article className={cardClassName}>
+    <article className="coding-repo-card">
       <div className="coding-repo-card-header">
         <h4 className="coding-repo-title">{project?.title || "Untitled Repo"}</h4>
       </div>
-      <p className="coding-repo-desc">{project?.desc || "No description."}</p>
       <div className="coding-repo-meta-row">
         <p className={`coding-repo-last-commit is-${lastCommitTone}`}>
           Last commit: {formattedLastCommit || "Unknown"}
@@ -1015,8 +895,7 @@ function sanitizeProjectList(rawProjects) {
       if (!project) return false;
       if (
         project.id.startsWith(GITHUB_REPO_PROJECT_ID_PREFIX) &&
-        project.stargazersCount !== null &&
-        project.stargazersCount <= 0
+        ((project.stargazersCount !== null && project.stargazersCount <= 0) || project.isArchived)
       ) {
         return false;
       }
@@ -1156,44 +1035,7 @@ function normalizeProjectCompletionStatus(rawValue) {
 }
 
 function normalizeRepoStatusTag(rawValue) {
-  const normalized = String(rawValue || "")
-    .trim()
-    .toLowerCase();
-
-  if (normalized === REPO_STATUS_TAG_PAUSED) {
-    return REPO_STATUS_TAG_PAUSED;
-  }
-
-  if (normalized === REPO_STATUS_TAG_MAINTAINED) {
-    return REPO_STATUS_TAG_MAINTAINED;
-  }
-
-  if (normalized === REPO_STATUS_TAG_NOT_STARTED) {
-    return REPO_STATUS_TAG_NOT_STARTED;
-  }
-
-  return REPO_STATUS_TAG_ACTIVE;
-}
-
-function mapRepoTopicsToStatusTag(rawTopics) {
-  const normalizedTopics = Array.isArray(rawTopics)
-    ? rawTopics.map((topic) => String(topic || "").trim().toLowerCase())
-    : [];
-  const topicSet = new Set(normalizedTopics);
-
-  if (topicSet.has("status-paused")) {
-    return REPO_STATUS_TAG_PAUSED;
-  }
-
-  if (topicSet.has("status-not-started")) {
-    return REPO_STATUS_TAG_NOT_STARTED;
-  }
-
-  if (topicSet.has("status-maintained")) {
-    return REPO_STATUS_TAG_MAINTAINED;
-  }
-
-  return REPO_STATUS_TAG_ACTIVE;
+  return String(rawValue || "").trim().toLowerCase() || REPO_STATUS_TAG_ACTIVE;
 }
 
 function normalizeBooleanFlag(rawValue) {
@@ -1320,11 +1162,6 @@ function formatLastCommitRelativeNumber(lastCommitAt) {
 
   const minutes = Math.floor(ageMs / minuteMs);
   return `${Math.max(0, minutes)}m`;
-}
-
-function isLegacyRepoTitle(rawTitle) {
-  const normalized = String(rawTitle || "").trim().toLowerCase();
-  return normalized.startsWith("legacy");
 }
 
 async function fetchAllGitHubRepos(providerToken) {

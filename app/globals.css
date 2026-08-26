@@ -2406,23 +2406,10 @@ textarea.task-editor-subtask-title {
   border-radius: 0.78rem;
   border: 1px solid rgba(125, 211, 252, 0.36);
   background: rgba(2, 8, 23, 0.75);
-  padding: 0.65rem 0.72rem;
+  padding: 0.65rem 0.75rem;
   display: grid;
   gap: 0.45rem;
   align-content: start;
-  min-height: 7rem;
-}
-
-.coding-repo-card.is-clickable {
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.coding-repo-card.is-clickable:hover {
-  border-color: rgba(56, 189, 248, 0.62);
-  box-shadow: 0 12px 22px rgba(10, 12, 18, 0.36);
-  transform: translateY(-1px);
 }
 
 .coding-repo-card-header {
@@ -2439,17 +2426,6 @@ textarea.task-editor-subtask-title {
   font-weight: 800;
   line-height: 1.22;
   overflow-wrap: anywhere;
-}
-
-.coding-repo-desc {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 0.74rem;
-  line-height: 1.32;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .coding-repo-meta-row {
@@ -2835,32 +2811,6 @@ textarea.task-editor-subtask-title {
 
 .page-shell.is-mobile-experience .coding-workspace {
   padding-left: 0;
-}
-
-.coding-status-toggle {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid rgba(100, 116, 139, 0.55);
-  background: rgba(22, 25, 34, 0.5);
-  border-radius: 999px;
-  padding: 0.14rem;
-}
-
-.coding-status-toggle-btn {
-  border: 0;
-  background: transparent;
-  color: #cbd5e1;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  border-radius: 999px;
-  padding: 0.24rem 0.58rem;
-  cursor: pointer;
-}
-
-.coding-status-toggle-btn.is-active {
-  color: #f8fafc;
-  background: rgba(59, 130, 246, 0.33);
 }
 
 .coding-github-sync-btn {
