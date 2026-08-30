@@ -13,6 +13,8 @@ import {
   readSyncCacheEntry,
   upsertSyncCacheEntryIfChanged
 } from "@/lib/storage/syncCache";
+import { projectCollectionsEqual, reconcileProjectCollections } from "@/lib/projects/reconcile";
+import { createProjectWriteCoordinator } from "@/lib/projects/writeCoordinator";
 
 const PROJECTS_STORAGE_KEY = "fabbro_projects_v1";
 const PROJECTS_SYNC_CACHE_NAMESPACE = "projects.resolved_cloud";
@@ -48,6 +50,12 @@ export default function CodingPage() {
   const [, setCloudReadSource] = useState("none");
   const [, setCloudReadErrorMessage] = useState("");
   const skipNextCloudWriteRef = useRef(false);
+  const latestLocalProjectsRef = useRef([]);
+  const latestCloudVersionRef = useRef(null);
+  const latestCloudBaselineRef = useRef([]);
+  const cloudWriteInFlightRef = useRef(false);
+  const pendingCloudWriteRef = useRef(false);
+  const projectWriteCoordinatorRef = useRef(createProjectWriteCoordinator());
 
   const resolveProjectsForUser = async (userId, fallbackProjects) => {
     if (!supabase || !userId) {
@@ -411,6 +419,11 @@ export default function CodingPage() {
 
   useEffect(() => {
     writeProjectsToStorage(projects);
+    latestLocalProjectsRef.current = sanitizeProjectList(projects);
+    latestCloudVersionRef.current = cloudVersion;
+    latestCloudBaselineRef.current = sanitizeProjectList(
+      Object.entries(cloudSnapshotSignaturesByProjectId).length ? latestCloudBaselineRef.current : projects
+    );
 
     if (!supabase || !cloudUserId || !isCloudSyncReady) {
       return;
@@ -418,6 +431,11 @@ export default function CodingPage() {
 
     if (skipNextCloudWriteRef.current) {
       skipNextCloudWriteRef.current = false;
+      return;
+    }
+
+    if (!projectWriteCoordinatorRef.current.start()) {
+      pendingCloudWriteRef.current = true;
       return;
     }
 
@@ -429,14 +447,18 @@ export default function CodingPage() {
       return;
     }
 
-    const expectedVersion = Number(cloudVersion);
+    const expectedVersion = Number(latestCloudVersionRef.current);
+    const writeSnapshot = sanitizeProjectList(latestLocalProjectsRef.current);
+    const writeBaseline = sanitizeProjectList(latestCloudBaselineRef.current);
+    let allowFollowUp = false;
+    cloudWriteInFlightRef.current = true;
     setIsCloudWriteInFlight(true);
     setDidCloudWriteFail(false);
 
     void supabase
       .from("user_projects")
       .update({
-        projects: sanitizeProjectList(projects),
+        projects: writeSnapshot,
         updated_at: new Date().toISOString(),
         version: expectedVersion + 1
       })
@@ -454,15 +476,16 @@ export default function CodingPage() {
         }
 
         if (data) {
+          allowFollowUp = true;
           const nextVersion = expectedVersion + 1;
           const nextCachePayload = {
-            projects: sanitizeProjectList(projects),
+            projects: writeSnapshot,
             version: nextVersion
           };
-          setCloudVersion((currentVersion) =>
-            Number.isFinite(Number(currentVersion)) ? Number(currentVersion) + 1 : expectedVersion + 1
-          );
-          setCloudSnapshotSignaturesByProjectId(createProjectSignatureMap(projects));
+          latestCloudVersionRef.current = nextVersion;
+          latestCloudBaselineRef.current = writeSnapshot;
+          setCloudVersion(nextVersion);
+          setCloudSnapshotSignaturesByProjectId(createProjectSignatureMap(writeSnapshot));
           setCloudReadState("ok");
           setCloudReadSource("cloud-write");
           setCloudReadErrorMessage("");
@@ -490,18 +513,21 @@ export default function CodingPage() {
         }
 
         const latestProjects = sanitizeProjectList(latestRow.projects);
-        skipNextCloudWriteRef.current = true;
-        setProjects(latestProjects);
-        setCloudVersion(Number.isFinite(Number(latestRow.version)) ? Number(latestRow.version) : expectedVersion);
+        const latestVersion = Number.isFinite(Number(latestRow.version)) ? Number(latestRow.version) : expectedVersion;
+        const reconciledProjects = reconcileProjectCollections(writeBaseline, latestLocalProjectsRef.current, latestProjects);
+        allowFollowUp = true;
+        latestCloudVersionRef.current = latestVersion;
+        latestCloudBaselineRef.current = latestProjects;
+        latestLocalProjectsRef.current = reconciledProjects;
+        setProjects(reconciledProjects);
+        setCloudVersion(latestVersion);
         setCloudSnapshotSignaturesByProjectId(createProjectSignatureMap(latestProjects));
         setCloudReadState("error");
         setCloudReadSource("write-version-conflict-reloaded");
-        setCloudReadErrorMessage(
-          "Another client updated projects first. Reloaded latest cloud snapshot."
-        );
+        setCloudReadErrorMessage("Another client updated projects first. Reconciled local and cloud projects.");
         const latestCachePayload = {
           projects: latestProjects,
-          version: Number.isFinite(Number(latestRow.version)) ? Number(latestRow.version) : expectedVersion
+          version: latestVersion
         };
         upsertSyncCacheEntryIfChanged({
           namespace: PROJECTS_SYNC_CACHE_NAMESPACE,
@@ -511,7 +537,13 @@ export default function CodingPage() {
         });
       })
       .finally(() => {
+        cloudWriteInFlightRef.current = false;
         setIsCloudWriteInFlight(false);
+        const coordinatorWasPending = projectWriteCoordinatorRef.current.finish();
+        const needsFollowUp = allowFollowUp && (coordinatorWasPending || pendingCloudWriteRef.current ||
+          !projectCollectionsEqual(latestLocalProjectsRef.current, writeSnapshot));
+        pendingCloudWriteRef.current = false;
+        if (needsFollowUp) setProjects([...latestLocalProjectsRef.current]);
       });
   }, [projects, cloudUserId, isCloudSyncReady]);
 
