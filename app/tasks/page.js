@@ -21,6 +21,8 @@ import {
   purgeExpiredTaskTombstones,
   restoreDeletedTask
 } from "@/lib/tasks/taskTombstones";
+import { createTaskSignatureMap, getTaskSyncSignature, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeTask, sanitizeTaskList } from "@/lib/tasks/reconcile";
+import { createTaskWriteCoordinator } from "@/lib/tasks/writeCoordinator";
 
 const TASK_STORAGE_KEY = "fabbro_tasks_v1";
 const TASKS_SYNC_CACHE_NAMESPACE = "tasks.resolved_cloud";
@@ -73,7 +75,8 @@ export default function TasksPage() {
   const cloudVersionRef = useRef(null);
   const cloudSnapshotSignaturesRef = useRef({});
   const isCloudWriteInFlightRef = useRef(false);
-  const hasPendingCloudWriteRef = useRef(false);
+  const taskWriteCoordinatorRef = useRef(null);
+  if (!taskWriteCoordinatorRef.current) taskWriteCoordinatorRef.current = createTaskWriteCoordinator();
 
   useEffect(() => {
     const descriptionField = descriptionRef.current;
@@ -491,11 +494,6 @@ export default function TasksPage() {
       return;
     }
 
-    if (isCloudWriteInFlightRef.current) {
-      hasPendingCloudWriteRef.current = true;
-      return;
-    }
-
     if (!Number.isFinite(Number(cloudVersion))) {
       if (isEnsuringCloudVersionRef.current) {
         return;
@@ -578,8 +576,10 @@ export default function TasksPage() {
       return;
     }
 
+    if (!taskWriteCoordinatorRef.current.start()) {
+      return;
+    }
     const expectedVersion = Number(cloudVersion);
-    hasPendingCloudWriteRef.current = false;
     isCloudWriteInFlightRef.current = true;
     setIsCloudWriteInFlight(true);
     setDidCloudWriteFail(false);
@@ -682,8 +682,7 @@ export default function TasksPage() {
       .finally(() => {
         isCloudWriteInFlightRef.current = false;
         setIsCloudWriteInFlight(false);
-        if (hasPendingCloudWriteRef.current) {
-          hasPendingCloudWriteRef.current = false;
+        if (taskWriteCoordinatorRef.current.finish()) {
           setTasks((currentTasks) => sanitizeTaskList(currentTasks));
         }
       });
@@ -1651,6 +1650,8 @@ export default function TasksPage() {
   );
 }
 
+/* production task sanitization/reconciliation lives in lib/tasks/reconcile.js */
+/*
 function sanitizeTask(task) {
   if (!task || typeof task !== "object") {
     return null;
@@ -1867,6 +1868,7 @@ function reconcileTaskSnapshots(localTasks, remoteTasks, baselineSignaturesByTas
 
   return reconciled;
 }
+*/
 
 function readTasksFromStorage() {
   if (typeof window === "undefined") {
