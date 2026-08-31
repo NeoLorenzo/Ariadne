@@ -10,7 +10,7 @@ import {
   DateInput, GhostButton, ListRow, ModalBody, ModalFooter, ModalHeader, ModalShell,
   PrimaryButton, ProgressBar, SecondaryButton, Select, StatusIndicator, TextArea, TextInput,
   useModalDialog
-} from "@/components/ui/FabbroUI";
+} from "@/components/ui/AriadneUI";
 
 const EMPTY_GOAL = { strategicObjectiveId: "", title: "", description: "", metricType: "count",
   currentValue: 0, targetValue: 1, bareMinimum: 0, displayOnTodoList: false,
@@ -48,11 +48,11 @@ export default function OutcomeGoals({ objective, objectives, userId }) {
     void refresh();
     scheduleMidnightRefresh();
     const handleChange = (event) => { if (event.detail?.objectiveId === objective.id) void refresh(); };
-    window.addEventListener("fabbro:outcome-goals-changed", handleChange);
+    window.addEventListener("ariadne:outcome-goals-changed", handleChange);
     return () => {
       active = false;
       window.clearTimeout(midnightTimer);
-      window.removeEventListener("fabbro:outcome-goals-changed", handleChange);
+      window.removeEventListener("ariadne:outcome-goals-changed", handleChange);
     };
   }, [objective.id, userId]);
 

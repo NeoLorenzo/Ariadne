@@ -11,7 +11,7 @@ import { loadDirectionSummaryStats } from "@/lib/directions/directionStats";
 import {
   GhostButton, ModalBody, ModalFooter, ModalHeader, ModalShell,
   PrimaryButton, SecondaryButton, TextArea, TextInput, useModalDialog
-} from "@/components/ui/FabbroUI";
+} from "@/components/ui/AriadneUI";
 
 export default function DirectionPanel({ userId, onDirectionChange }) {
   const [state, setState] = useState({ direction: DEFAULT_DIRECTION, revisions: [] });
@@ -48,10 +48,10 @@ export default function DirectionPanel({ userId, onDirectionChange }) {
     refreshStats();
 
     const handleGoalsChanged = () => refreshStats();
-    window.addEventListener("fabbro:outcome-goals-changed", handleGoalsChanged);
+    window.addEventListener("ariadne:outcome-goals-changed", handleGoalsChanged);
     return () => {
       active = false;
-      window.removeEventListener("fabbro:outcome-goals-changed", handleGoalsChanged);
+      window.removeEventListener("ariadne:outcome-goals-changed", handleGoalsChanged);
     };
   }, [state.direction?.id, userId]);
 
@@ -247,4 +247,3 @@ function formatChangedAt(value) {
   if (Number.isNaN(date.getTime())) return "Date unavailable";
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
-

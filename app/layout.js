@@ -6,7 +6,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const resolvedBasePath = basePath || "";
 
 export const metadata = {
-  title: "Fabbro Factory",
+  title: "Ariadne",
   description: "Personal strategy, projects, tasks, and progress workspace",
   manifest: `${resolvedBasePath}/manifest.webmanifest`,
   icons: {
@@ -16,7 +16,7 @@ export const metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Fabbro Factory",
+    title: "Ariadne",
     statusBarStyle: "black-translucent"
   }
 };

@@ -2,7 +2,7 @@
 
 ## 1. Product shape
 
-Fabbro Factory is a single personal workspace with four primary areas:
+Ariadne is a single personal workspace with four primary areas:
 
 - Dashboard for strategy, goals, notices, and external signals
 - Tasks for day-to-day execution

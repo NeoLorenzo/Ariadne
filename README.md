@@ -1,6 +1,6 @@
-# Fabbro Factory
+# Ariadne
 
-Personal operating workspace built with Next.js and Supabase. Fabbro Factory combines strategy,
+Personal operating workspace built with Next.js and Supabase. Ariadne combines strategy,
 projects, tasks, progress signals, and a private scoring lab in one installable web app.
 
 ## Current features

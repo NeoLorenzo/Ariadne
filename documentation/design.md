@@ -1,4 +1,4 @@
-# Fabbro Factory General Design Rules
+# Ariadne General Design Rules
 
 ## 1. Establish a clear visual hierarchy
 

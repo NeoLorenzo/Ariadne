@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import DirectionPanel from "@/components/DirectionPanel";
 import StrategicObjectives from "@/components/StrategicObjectives";
-import { SecondaryButton } from "@/components/ui/FabbroUI";
+import { SecondaryButton } from "@/components/ui/AriadneUI";
 import { buildFullAppDataText, copyTextToClipboard } from "@/lib/export/appDataText";
 import { supabase } from "@/lib/supabase/client";
 import {

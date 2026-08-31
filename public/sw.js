@@ -1,4 +1,4 @@
-const CACHE_NAME = "fabbro-factory-v4";
+const CACHE_NAME = "ariadne-v4";
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, "");
 const CORE_ASSETS = [
   `${SCOPE_PATH || ""}/`,

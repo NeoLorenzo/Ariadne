@@ -1,6 +1,6 @@
-Here is a cleaned-up, structured version of your brain dump. I’ve removed the conversational filler and indecision, organizing your thoughts into a clear feature specification for Fabro Factory while retaining all your specific ideas, examples, and intended mechanics.
+Here is a cleaned-up, structured version of your brain dump. I’ve removed the conversational filler and indecision, organizing your thoughts into a clear feature specification for Ariadne while retaining all your specific ideas, examples, and intended mechanics.
 
-### **Fabro Factory: New Feature Roadmap**
+### **Ariadne: New Feature Roadmap**
 
 #### **1. Weekly Mission Statement**
 *   **Concept:** A broad, guiding goal set every week to provide clear direction and keep focus away from aimless, long-horizon tasks. It is not a strict target, but a thematic focus.

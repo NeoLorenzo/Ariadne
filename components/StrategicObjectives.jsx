@@ -14,7 +14,7 @@ import {
   GhostButton, ListRow, ModalBody, ModalFooter, ModalShell,
   PrimaryButton, SectionHeader, SecondaryButton, Select, StatusIndicator, TextArea, TextInput,
   useModalDialog
-} from "@/components/ui/FabbroUI";
+} from "@/components/ui/AriadneUI";
 
 const EMPTY_DRAFT = { title: "", description: "", successCondition: "", status: "active" };
 

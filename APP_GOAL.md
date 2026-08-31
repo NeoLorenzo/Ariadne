@@ -1,8 +1,8 @@
-# Fabbro Factory App Goal
+# Ariadne App Goal
 
 ## Purpose
 
-Fabbro Factory is a low-friction personal operating workspace for deciding what matters, turning
+Ariadne is a low-friction personal operating workspace for deciding what matters, turning
 that direction into projects and tasks, and seeing whether real work is moving outcomes forward.
 
 ## Core product goal

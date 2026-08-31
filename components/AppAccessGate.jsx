@@ -133,7 +133,7 @@ export default function AppAccessGate({ children }) {
   return (
     <main className="access-gate">
       <section className="access-gate-panel" aria-labelledby="access-gate-title">
-        <div className="access-gate-mark" aria-hidden="true">F</div>
+        <div className="access-gate-mark" aria-hidden="true">A</div>
         <h1 id="access-gate-title">
           {isDenied ? "Access denied" : isUnavailable ? "Access unavailable" : "Sign in"}
         </h1>

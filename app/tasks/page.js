@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import AppShell from "@/components/AppShell";
 import { supabase } from "@/lib/supabase/client";
 import { useIsMobileExperience } from "@/lib/device/useIsMobileExperience";
-import { ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton } from "@/components/ui/FabbroUI";
+import { ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton } from "@/components/ui/AriadneUI";
 import {
   readLastKnownSyncUserId,
   readSyncCacheEntry,
@@ -826,10 +826,10 @@ export default function TasksPage() {
     const handleStorage = (event) => {
       if (event.key === TASK_STORAGE_KEY) refreshFromStorage();
     };
-    window.addEventListener("fabbro:tasks-changed", refreshFromStorage);
+    window.addEventListener("ariadne:tasks-changed", refreshFromStorage);
     window.addEventListener("storage", handleStorage);
     return () => {
-      window.removeEventListener("fabbro:tasks-changed", refreshFromStorage);
+      window.removeEventListener("ariadne:tasks-changed", refreshFromStorage);
       window.removeEventListener("storage", handleStorage);
     };
   }, []);
