@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "check:privacy": "node scripts/privacy-check.mjs",
-    "test": "vitest run",
+    "check:undefined": "eslint app components lib",
+    "test": "npm run check:undefined && vitest run",
     "dev": "next dev",
     "dev:reset": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\" && next dev",
     "dev:stable": "set WATCHPACK_POLLING=true&& set CHOKIDAR_USEPOLLING=1&& next dev",
@@ -19,6 +20,8 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.35.0",
+    "globals": "^16.3.0",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.10",
     "vitest": "^3.2.4"

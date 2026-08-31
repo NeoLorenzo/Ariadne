@@ -21,7 +21,7 @@ import {
   purgeExpiredTaskTombstones,
   restoreDeletedTask
 } from "@/lib/tasks/taskTombstones";
-import { createTaskSignatureMap, getTaskSyncSignature, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeTask, sanitizeTaskList } from "@/lib/tasks/reconcile";
+import { createTaskSignatureMap, getTaskSyncSignature, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeSubtaskList, sanitizeTask, sanitizeTaskList } from "@/lib/tasks/reconcile";
 import { createTaskWriteCoordinator } from "@/lib/tasks/writeCoordinator";
 
 const TASK_STORAGE_KEY = "fabbro_tasks_v1";
