@@ -1870,6 +1870,43 @@ function reconcileTaskSnapshots(localTasks, remoteTasks, baselineSignaturesByTas
 }
 */
 
+function buildTaskCloudSyncBadges({
+  tasks,
+  cloudSnapshotSignaturesByTaskId,
+  hasSupabase,
+  cloudUserId,
+  isCloudSyncReady,
+  isCloudWriteInFlight,
+  didCloudWriteFail
+}) {
+  const badgeByTaskId = {};
+
+  (Array.isArray(tasks) ? tasks : []).forEach((task) => {
+    const taskId = String(task?.id || "");
+    if (!hasSupabase || !cloudUserId) {
+      badgeByTaskId[taskId] = { label: "Local", tone: "local" };
+    } else if (!isCloudSyncReady) {
+      badgeByTaskId[taskId] = { label: "Syncing", tone: "syncing" };
+    } else if (didCloudWriteFail) {
+      badgeByTaskId[taskId] = { label: "Retry", tone: "error" };
+    } else {
+      const cloudSignature = cloudSnapshotSignaturesByTaskId?.[taskId];
+      const currentSignature = getTaskSyncSignature(task);
+      if (!cloudSignature) {
+        badgeByTaskId[taskId] = isCloudWriteInFlight
+          ? { label: "Pending", tone: "pending" }
+          : { label: "Local only", tone: "local" };
+      } else if (cloudSignature !== currentSignature) {
+        badgeByTaskId[taskId] = { label: "Pending", tone: "pending" };
+      } else {
+        badgeByTaskId[taskId] = { label: "Synced", tone: "synced" };
+      }
+    }
+  });
+
+  return badgeByTaskId;
+}
+
 function readTasksFromStorage() {
   if (typeof window === "undefined") {
     return [];

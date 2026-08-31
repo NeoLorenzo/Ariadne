@@ -15,7 +15,6 @@ import {
 } from "@/lib/storage/syncCache";
 import {
   loadCachedSubstackSignal,
-  recordClientDetectedSubstackSignal,
   requestServerSubstackRefresh
 } from "@/lib/signals/substackSignalRepository";
 
@@ -94,18 +93,10 @@ export default function DashboardPage() {
         setSubstackLatestPostTimestamp(cachedSignal.publishedAtTimestamp);
       }
 
-      const [serverSignal, clientDetectedEntry] = await Promise.all([
-        requestServerSubstackRefresh(),
-        fetchLatestSubstackEntry()
-      ]);
-      const clientSavedSignal = clientDetectedEntry
-        ? await recordClientDetectedSubstackSignal(clientDetectedEntry)
-        : null;
+      const serverSignal = await requestServerSubstackRefresh();
       const latestPostTimestamp = [
         cachedSignal?.publishedAtTimestamp,
-        serverSignal?.publishedAtTimestamp,
-        clientSavedSignal?.publishedAtTimestamp,
-        clientDetectedEntry ? Date.parse(clientDetectedEntry.publishedAt) : null
+        serverSignal?.publishedAtTimestamp
       ]
         .filter((timestamp) => Number.isFinite(timestamp))
         .reduce((latest, timestamp) => Math.max(latest, timestamp), Number.NEGATIVE_INFINITY);
