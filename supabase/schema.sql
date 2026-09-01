@@ -7,7 +7,7 @@ grant usage on schema public to anon, authenticated;
 
 -- Every authenticated app surface is restricted to the single authorized owner.
 -- Keep this server-side check in addition to the client-side access gate.
-create or replace function public.is_fabbro_owner()
+create or replace function public.is_ariadne_owner()
 returns boolean
 language sql
 stable
@@ -18,8 +18,8 @@ as $$
     and lower(coalesce(auth.jwt()->>'email', '')) = 'theneolorenzo@gmail.com';
 $$;
 
-revoke all on function public.is_fabbro_owner() from public;
-grant execute on function public.is_fabbro_owner() to authenticated;
+revoke all on function public.is_ariadne_owner() from public;
+grant execute on function public.is_ariadne_owner() to authenticated;
 
 -- 1) Substack backend tables are retired; dashboard reads public Substack archive data directly.
 drop table if exists public.substack_archive_posts;
@@ -46,22 +46,22 @@ create policy "Users can read own tasks"
 on public.user_tasks
 for select
 to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner());
 
 drop policy if exists "Users can insert own tasks" on public.user_tasks;
 create policy "Users can insert own tasks"
 on public.user_tasks
 for insert
 to authenticated
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 drop policy if exists "Users can update own tasks" on public.user_tasks;
 create policy "Users can update own tasks"
 on public.user_tasks
 for update
 to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner())
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner())
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 -- 3) Immutable backup history for user_tasks updates
 create table if not exists public.user_tasks_backups (
@@ -82,14 +82,14 @@ create policy "Users can read own task backups"
 on public.user_tasks_backups
 for select
 to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner());
 
 drop policy if exists "Users can insert own task backups" on public.user_tasks_backups;
 create policy "Users can insert own task backups"
 on public.user_tasks_backups
 for insert
 to authenticated
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 create or replace function public.backup_user_tasks_before_update()
 returns trigger
@@ -191,22 +191,22 @@ create policy "Users can read own projects"
 on public.user_projects
 for select
 to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner());
 
 drop policy if exists "Users can insert own projects" on public.user_projects;
 create policy "Users can insert own projects"
 on public.user_projects
 for insert
 to authenticated
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 drop policy if exists "Users can update own projects" on public.user_projects;
 create policy "Users can update own projects"
 on public.user_projects
 for update
 to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner())
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner())
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 -- 5) Immutable backup history for user_projects updates
 create table if not exists public.user_projects_backups (
@@ -227,14 +227,14 @@ create policy "Users can read own project backups"
 on public.user_projects_backups
 for select
 to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner());
 
 drop policy if exists "Users can insert own project backups" on public.user_projects_backups;
 create policy "Users can insert own project backups"
 on public.user_projects_backups
 for insert
 to authenticated
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 create or replace function public.backup_user_projects_before_update()
 returns trigger
@@ -297,17 +297,17 @@ revoke all on table public.direction_revisions from anon;
 drop policy if exists "Users manage own directions" on public.directions;
 create policy "Users manage own directions" on public.directions
 for all to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner())
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner())
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 drop policy if exists "Users read own direction revisions" on public.direction_revisions;
 create policy "Users read own direction revisions" on public.direction_revisions
-for select to authenticated using (auth.uid() = user_id and public.is_fabbro_owner());
+for select to authenticated using (auth.uid() = user_id and public.is_ariadne_owner());
 drop policy if exists "Users insert own direction revisions" on public.direction_revisions;
 create policy "Users insert own direction revisions" on public.direction_revisions
-for insert to authenticated with check (auth.uid() = user_id and public.is_fabbro_owner());
+for insert to authenticated with check (auth.uid() = user_id and public.is_ariadne_owner());
 drop policy if exists "Users delete own direction revisions" on public.direction_revisions;
 create policy "Users delete own direction revisions" on public.direction_revisions
-for delete to authenticated using (auth.uid() = user_id and public.is_fabbro_owner());
+for delete to authenticated using (auth.uid() = user_id and public.is_ariadne_owner());
 
 -- 8) Strategic objectives attached to a direction.
 create table if not exists public.strategic_objectives (
@@ -368,8 +368,8 @@ revoke all on table public.strategic_objectives from anon;
 drop policy if exists "Users manage own strategic objectives" on public.strategic_objectives;
 create policy "Users manage own strategic objectives" on public.strategic_objectives
 for all to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner())
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner())
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 
 -- 9) Measurable outcome goals and user-managed meaningful-change history.
 create table if not exists public.outcome_goals (
@@ -477,17 +477,17 @@ revoke all on table public.outcome_goal_revisions from anon;
 drop policy if exists "Users manage own outcome goals" on public.outcome_goals;
 create policy "Users manage own outcome goals" on public.outcome_goals
 for all to authenticated
-using (auth.uid() = user_id and public.is_fabbro_owner())
-with check (auth.uid() = user_id and public.is_fabbro_owner());
+using (auth.uid() = user_id and public.is_ariadne_owner())
+with check (auth.uid() = user_id and public.is_ariadne_owner());
 drop policy if exists "Users read own outcome goal revisions" on public.outcome_goal_revisions;
 create policy "Users read own outcome goal revisions" on public.outcome_goal_revisions
-for select to authenticated using (auth.uid() = user_id and public.is_fabbro_owner());
+for select to authenticated using (auth.uid() = user_id and public.is_ariadne_owner());
 drop policy if exists "Users insert own outcome goal revisions" on public.outcome_goal_revisions;
 create policy "Users insert own outcome goal revisions" on public.outcome_goal_revisions
-for insert to authenticated with check (auth.uid() = user_id and public.is_fabbro_owner());
+for insert to authenticated with check (auth.uid() = user_id and public.is_ariadne_owner());
 drop policy if exists "Users delete own outcome goal revisions" on public.outcome_goal_revisions;
 create policy "Users delete own outcome goal revisions" on public.outcome_goal_revisions
-for delete to authenticated using (auth.uid() = user_id and public.is_fabbro_owner());
+for delete to authenticated using (auth.uid() = user_id and public.is_ariadne_owner());
 
 -- 10) Private GOAT Lab storage, locked to the authorized account by RLS.
 create table if not exists public.goat_score_entries (
@@ -819,7 +819,7 @@ create policy "Authorized owner can read external signal cache"
 on public.external_signal_cache
 for select
 to authenticated
-using (public.is_fabbro_owner());
+using (public.is_ariadne_owner());
 
 create or replace function public.record_external_signal_if_newer(
   p_signal_key text,
