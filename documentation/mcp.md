@@ -1,15 +1,14 @@
-# Ariadne MCP
+# Ariadne MCP for ChatGPT
 
-Ariadne exposes a private, read-only Model Context Protocol (MCP) endpoint from a Supabase Edge Function. The GitHub Pages frontend remains a static deployment; MCP does not add server credentials to the browser bundle.
+Ariadne exposes a private, read-only Model Context Protocol (MCP) endpoint from a Supabase Edge Function. The integration target is ChatGPT. The GitHub Pages frontend remains a static deployment; MCP does not add server credentials to the browser bundle.
 
 ## Runtime
 
 - Edge Function: `supabase/functions/ariadne-mcp`
 - Transport: MCP Streamable HTTP via the official TypeScript SDK
 - MCP SDK: `@modelcontextprotocol/server@2.0.0`
-- Protocol support: current 2026 MCP plus the SDK's stateless legacy compatibility path
 - Data source: Ariadne's existing Supabase tables
-- Authorization: existing `public.is_ariadne_owner()` policy boundary
+- Authorization boundary: existing `public.is_ariadne_owner()` policy plus Supabase RLS
 - Writes: none in v1
 
 ## Endpoint
@@ -22,9 +21,17 @@ https://<SUPABASE_PROJECT_REF>.supabase.co/functions/v1/ariadne-mcp
 
 For the production Ariadne project, substitute its project ref for `<SUPABASE_PROJECT_REF>`.
 
+## ChatGPT integration target
+
+The intended client is a custom Ariadne app in ChatGPT using the remote MCP endpoint above. ChatGPT should be able to discover the exposed Ariadne tools and retrieve structured workspace state directly rather than relying on copied exports or rendered-UI scraping.
+
+ChatGPT custom MCP availability is controlled by OpenAI account/workspace capabilities and may change independently of this repository. Follow OpenAI's current Developer Mode / custom app documentation when connecting the endpoint.
+
 ## Authentication
 
-Every MCP request must send the access token from an authenticated Ariadne Supabase session:
+### Current development authentication
+
+The deployed MCP currently accepts a bearer token from an authenticated Ariadne Supabase session:
 
 ```http
 Authorization: Bearer <SUPABASE_ACCESS_TOKEN>
@@ -34,7 +41,23 @@ The Edge Function calls `public.is_ariadne_owner()` with that token before MCP h
 
 A non-owner, missing token, invalid token, or expired token is rejected before Ariadne data is read.
 
-Supabase access tokens expire. A long-running Grokbot integration must refresh the owner's Supabase session and replace the bearer token when it expires. A separate durable machine-auth credential is intentionally not introduced in this first read-only implementation.
+This bearer-token path is useful for local and protocol testing, but manually copying a short-lived Supabase access token is not the intended final ChatGPT connection flow.
+
+### Target ChatGPT authentication
+
+The durable target is standards-based OAuth 2.1 / OpenID Connect using Ariadne's existing Supabase Auth identity. Supabase Auth can act as an OAuth 2.1 authorization server, issue refreshable access tokens, preserve the existing user identity, and continue applying Ariadne's RLS policies.
+
+The intended final flow is:
+
+1. ChatGPT connects to the Ariadne remote MCP endpoint.
+2. Ariadne advertises or is configured with the Supabase OAuth authorization server.
+3. ChatGPT redirects the owner through the Ariadne/Supabase authorization flow.
+4. Supabase issues access and refresh tokens after authorization.
+5. ChatGPT presents the resulting bearer access token to the MCP endpoint.
+6. Ariadne verifies the owner and performs all reads under the caller's RLS context.
+7. Refresh tokens maintain connectivity without manually replacing short-lived session tokens.
+
+Completing this flow requires enabling Supabase OAuth Server capabilities and configuring the Ariadne authorization/consent UI. Until that is done, the deployed endpoint should be treated as an MCP foundation rather than a completed ChatGPT app connection.
 
 ## Exposed tools
 
@@ -100,16 +123,18 @@ http://127.0.0.1:54321/functions/v1/ariadne-mcp
 
 Use an access token for the authorized Ariadne account when testing authenticated reads.
 
-## MCP client / Grokbot configuration
+## ChatGPT connection
 
-Configure the client with:
+Once OAuth is completed and the relevant ChatGPT custom-app capability is available for the account/workspace:
 
-1. Transport: Streamable HTTP.
-2. URL: the deployed `ariadne-mcp` function URL.
-3. Header: `Authorization: Bearer <SUPABASE_ACCESS_TOKEN>`.
-4. Refresh the Supabase session when the access token expires.
+1. Enable ChatGPT Developer Mode / custom apps according to OpenAI's current product instructions.
+2. Create an Ariadne custom app.
+3. Set the remote MCP URL to the deployed `ariadne-mcp` function endpoint.
+4. Configure or complete the OAuth authorization flow against Ariadne's Supabase Auth server.
+5. Scan/discover tools.
+6. Verify that ChatGPT can call `get_workspace_state` and the individual read tools.
 
-The client should then discover the tools and resources listed above through MCP. No application-state paste or rendered-UI scraping is required.
+The goal is for ChatGPT to retrieve Ariadne state directly whenever the Ariadne app is selected or invoked.
 
 ## Security invariants
 
