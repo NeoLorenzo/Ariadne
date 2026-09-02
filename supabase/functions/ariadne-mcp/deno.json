@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@modelcontextprotocol/server": "npm:@modelcontextprotocol/server@2.0.0",
+    "zod/v4": "npm:zod@4.5.4/v4"
+  }
+}
