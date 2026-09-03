@@ -46,13 +46,17 @@ Allowed project updates are limited to user-facing Ariadne metadata such as titl
 
 ### Strategy
 
-- `chatgpt.update_direction(direction_id, patch)`
+- `chatgpt.update_direction(direction_id, patch, change_reason default null)`
 - `chatgpt.create_strategic_objective(...)`
 - `chatgpt.update_strategic_objective(objective_id, patch)`
 - `chatgpt.create_outcome_goal(...)`
-- `chatgpt.update_outcome_goal(goal_id, patch)`
+- `chatgpt.update_outcome_goal(goal_id, patch, change_reason default null)`
 
 No generic SQL mutation operation is added to Ariadne itself.
+
+Direction content edits (title or statement) require a change reason and preserve the prior definition in direction history. Meaningful outcome-goal definition edits (title, target value, bare minimum, start date, or target date) likewise require a reason and preserve history; ordinary progress updates do not create revisions. Linked tasks for goals displayed on the todo list are synchronized automatically, including title, description, target-date, and display-state changes.
+
+The Ariadne UI and ChatGPT control surface both call the same canonical remote domain operations for direction and outcome-goal edits. This keeps revision and linked-task behavior consistent regardless of where an edit originates.
 
 ## Intended ChatGPT usage
 
