@@ -7,7 +7,6 @@ import { useIsMobileExperience } from "@/lib/device/useIsMobileExperience";
 
 const NAV_ITEMS = [
   { key: "dashboard", href: "/", label: "Dashboard", icon: "dashboard" },
-  { key: "coding", href: "/coding", label: "Coding", icon: "coding", mobileHidden: true },
   { key: "tasks", href: "/tasks", label: "Tasks", icon: "tasks" },
   { key: "lab", href: "/lab", label: "Lab", icon: "lab" }
 ];

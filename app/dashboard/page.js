@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import DirectionPanel from "@/components/DirectionPanel";
+import GitHubReposModule from "@/components/GitHubReposModule";
 import StrategicObjectives from "@/components/StrategicObjectives";
 import { SecondaryButton } from "@/components/ui/AriadneUI";
 import { buildFullAppDataText, copyTextToClipboard } from "@/lib/export/appDataText";
@@ -23,7 +24,6 @@ const LORENZO_ROQUE_SUBSTACK = {
   feedJsonUrl:
     "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Florenzoroque.substack.com%2Ffeed"
 };
-const PROJECTS_STORAGE_KEY = "fabbro_projects_v1";
 const PROTOLORENZO_VIDEO_STATE_STORAGE_KEY = "fabbro_youtube_state_v1";
 const GITHUB_REPO_PROJECT_ID_PREFIX = "github-repo-";
 const PROJECT_STATUS_ACTIVE = "active";
@@ -57,6 +57,11 @@ export default function DashboardPage() {
   const [protoLorenzoLatestScheduledDate, setProtoLorenzoLatestScheduledDate] = useState("");
   const [activeDirection, setActiveDirection] = useState(null);
   const [copyState, setCopyState] = useState({ status: "idle", message: "" });
+  const [canonicalProjects, setCanonicalProjects] = useState([]);
+
+  const handleProjectsChange = useCallback(({ projects }) => {
+    setCanonicalProjects(Array.isArray(projects) ? projects : []);
+  }, []);
 
   useEffect(() => {
     const refreshProtoLorenzoVideoState = () => {
@@ -171,47 +176,40 @@ export default function DashboardPage() {
       setNoticeBoardItems(cachedBootEntry.payload);
     }
 
-    const loadNoticeBoardItems = async () => {
-      const { userId, projects } = await loadProjectsSnapshotForNotices(authUserId);
-      const cacheUserId = userId || authUserId || "signed-out";
-      const cachedEntry = readSyncCacheEntry({
-        namespace: DASHBOARD_NOTICE_CACHE_NAMESPACE,
-        userId: cacheUserId
-      });
-      const cachedPayload = cachedEntry?.payload;
-      if (isMounted && Array.isArray(cachedPayload)) {
-        setNoticeBoardItems(cachedPayload);
-      }
+    const cacheUserId = authUserId || "signed-out";
+    const cachedEntry = readSyncCacheEntry({
+      namespace: DASHBOARD_NOTICE_CACHE_NAMESPACE,
+      userId: cacheUserId
+    });
+    const cachedPayload = cachedEntry?.payload;
+    if (isMounted && Array.isArray(cachedPayload)) {
+      setNoticeBoardItems(cachedPayload);
+    }
 
-      const nextNoticeItems = buildDashboardNotices({
-        projects,
-        substackDaysSinceLastPublication,
-        protoLorenzoVideoBacklogDays,
-        hasSubstackTimestamp: Number.isFinite(substackLatestPostTimestamp)
-      });
-      const nextNoticeSignature = getDashboardListCacheSignature(nextNoticeItems);
+    const nextNoticeItems = buildDashboardNotices({
+      projects: canonicalProjects,
+      substackDaysSinceLastPublication,
+      protoLorenzoVideoBacklogDays,
+      hasSubstackTimestamp: Number.isFinite(substackLatestPostTimestamp)
+    });
+    const nextNoticeSignature = getDashboardListCacheSignature(nextNoticeItems);
 
-      if (!isMounted) {
-        return;
-      }
-      if (nextNoticeSignature !== String(cachedEntry?.signature || "")) {
-        setNoticeBoardItems(nextNoticeItems);
-      }
-      upsertSyncCacheEntryIfChanged({
-        namespace: DASHBOARD_NOTICE_CACHE_NAMESPACE,
-        userId: cacheUserId,
-        payload: nextNoticeItems,
-        signature: nextNoticeSignature
-      });
-    };
-
-    void loadNoticeBoardItems();
+    if (isMounted && nextNoticeSignature !== String(cachedEntry?.signature || "")) {
+      setNoticeBoardItems(nextNoticeItems);
+    }
+    upsertSyncCacheEntryIfChanged({
+      namespace: DASHBOARD_NOTICE_CACHE_NAMESPACE,
+      userId: cacheUserId,
+      payload: nextNoticeItems,
+      signature: nextNoticeSignature
+    });
 
     return () => {
       isMounted = false;
     };
   }, [
     authUserId,
+    canonicalProjects,
     protoLorenzoVideoBacklogDays,
     substackDaysSinceLastPublication,
     substackLatestPostTimestamp
@@ -235,10 +233,9 @@ export default function DashboardPage() {
 
     setCopyState({ status: "copying", message: "" });
     try {
-      const projectSnapshot = await loadProjectsSnapshotForNotices(authUserId);
       const exportText = await buildFullAppDataText({
         userId: authUserId,
-        projects: projectSnapshot.projects,
+        projects: canonicalProjects,
         noticeBoardItems,
         signals: {
           substackLatestPostTimestamp,
@@ -333,6 +330,8 @@ export default function DashboardPage() {
               </ul>
             </section>
 
+            <GitHubReposModule onProjectsChange={handleProjectsChange} />
+
             <section className="quick-actions-module" aria-label="Quick actions">
               <h3 className="quick-actions-title">Quick actions</h3>
               <div className="quick-actions-list">
@@ -421,51 +420,6 @@ async function fetchLatestSubstackFeedEntry() {
     };
   } catch {
     return null;
-  }
-}
-
-async function loadProjectsSnapshotForNotices(authUserId) {
-  const localProjects = readProjectsSnapshotFromStorage();
-
-  if (supabase && authUserId) {
-    const { data, error } = await supabase
-      .from("user_projects")
-      .select("projects")
-      .eq("user_id", authUserId)
-      .maybeSingle();
-
-    if (!error && Array.isArray(data?.projects)) {
-      return {
-        userId: authUserId,
-        projects: data.projects
-      };
-    }
-
-    return {
-      userId: authUserId,
-      projects: localProjects
-    };
-  }
-
-  return {
-    userId: null,
-    projects: localProjects
-  };
-}
-
-function readProjectsSnapshotFromStorage() {
-  if (typeof window === "undefined") {
-    return [];
-  }
-  try {
-    const raw = window.localStorage.getItem(PROJECTS_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
   }
 }
 
