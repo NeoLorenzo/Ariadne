@@ -79,6 +79,14 @@ function inspectText(fileLabel, text, findings) {
   if (textWithoutApprovedCleanup.includes(PRIVATE_SEED_IDENTIFIER)) {
     findings.push(`${fileLabel}: private academic seed routine is prohibited`);
   }
+
+  if (fileLabel === "lib/directions/directionRepository.js") {
+    const hasDirectionDefault = /(?:DEFAULT|INITIAL|SEED)_DIRECTION\s*=\s*\{/.test(text);
+    const hasPersistedDirectionShape = /\bid\s*:\s*["'`][^"'`]+["'`][\s\S]{0,1200}\btitle\s*:\s*["'`][\s\S]{0,1200}\bstatement\s*:\s*["'`]/.test(text);
+    if (hasDirectionDefault || hasPersistedDirectionShape) {
+      findings.push(`${fileLabel}: repository-defined persisted direction bootstrap record is prohibited`);
+    }
+  }
 }
 
 const findings = [];

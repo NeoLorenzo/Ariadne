@@ -40,9 +40,10 @@ export default function StrategicObjectives({ directionId, userId }) {
     .filter((item) => item.status !== "active")
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)), [objectives]);
   const atLimit = activeObjectives.length >= 3;
+  const hasDirection = Boolean(directionId);
 
   const openCreate = () => {
-    if (atLimit) return;
+    if (!hasDirection || atLimit) return;
     setDraft(EMPTY_DRAFT);
     setMessage("");
     setModal({ mode: "create" });
@@ -88,10 +89,12 @@ export default function StrategicObjectives({ directionId, userId }) {
 
   return (
     <section className="objectives-panel" aria-labelledby="strategic-objectives-title">
-      <SectionHeader className="objectives-header" titleId="strategic-objectives-title" title="Strategic objectives" actions={activeObjectives.length ? <GhostButton disabled={atLimit} onClick={openCreate} title={atLimit ? "Three active objectives already exist" : undefined}>+ Add objective</GhostButton> : null} />
+      <SectionHeader className="objectives-header" titleId="strategic-objectives-title" title="Strategic objectives" actions={hasDirection && activeObjectives.length ? <GhostButton disabled={atLimit} onClick={openCreate} title={atLimit ? "Three active objectives already exist" : undefined}>+ Add objective</GhostButton> : null} />
       {message ? <p className="objectives-message" role="status">{message}</p> : null}
 
-      {activeObjectives.length ? (
+      {!hasDirection ? (
+        <div className="objectives-empty"><p>Set a direction before adding strategic objectives.</p></div>
+      ) : activeObjectives.length ? (
         <div className="objectives-grid">
           {activeObjectives.map((objective, index) => (
             <ObjectiveCard

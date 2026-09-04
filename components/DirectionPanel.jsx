@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  DEFAULT_DIRECTION,
+  createDirection,
   deleteDirectionRevision,
   loadDirectionState,
   updateDirection
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/AriadneUI";
 
 export default function DirectionPanel({ userId, onDirectionChange }) {
-  const [state, setState] = useState({ direction: DEFAULT_DIRECTION, revisions: [] });
+  const [state, setState] = useState({ direction: null, revisions: [] });
   const [view, setView] = useState(null);
   const [draft, setDraft] = useState({ title: "", statement: "", changeReason: "" });
   const [saveError, setSaveError] = useState("");
@@ -56,7 +56,7 @@ export default function DirectionPanel({ userId, onDirectionChange }) {
   }, [state.direction?.id, userId]);
 
   const openEditor = () => {
-    setDraft({ title: state.direction.title, statement: state.direction.statement, changeReason: "" });
+    setDraft({ title: state.direction?.title || "", statement: state.direction?.statement || "", changeReason: "" });
     setSaveError("");
     setView("edit");
   };
@@ -71,7 +71,8 @@ export default function DirectionPanel({ userId, onDirectionChange }) {
     if (!draft.title.trim() || !draft.statement.trim()) return;
 
     try {
-      await updateDirection({
+      const saveDirection = state.direction ? updateDirection : createDirection;
+      await saveDirection({
         ...state,
         ...draft,
         userId,
@@ -116,24 +117,36 @@ export default function DirectionPanel({ userId, onDirectionChange }) {
       <section className="direction-panel direction-hero-card" aria-labelledby="direction-title">
         <header className="direction-hero-header">
           <span className="direction-eyebrow">Current direction</span>
-          <div className="direction-actions">
-            <GhostButton onClick={openEditor}>Edit</GhostButton>
-            <details className="direction-overflow">
-              <summary aria-label="More direction actions">•••</summary>
-              <div className="objective-menu">
-                <button type="button" onClick={openHistory}>View history</button>
-              </div>
-            </details>
-          </div>
+          {state.direction ? (
+            <div className="direction-actions">
+              <GhostButton onClick={openEditor}>Edit</GhostButton>
+              <details className="direction-overflow">
+                <summary aria-label="More direction actions">•••</summary>
+                <div className="objective-menu">
+                  <button type="button" onClick={openHistory}>View history</button>
+                </div>
+              </details>
+            </div>
+          ) : null}
         </header>
 
         <div className="direction-content">
-          <h3 id="direction-title" className="direction-title">{state.direction.title}</h3>
-          <p className="direction-statement">{state.direction.statement}</p>
+          {state.direction ? (
+            <>
+              <h3 id="direction-title" className="direction-title">{state.direction.title}</h3>
+              <p className="direction-statement">{state.direction.statement}</p>
+            </>
+          ) : (
+            <>
+              <h3 id="direction-title" className="direction-title">No direction set</h3>
+              <p className="direction-statement">Define your current direction to guide your strategic objectives and outcome goals.</p>
+              <PrimaryButton onClick={openEditor}>Set direction</PrimaryButton>
+            </>
+          )}
           {saveError ? <p className="direction-sync-error" role="status">{saveError}</p> : null}
         </div>
 
-        {hasStats ? (
+        {state.direction && hasStats ? (
           <footer className="direction-hero-footer">
             <div className="direction-stats-pills">
               <span className="direction-stat-pill">
