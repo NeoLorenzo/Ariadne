@@ -1673,7 +1673,7 @@ function sanitizeTask(task) {
     description: String(task.description || "").trim(),
     dueDate: normalizeDateInput(task.dueDate),
     dueTime: normalizeTimeInput(task.dueTime),
-    priority: directionalGoalId ? 1 : normalizePriority(task.priority, task.materialConsequence),
+    priority: directionalGoalId ? 0 : normalizePriority(task.priority, task.materialConsequence),
     estimatedHours: normalizeEstimatedHours(task.estimatedHours ?? task.difficulty),
     subtasks: sanitizeSubtaskList(task.subtasks),
     sourceType: directionalGoalId ? "directional-goal" : "",
@@ -2348,9 +2348,6 @@ function calculateDraftQueueAdjustedTimePressure(formState, taskList, editingTas
 }
 
 function calculatePriorityScore(taskLike) {
-  if (getDirectionalGoalId(taskLike)) {
-    return 1;
-  }
   return normalizePriority(taskLike?.priority, taskLike?.materialConsequence);
 }
 
