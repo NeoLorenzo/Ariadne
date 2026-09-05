@@ -1026,7 +1026,7 @@ export default function TasksPage() {
       description: form.description.trim(),
       dueDate: normalizeDateInput(form.dueDate),
       dueTime: normalizeTimeInput(form.dueTime),
-      priority: form.sourceGoalId ? 1 : normalizePriority(form.priority),
+      priority: form.sourceGoalId ? 0 : normalizePriority(form.priority),
       estimatedHours: normalizedEstimatedHours,
       subtasks: sanitizeSubtaskList(form.subtasks)
     };
@@ -1094,7 +1094,7 @@ export default function TasksPage() {
       description: task.description || "",
       dueDate: task.dueDate || "",
       dueTime: task.dueTime || "",
-      priority: directionalGoalId ? 1 : normalizePriority(task.priority, task.materialConsequence),
+      priority: directionalGoalId ? 0 : normalizePriority(task.priority, task.materialConsequence),
       sourceGoalId: directionalGoalId,
       estimatedHours: normalizeEstimatedHours(task.estimatedHours),
       subtasks: sanitizeSubtaskList(task.subtasks)
@@ -1322,7 +1322,7 @@ export default function TasksPage() {
         <header className="task-card-header">
           <h4 className="task-card-title">{task.title}</h4>
           {directionalGoalId ? (
-            <span className="task-card-goal-tag">◆ Directional goal</span>
+            <span className="task-card-goal-tag">D · Directional</span>
           ) : priorityScore > 0 ? (
             <span className={`task-card-priority-pill priority-band-${priorityBand}`}>
               Priority {priorityScore}
@@ -1515,6 +1515,7 @@ export default function TasksPage() {
                         }))
                       }
                     >
+                      {form.sourceGoalId ? <option value={form.priority}>D · Directional</option> : null}
                       <option value="0">0 · No priority</option>
                       <option value="1">1 · Highest</option>
                       <option value="2">2 · High</option>
@@ -1672,7 +1673,7 @@ function sanitizeTask(task) {
     description: String(task.description || "").trim(),
     dueDate: normalizeDateInput(task.dueDate),
     dueTime: normalizeTimeInput(task.dueTime),
-    priority: directionalGoalId ? 1 : normalizePriority(task.priority, task.materialConsequence),
+    priority: directionalGoalId ? 0 : normalizePriority(task.priority, task.materialConsequence),
     estimatedHours: normalizeEstimatedHours(task.estimatedHours ?? task.difficulty),
     subtasks: sanitizeSubtaskList(task.subtasks),
     sourceType: directionalGoalId ? "directional-goal" : "",
@@ -2347,9 +2348,6 @@ function calculateDraftQueueAdjustedTimePressure(formState, taskList, editingTas
 }
 
 function calculatePriorityScore(taskLike) {
-  if (getDirectionalGoalId(taskLike)) {
-    return 1;
-  }
   return normalizePriority(taskLike?.priority, taskLike?.materialConsequence);
 }
 
