@@ -18,6 +18,30 @@ jobs:
           ref: fix/17-directional-task-priority
           fetch-depth: 0
 
+      - name: Apply review corrections
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("app/tasks/page.js")
+          text = path.read_text(encoding="utf-8")
+          replacements = [
+              (
+                  '    priority: directionalGoalId ? 1 : normalizePriority(task.priority, task.materialConsequence),',
+                  '    priority: directionalGoalId ? 0 : normalizePriority(task.priority, task.materialConsequence),'
+              ),
+              (
+                  '''function calculatePriorityScore(taskLike) {\n  if (getDirectionalGoalId(taskLike)) {\n    return 1;\n  }\n  return normalizePriority(taskLike?.priority, taskLike?.materialConsequence);\n}\n''',
+                  '''function calculatePriorityScore(taskLike) {\n  return normalizePriority(taskLike?.priority, taskLike?.materialConsequence);\n}\n'''
+              )
+          ]
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f"Expected exactly one match, found {count}: {old[:80]!r}")
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -28,25 +52,7 @@ jobs:
         run: npm ci
 
       - name: Run regression tests
-        id: tests
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          npm test 2>&1 | tee test-output.txt
-          status=${PIPESTATUS[0]}
-          exit $status
-
-      - name: Upload test output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: issue-17-test-output
-          path: test-output.txt
-
-      - name: Stop on regression failure
-        if: steps.tests.outcome == 'failure'
-        run: exit 1
+        run: npm test
 
       - name: Check repository privacy
         run: npm run check:privacy
@@ -63,10 +69,10 @@ jobs:
       - name: Remove validation helper
         run: rm .github/workflows/validate-issue-17.yml
 
-      - name: Commit helper removal
+      - name: Commit reviewed implementation
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "chore: remove issue 17 validation helper"
+          git commit -m "fix: keep directional presentation separate from P1"
           git push origin HEAD:fix/17-directional-task-priority
