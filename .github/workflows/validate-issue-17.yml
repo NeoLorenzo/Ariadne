@@ -28,7 +28,25 @@ jobs:
         run: npm ci
 
       - name: Run regression tests
-        run: npm test
+        id: tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npm test 2>&1 | tee test-output.txt
+          status=${PIPESTATUS[0]}
+          exit $status
+
+      - name: Upload test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-17-test-output
+          path: test-output.txt
+
+      - name: Stop on regression failure
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
 
       - name: Check repository privacy
         run: npm run check:privacy
