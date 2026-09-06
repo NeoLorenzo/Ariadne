@@ -1,0 +1,30 @@
+name: Issue 12 validation
+
+on:
+  push:
+    branches: ["fix/issue-12-strategy-reconciliation"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run check:privacy
+      - name: Build static export
+        env:
+          STATIC_EXPORT: "true"
+          NEXT_PUBLIC_BASE_PATH: "/Ariadne"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUBSTACK_ARCHIVE_SYNC_URL: ${{ secrets.NEXT_PUBLIC_SUBSTACK_ARCHIVE_SYNC_URL }}
+        run: npm run build
+      - run: npm run check:privacy
