@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import KleosVectorStateLayer from "@/components/KleosVectorStateLayer";
 import StrategicObjectives from "@/components/StrategicObjectives";
 import {
   createDirection,
@@ -200,6 +201,8 @@ export default function DirectionPanel({ userId }) {
           })}
         </div>
       </section>
+
+      <KleosVectorStateLayer userId={userId} directions={state.directions} />
 
       {activeDirections.length ? activeDirections.map((direction, index) => (
         <section key={direction.id} className="direction-panel direction-hero-card" aria-labelledby={`direction-title-${direction.id}`}>
