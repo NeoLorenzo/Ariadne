@@ -39,10 +39,8 @@ export default function StrategicObjectives({ directionId, userId }) {
   const previousObjectives = useMemo(() => objectives
     .filter((item) => item.status !== "active")
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)), [objectives]);
-  const hasDirection = Boolean(directionId);
 
   const openCreate = () => {
-    if (!hasDirection) return;
     setDraft(EMPTY_DRAFT);
     setMessage("");
     setModal({ mode: "create" });
@@ -84,19 +82,19 @@ export default function StrategicObjectives({ directionId, userId }) {
     void persist((onLocalUpdate) => deleteStrategicObjective({ objectives, objectiveId: objective.id, directionId, userId, onLocalUpdate }));
   };
 
+  if (!directionId) return null;
+
   return (
-    <section className="objectives-panel" aria-labelledby={`strategic-objectives-title-${directionId || "none"}`}>
+    <section className="objectives-panel" aria-labelledby={`strategic-objectives-title-${directionId}`}>
       <SectionHeader
         className="objectives-header"
-        titleId={`strategic-objectives-title-${directionId || "none"}`}
+        titleId={`strategic-objectives-title-${directionId}`}
         title="Strategic objectives"
-        actions={hasDirection && activeObjectives.length ? <GhostButton onClick={openCreate}>+ Add objective</GhostButton> : null}
+        actions={activeObjectives.length ? <GhostButton onClick={openCreate}>+ Add objective</GhostButton> : null}
       />
       {message ? <p className="objectives-message" role="status">{message}</p> : null}
 
-      {!hasDirection ? (
-        <div className="objectives-empty"><p>Set a direction before adding strategic objectives.</p></div>
-      ) : activeObjectives.length ? (
+      {activeObjectives.length ? (
         <div className="objectives-grid">
           {activeObjectives.map((objective, index) => (
             <ObjectiveCard
@@ -136,35 +134,9 @@ export default function StrategicObjectives({ directionId, userId }) {
           <ModalShell ref={dialogRef} as="form" className="direction-dialog entity-edit-dialog" role="dialog" aria-modal="true" aria-label={modal.mode === "edit" ? "Edit strategic objective" : "Add strategic objective"} onSubmit={handleSubmit}>
             <ModalBody className="direction-form entity-edit-form">
               <section className="entity-primary-fields" aria-label="Strategic objective">
-                <TextInput
-                  className="entity-title-field"
-                  required
-                  autoFocus
-                  maxLength={140}
-                  value={draft.title}
-                  aria-label="Objective title"
-                  placeholder="Objective title"
-                  onChange={(event) => setDraft({ ...draft, title: event.target.value })}
-                />
-                <TextArea
-                  className="entity-description-field"
-                  size="short"
-                  maxLength={600}
-                  value={draft.description}
-                  aria-label="Objective description, optional"
-                  placeholder="Add context or describe the intended change"
-                  onChange={(event) => setDraft({ ...draft, description: event.target.value })}
-                />
-                <TextArea
-                  className="entity-prompt-field"
-                  size="success"
-                  required
-                  maxLength={800}
-                  value={draft.successCondition}
-                  aria-label="What does success look like?"
-                  placeholder="What does success look like?"
-                  onChange={(event) => setDraft({ ...draft, successCondition: event.target.value })}
-                />
+                <TextInput className="entity-title-field" required autoFocus maxLength={140} value={draft.title} aria-label="Objective title" placeholder="Objective title" onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
+                <TextArea className="entity-description-field" size="short" maxLength={600} value={draft.description} aria-label="Objective description, optional" placeholder="Add context or describe the intended change" onChange={(event) => setDraft({ ...draft, description: event.target.value })} />
+                <TextArea className="entity-prompt-field" size="success" required maxLength={800} value={draft.successCondition} aria-label="What does success look like?" placeholder="What does success look like?" onChange={(event) => setDraft({ ...draft, successCondition: event.target.value })} />
                 {message ? <p className="objectives-message" role="status">{message}</p> : null}
                 <p className="direction-form-note">Define the major change; measurable targets belong in outcome goals.</p>
               </section>
@@ -192,12 +164,7 @@ function ObjectiveCard({ objective, objectives, userId, index, count, onEdit, on
           <summary aria-label="More objective actions">•••</summary>
           <div className="objective-menu">
             <button type="button" onClick={onEdit}>Edit</button>
-            {onMove ? (
-              <>
-                <button type="button" disabled={index === 0} onClick={() => onMove(-1)}>Move up</button>
-                <button type="button" disabled={index === count - 1} onClick={() => onMove(1)}>Move down</button>
-              </>
-            ) : null}
+            {onMove ? <><button type="button" disabled={index === 0} onClick={() => onMove(-1)}>Move up</button><button type="button" disabled={index === count - 1} onClick={() => onMove(1)}>Move down</button></> : null}
             {objective.status !== "active" ? <button type="button" onClick={() => onStatus("active")}>Make active</button> : null}
             {objective.status !== "paused" ? <button type="button" onClick={() => onStatus("paused")}>Pause</button> : null}
             {objective.status !== "completed" ? <button type="button" onClick={() => onStatus("completed")}>Complete</button> : null}
@@ -206,12 +173,8 @@ function ObjectiveCard({ objective, objectives, userId, index, count, onEdit, on
           </div>
         </details>
       </header>
-      {objective.successCondition || objective.description ? (
-        <p className="objective-success">{objective.successCondition || objective.description}</p>
-      ) : null}
-      <div className="objective-goals-wrapper">
-        <OutcomeGoals objective={objective} objectives={objectives} userId={userId} />
-      </div>
+      {objective.successCondition || objective.description ? <p className="objective-success">{objective.successCondition || objective.description}</p> : null}
+      <div className="objective-goals-wrapper"><OutcomeGoals objective={objective} objectives={objectives} userId={userId} /></div>
     </article>
   );
 }
