@@ -10,7 +10,7 @@ ownership boundaries.
 
 ## Current features
 
-- Dashboard with an active direction, strategic objectives, and measurable outcome goals
+- Dashboard with concurrent multidimensional directions across an eight-vector navigation model, strategic objectives, and measurable outcome goals
 - Notice board generated from project and publication signals
 - Coding project management with GitHub repository synchronization
 - Task planning with subtasks, scheduling, manual 0–4 priority, directional-goal links, and time-pressure indicators
@@ -59,14 +59,21 @@ Only the public Supabase URL and anon key are used client-side.
 
 ## Supabase setup
 
-Run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL Editor for Ariadne-owned
-persistence. The schema provides:
+[`supabase/schema.sql`](supabase/schema.sql) is the baseline Ariadne-owned persistence bootstrap.
+After applying that baseline to a fresh project, apply the timestamped SQL files in
+[`supabase/migrations/`](supabase/migrations) in filename order. The migrations are the source of
+truth for schema evolution after the baseline; an existing project should apply only migrations that
+have not already been deployed.
+
+The resulting current schema provides:
 
 - user task and task-backup storage
 - user project and project-backup storage
-- directions and user-managed direction revisions
-- strategic objectives
+- concurrent directions with lifecycle/order metadata and explicit many-to-many links to the eight canonical navigation vectors
+- user-managed direction revisions, including vector metadata for revisions created after the multidirectional migration
+- strategic objectives without an arbitrary three-active-objective cap
 - count-based outcome goals, bare-minimum thresholds, automatic deadline outcomes, and user-managed revisions
+- bounded semantic operations used by the browser and ChatGPT/Ari Bot control surfaces
 
 Kleos-owned `goat_*` persistence is documented and maintained in
 [`NeoLorenzo/Kleos`](https://github.com/NeoLorenzo/Kleos/tree/main/supabase). Ariadne intentionally
@@ -109,6 +116,7 @@ Required GitHub Actions secrets:
 - Tasks and projects are stored locally for responsive startup.
 - Authenticated users synchronize private data to Supabase.
 - Version checks protect task and project collections from silent concurrent overwrites.
+- Direction/objective/goal edits use durable local-first strategy reconciliation with optimistic conflict detection.
 - Dashboard publication signals are read only after owner authorization.
 - Personal records are never seeded from repository code.
 
