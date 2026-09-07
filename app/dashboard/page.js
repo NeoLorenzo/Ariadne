@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import DirectionPanel from "@/components/DirectionPanel";
 import GitHubReposModule from "@/components/GitHubReposModule";
-import StrategicObjectives from "@/components/StrategicObjectives";
 import { SecondaryButton } from "@/components/ui/AriadneUI";
 import { buildFullAppDataText, copyTextToClipboard } from "@/lib/export/appDataText";
 import { supabase } from "@/lib/supabase/client";
@@ -55,7 +54,6 @@ export default function DashboardPage() {
   const [authUserId, setAuthUserId] = useState(() => readLastKnownSyncUserId());
   const [substackLatestPostTimestamp, setSubstackLatestPostTimestamp] = useState(null);
   const [protoLorenzoLatestScheduledDate, setProtoLorenzoLatestScheduledDate] = useState("");
-  const [activeDirection, setActiveDirection] = useState(null);
   const [copyState, setCopyState] = useState({ status: "idle", message: "" });
   const [canonicalProjects, setCanonicalProjects] = useState([]);
 
@@ -287,8 +285,7 @@ export default function DashboardPage() {
 
           <div className="dashboard-body">
             <section className="dashboard-strategy" aria-label="Strategy">
-              <DirectionPanel userId={authUserId} onDirectionChange={setActiveDirection} />
-              <StrategicObjectives directionId={activeDirection?.id} userId={authUserId} />
+              <DirectionPanel userId={authUserId} />
             </section>
 
             <section className="notice-board-module" aria-label="Notice board">
