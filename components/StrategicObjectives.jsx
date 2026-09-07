@@ -11,7 +11,7 @@ import {
 } from "@/lib/objectives/strategicObjectiveRepository";
 import OutcomeGoals from "@/components/OutcomeGoals";
 import {
-  GhostButton, ListRow, ModalBody, ModalFooter, ModalShell,
+  GhostButton, ModalBody, ModalFooter, ModalShell,
   PrimaryButton, SectionHeader, SecondaryButton, Select, StatusIndicator, TextArea, TextInput,
   useModalDialog
 } from "@/components/ui/AriadneUI";
@@ -39,11 +39,10 @@ export default function StrategicObjectives({ directionId, userId }) {
   const previousObjectives = useMemo(() => objectives
     .filter((item) => item.status !== "active")
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)), [objectives]);
-  const atLimit = activeObjectives.length >= 3;
   const hasDirection = Boolean(directionId);
 
   const openCreate = () => {
-    if (!hasDirection || atLimit) return;
+    if (!hasDirection) return;
     setDraft(EMPTY_DRAFT);
     setMessage("");
     setModal({ mode: "create" });
@@ -58,10 +57,8 @@ export default function StrategicObjectives({ directionId, userId }) {
     setMessage("");
     try {
       await operation((next) => setObjectives(next));
-    } catch (error) {
-      setMessage(error?.message === "ACTIVE_OBJECTIVE_LIMIT"
-        ? "Only three strategic objectives may be active at once."
-        : "Saved on this device, but cloud sync failed.");
+    } catch {
+      setMessage("Saved on this device, but cloud sync failed.");
     }
   };
 
@@ -88,8 +85,13 @@ export default function StrategicObjectives({ directionId, userId }) {
   };
 
   return (
-    <section className="objectives-panel" aria-labelledby="strategic-objectives-title">
-      <SectionHeader className="objectives-header" titleId="strategic-objectives-title" title="Strategic objectives" actions={hasDirection && activeObjectives.length ? <GhostButton disabled={atLimit} onClick={openCreate} title={atLimit ? "Three active objectives already exist" : undefined}>+ Add objective</GhostButton> : null} />
+    <section className="objectives-panel" aria-labelledby={`strategic-objectives-title-${directionId || "none"}`}>
+      <SectionHeader
+        className="objectives-header"
+        titleId={`strategic-objectives-title-${directionId || "none"}`}
+        title="Strategic objectives"
+        actions={hasDirection && activeObjectives.length ? <GhostButton onClick={openCreate}>+ Add objective</GhostButton> : null}
+      />
       {message ? <p className="objectives-message" role="status">{message}</p> : null}
 
       {!hasDirection ? (
@@ -114,7 +116,7 @@ export default function StrategicObjectives({ directionId, userId }) {
       ) : (
         <div className="objectives-empty">
           <p><strong>No strategic objectives have been defined.</strong></p>
-          <p>Strategic objectives identify the major changes currently required to advance the active direction.</p>
+          <p>Strategic objectives identify the major changes currently required to advance this direction.</p>
           <PrimaryButton onClick={openCreate}>Add objective</PrimaryButton>
         </div>
       )}
@@ -167,7 +169,7 @@ export default function StrategicObjectives({ directionId, userId }) {
                 <p className="direction-form-note">Define the major change; measurable targets belong in outcome goals.</p>
               </section>
               <section className="entity-secondary-section">
-                <label className="entity-compact-control"><span>Status</span><Select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })}>{OBJECTIVE_STATUSES.map((status) => <option key={status} value={status} disabled={status === "active" && atLimit && modal.objective?.status !== "active"}>{capitalize(status)}</option>)}</Select></label>
+                <label className="entity-compact-control"><span>Status</span><Select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })}>{OBJECTIVE_STATUSES.map((status) => <option key={status} value={status}>{capitalize(status)}</option>)}</Select></label>
               </section>
             </ModalBody>
             <ModalFooter><SecondaryButton onClick={() => setModal(null)}>Cancel</SecondaryButton><PrimaryButton type="submit">{modal.mode === "edit" ? "Save changes" : "Add objective"}</PrimaryButton></ModalFooter>
