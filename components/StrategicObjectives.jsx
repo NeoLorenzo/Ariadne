@@ -9,7 +9,6 @@ import {
   reorderStrategicObjectives,
   saveStrategicObjective
 } from "@/lib/objectives/strategicObjectiveRepository";
-import OutcomeGoals from "@/components/OutcomeGoals";
 import {
   GhostButton, ModalBody, ModalFooter, ModalShell,
   PrimaryButton, SectionHeader, SecondaryButton, Select, StatusIndicator, TextArea, TextInput,
@@ -45,8 +44,14 @@ export default function StrategicObjectives({ directionId, userId }) {
     setMessage("");
     setModal({ mode: "create" });
   };
+
   const openEdit = (objective) => {
-    setDraft({ title: objective.title, description: objective.description, successCondition: objective.successCondition, status: objective.status });
+    setDraft({
+      title: objective.title,
+      description: objective.description,
+      successCondition: objective.successCondition,
+      status: objective.status
+    });
     setMessage("");
     setModal({ mode: "edit", objective });
   };
@@ -67,7 +72,10 @@ export default function StrategicObjectives({ directionId, userId }) {
       objective: { ...draft, id: modal.objective?.id },
       directionId,
       userId,
-      onLocalUpdate: (next) => { onLocalUpdate(next); setModal(null); }
+      onLocalUpdate: (next) => {
+        onLocalUpdate(next);
+        setModal(null);
+      }
     }));
   };
 
@@ -79,7 +87,13 @@ export default function StrategicObjectives({ directionId, userId }) {
   }));
   const remove = (objective) => {
     if (!window.confirm(`Permanently delete “${objective.title}”? Abandoning it is recommended so it remains in history.`)) return;
-    void persist((onLocalUpdate) => deleteStrategicObjective({ objectives, objectiveId: objective.id, directionId, userId, onLocalUpdate }));
+    void persist((onLocalUpdate) => deleteStrategicObjective({
+      objectives,
+      objectiveId: objective.id,
+      directionId,
+      userId,
+      onLocalUpdate
+    }));
   };
 
   if (!directionId) return null;
@@ -106,45 +120,103 @@ export default function StrategicObjectives({ directionId, userId }) {
               onMove={(offset) => move(objective.id, offset)}
               onStatus={(status) => changeStatus(objective.id, status)}
               onDelete={() => remove(objective)}
-              objectives={objectives}
-              userId={userId}
             />
           ))}
         </div>
       ) : (
         <div className="objectives-empty">
           <p><strong>No strategic objectives have been defined.</strong></p>
-          <p>Strategic objectives identify the major changes currently required to advance this direction.</p>
+          <p>Strategic objectives identify the major changes currently required to advance this direction. Concrete execution belongs in Tasks.</p>
           <PrimaryButton onClick={openCreate}>Add objective</PrimaryButton>
         </div>
       )}
 
       {previousObjectives.length ? (
         <div className="objectives-previous">
-          <button className="objectives-history-toggle" type="button" onClick={() => setShowPrevious(!showPrevious)}>{showPrevious ? "Hide previous objectives" : `View previous objectives (${previousObjectives.length})`}</button>
-          {showPrevious ? <div className="objectives-previous-list">{previousObjectives.map((objective) => (
-            <ObjectiveCard key={objective.id} objective={objective} objectives={objectives} userId={userId} onEdit={() => openEdit(objective)} onStatus={(status) => changeStatus(objective.id, status)} onDelete={() => remove(objective)} />
-          ))}</div> : null}
+          <button
+            className="objectives-history-toggle"
+            type="button"
+            onClick={() => setShowPrevious(!showPrevious)}
+          >
+            {showPrevious ? "Hide previous objectives" : `View previous objectives (${previousObjectives.length})`}
+          </button>
+          {showPrevious ? (
+            <div className="objectives-previous-list">
+              {previousObjectives.map((objective) => (
+                <ObjectiveCard
+                  key={objective.id}
+                  objective={objective}
+                  onEdit={() => openEdit(objective)}
+                  onStatus={(status) => changeStatus(objective.id, status)}
+                  onDelete={() => remove(objective)}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
       {modal ? (
         <div className="direction-dialog-layer" role="presentation">
           <button className="direction-dialog-backdrop" type="button" aria-label="Close" onClick={() => setModal(null)} />
-          <ModalShell ref={dialogRef} as="form" className="direction-dialog entity-edit-dialog" role="dialog" aria-modal="true" aria-label={modal.mode === "edit" ? "Edit strategic objective" : "Add strategic objective"} onSubmit={handleSubmit}>
+          <ModalShell
+            ref={dialogRef}
+            as="form"
+            className="direction-dialog entity-edit-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={modal.mode === "edit" ? "Edit strategic objective" : "Add strategic objective"}
+            onSubmit={handleSubmit}
+          >
             <ModalBody className="direction-form entity-edit-form">
               <section className="entity-primary-fields" aria-label="Strategic objective">
-                <TextInput className="entity-title-field" required autoFocus maxLength={140} value={draft.title} aria-label="Objective title" placeholder="Objective title" onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
-                <TextArea className="entity-description-field" size="short" maxLength={600} value={draft.description} aria-label="Objective description, optional" placeholder="Add context or describe the intended change" onChange={(event) => setDraft({ ...draft, description: event.target.value })} />
-                <TextArea className="entity-prompt-field" size="success" required maxLength={800} value={draft.successCondition} aria-label="What does success look like?" placeholder="What does success look like?" onChange={(event) => setDraft({ ...draft, successCondition: event.target.value })} />
+                <TextInput
+                  className="entity-title-field"
+                  required
+                  autoFocus
+                  maxLength={140}
+                  value={draft.title}
+                  aria-label="Objective title"
+                  placeholder="Objective title"
+                  onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+                />
+                <TextArea
+                  className="entity-description-field"
+                  size="short"
+                  maxLength={600}
+                  value={draft.description}
+                  aria-label="Objective description, optional"
+                  placeholder="Add context or describe the intended change"
+                  onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+                />
+                <TextArea
+                  className="entity-prompt-field"
+                  size="success"
+                  required
+                  maxLength={800}
+                  value={draft.successCondition}
+                  aria-label="What does success look like?"
+                  placeholder="What does success look like?"
+                  onChange={(event) => setDraft({ ...draft, successCondition: event.target.value })}
+                />
                 {message ? <p className="objectives-message" role="status">{message}</p> : null}
-                <p className="direction-form-note">Define the major change; measurable targets belong in outcome goals.</p>
+                <p className="direction-form-note">Define the strategic change here. Concrete deliverables, deadlines, and next actions belong in Tasks.</p>
               </section>
               <section className="entity-secondary-section">
-                <label className="entity-compact-control"><span>Status</span><Select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })}>{OBJECTIVE_STATUSES.map((status) => <option key={status} value={status}>{capitalize(status)}</option>)}</Select></label>
+                <label className="entity-compact-control">
+                  <span>Status</span>
+                  <Select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })}>
+                    {OBJECTIVE_STATUSES.map((status) => (
+                      <option key={status} value={status}>{capitalize(status)}</option>
+                    ))}
+                  </Select>
+                </label>
               </section>
             </ModalBody>
-            <ModalFooter><SecondaryButton onClick={() => setModal(null)}>Cancel</SecondaryButton><PrimaryButton type="submit">{modal.mode === "edit" ? "Save changes" : "Add objective"}</PrimaryButton></ModalFooter>
+            <ModalFooter>
+              <SecondaryButton onClick={() => setModal(null)}>Cancel</SecondaryButton>
+              <PrimaryButton type="submit">{modal.mode === "edit" ? "Save changes" : "Add objective"}</PrimaryButton>
+            </ModalFooter>
           </ModalShell>
         </div>
       ) : null}
@@ -152,7 +224,7 @@ export default function StrategicObjectives({ directionId, userId }) {
   );
 }
 
-function ObjectiveCard({ objective, objectives, userId, index, count, onEdit, onMove, onStatus, onDelete }) {
+function ObjectiveCard({ objective, index, count, onEdit, onMove, onStatus, onDelete }) {
   return (
     <article className={`objective-card objective-surface is-${objective.status}`}>
       <header className="objective-card-header">
@@ -164,7 +236,12 @@ function ObjectiveCard({ objective, objectives, userId, index, count, onEdit, on
           <summary aria-label="More objective actions">•••</summary>
           <div className="objective-menu">
             <button type="button" onClick={onEdit}>Edit</button>
-            {onMove ? <><button type="button" disabled={index === 0} onClick={() => onMove(-1)}>Move up</button><button type="button" disabled={index === count - 1} onClick={() => onMove(1)}>Move down</button></> : null}
+            {onMove ? (
+              <>
+                <button type="button" disabled={index === 0} onClick={() => onMove(-1)}>Move up</button>
+                <button type="button" disabled={index === count - 1} onClick={() => onMove(1)}>Move down</button>
+              </>
+            ) : null}
             {objective.status !== "active" ? <button type="button" onClick={() => onStatus("active")}>Make active</button> : null}
             {objective.status !== "paused" ? <button type="button" onClick={() => onStatus("paused")}>Pause</button> : null}
             {objective.status !== "completed" ? <button type="button" onClick={() => onStatus("completed")}>Complete</button> : null}
@@ -173,10 +250,13 @@ function ObjectiveCard({ objective, objectives, userId, index, count, onEdit, on
           </div>
         </details>
       </header>
-      {objective.successCondition || objective.description ? <p className="objective-success">{objective.successCondition || objective.description}</p> : null}
-      <div className="objective-goals-wrapper"><OutcomeGoals objective={objective} objectives={objectives} userId={userId} /></div>
+      {objective.successCondition || objective.description ? (
+        <p className="objective-success">{objective.successCondition || objective.description}</p>
+      ) : null}
     </article>
   );
 }
 
-function capitalize(value) { return `${value.charAt(0).toUpperCase()}${value.slice(1)}`; }
+function capitalize(value) {
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+}
