@@ -1,5 +1,6 @@
 import "./globals.css";
 import AppAccessGate from "@/components/AppAccessGate";
+import GitHubTaskReadOnlyGuard from "@/components/GitHubTaskReadOnlyGuard";
 import PwaRegistrar from "@/components/PwaRegistrar";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
       <body className="bg-slate-950 text-slate-100 antialiased">
         <AppAccessGate>
           <PwaRegistrar />
+          <GitHubTaskReadOnlyGuard />
           {children}
         </AppAccessGate>
       </body>

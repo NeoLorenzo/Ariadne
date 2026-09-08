@@ -8,6 +8,7 @@ const issue = (overrides: Record<string, unknown> = {}) => ({
   id: 1001,
   number: 22,
   title: "Sync GitHub issues",
+  body: "Implementation details",
   state: "open",
   html_url: "https://github.com/NeoLorenzo/Ariadne/issues/22",
   created_at: "2026-09-06T13:35:37Z",
@@ -30,6 +31,7 @@ describe("GitHub issue task reconciliation", () => {
       id: "github-issue-1001",
       sourceType: "github-issue",
       title: "Sync GitHub issues",
+      description: "Implementation details",
       completed: false,
       githubIssueId: 1001,
       githubRepositoryId: 1223499763,
@@ -48,12 +50,12 @@ describe("GitHub issue task reconciliation", () => {
     expect(getTaskGitHubIssueId(second[0])).toBe(1001);
   });
 
-  it("updates title, close, and reopen on the same task while preserving Ariadne-owned metadata", () => {
+  it("updates GitHub-owned fields while preserving Ariadne-owned metadata", () => {
     const [created] = buildReconciledIssueTasks([], [issue()]);
     const customized = {
       ...created,
       priority: 3,
-      description: "Ariadne notes",
+      description: "Locally edited description",
       dueDate: "2026-09-10",
       estimatedHours: "2.5",
       subtasks: [{ id: "s1", title: "Local subtask", completed: false }],
@@ -63,6 +65,7 @@ describe("GitHub issue task reconciliation", () => {
     const [closed] = buildReconciledIssueTasks([customized], [
       issue({
         title: "Renamed on GitHub",
+        body: "Updated GitHub body",
         state: "closed",
         updated_at: "2026-09-06T15:00:00Z"
       })
@@ -71,10 +74,10 @@ describe("GitHub issue task reconciliation", () => {
     expect(closed).toMatchObject({
       id: "github-issue-1001",
       title: "Renamed on GitHub",
+      description: "Updated GitHub body",
       completed: true,
       githubIssueState: "closed",
       priority: 3,
-      description: "Ariadne notes",
       dueDate: "2026-09-10",
       estimatedHours: "2.5",
       updatedAt: 123456789
@@ -84,6 +87,7 @@ describe("GitHub issue task reconciliation", () => {
     const [reopened] = buildReconciledIssueTasks([closed], [
       issue({
         title: "Renamed on GitHub",
+        body: "Updated GitHub body",
         state: "open",
         updated_at: "2026-09-06T16:00:00Z"
       })
@@ -93,7 +97,23 @@ describe("GitHub issue task reconciliation", () => {
       completed: false,
       githubIssueState: "open",
       priority: 3,
-      description: "Ariadne notes"
+      description: "Updated GitHub body"
+    });
+  });
+
+  it("updates a task when only the GitHub issue body changes", () => {
+    const [created] = buildReconciledIssueTasks([], [issue()]);
+    const [updated] = buildReconciledIssueTasks([created], [
+      issue({
+        body: "Body changed on GitHub",
+        updated_at: "2026-09-06T14:00:00Z"
+      })
+    ]);
+
+    expect(updated).toMatchObject({
+      title: "Sync GitHub issues",
+      description: "Body changed on GitHub",
+      completed: false
     });
   });
 
@@ -122,7 +142,8 @@ describe("GitHub issue task reconciliation", () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
       id: "github-issue-1001",
-      title: "Sync GitHub issues"
+      title: "Sync GitHub issues",
+      description: "Implementation details"
     });
   });
 
@@ -140,12 +161,13 @@ describe("GitHub issue task reconciliation", () => {
       title: "Stale title",
       completed: false,
       priority: 4,
-      description: "Keep this"
+      description: "Stale description"
     };
 
     const [repaired] = buildReconciledIssueTasks([stale], [
       issue({
         title: "Authoritative title",
+        body: "Authoritative body",
         state: "closed",
         updated_at: "2026-09-06T18:00:00Z"
       })
@@ -153,10 +175,10 @@ describe("GitHub issue task reconciliation", () => {
 
     expect(repaired).toMatchObject({
       title: "Authoritative title",
+      description: "Authoritative body",
       completed: true,
       githubIssueState: "closed",
-      priority: 4,
-      description: "Keep this"
+      priority: 4
     });
   });
 });

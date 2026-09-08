@@ -5,6 +5,7 @@ export type GitHubIssueSyncRecord = {
   id: number;
   number: number;
   title: string;
+  body: string | null;
   state: string;
   html_url: string;
   created_at?: string | null;
@@ -101,6 +102,7 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
     sourceType: GITHUB_ISSUE_SOURCE_TYPE,
     sourceGoalId: "",
     title: String(issue.title || "").trim() || `GitHub issue #${issueNumber}`,
+    description: String(issue.body || ""),
     completed: issueState === "closed",
     githubIssueId: issueId,
     githubRepositoryId: repositoryId,
@@ -119,7 +121,6 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
   return {
     ...base,
     ...remoteFields,
-    description: String(base.description || ""),
     dueDate: String(base.dueDate || ""),
     dueTime: String(base.dueTime || ""),
     priority: Number.isInteger(Number(base.priority)) ? Number(base.priority) : 0,
@@ -139,6 +140,7 @@ function remoteIssueFieldsEqual(existing: TaskRecord, next: TaskRecord) {
     "sourceType",
     "sourceGoalId",
     "title",
+    "description",
     "completed",
     "githubIssueId",
     "githubRepositoryId",
