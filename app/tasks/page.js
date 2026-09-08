@@ -179,7 +179,7 @@ export default function TasksPage() {
       if (!raceReadError && Array.isArray(raceRow?.tasks)) {
         return {
           tasks: sanitizeTaskList(raceRow.tasks),
-          version: Number.isFinite(Number(raceRow.version)) ? Number(raceRow.version) : 1,
+          version: Number.isFinite(Number(raceRow.version)) ? Number(remoteRow.version) : 1,
           readState: "ok",
           readSource: "cloud-race-resolve",
           readErrorMessage: ""
@@ -1435,7 +1435,7 @@ export default function TasksPage() {
                   <option value="priority">Priority</option>
                 </select>
               </label>
-              <span className="task-board-list-count">{displayedTasks.length}</span>
+              <span className="task-board-list-count">{activeTasks.length}</span>
             </header>
             <button type="button" className="task-board-add-btn" onClick={openAddModal} aria-label="Add task">
               +
