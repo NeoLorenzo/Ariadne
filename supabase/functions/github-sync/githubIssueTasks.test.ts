@@ -117,6 +117,22 @@ describe("GitHub issue task reconciliation", () => {
     });
   });
 
+  it("preserves the last synced description when GitHub redacts the body", () => {
+    const [created] = buildReconciledIssueTasks([], [issue()]);
+    const [updated] = buildReconciledIssueTasks([created], [
+      issue({
+        body: null,
+        title: "Renamed while body is redacted",
+        updated_at: "2026-09-06T14:30:00Z"
+      })
+    ]);
+
+    expect(updated).toMatchObject({
+      title: "Renamed while body is redacted",
+      description: "Implementation details"
+    });
+  });
+
   it("does not import historical closed issues that were never represented in Ariadne", () => {
     const result = buildReconciledIssueTasks([], [
       issue({ state: "closed", updated_at: "2026-09-06T17:00:00Z" })

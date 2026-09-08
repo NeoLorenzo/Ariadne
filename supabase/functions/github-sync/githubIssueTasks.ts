@@ -96,13 +96,16 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
   const issueUpdatedAt = timestamp(issue.updated_at) ?? now;
   const issueCreatedAt = timestamp(issue.created_at) ?? now;
   const taskId = `${GITHUB_ISSUE_TASK_PREFIX}${issueId}`;
+  const description = issue.body == null
+    ? String(existing?.description || "")
+    : String(issue.body);
 
   const remoteFields = {
     id: taskId,
     sourceType: GITHUB_ISSUE_SOURCE_TYPE,
     sourceGoalId: "",
     title: String(issue.title || "").trim() || `GitHub issue #${issueNumber}`,
-    description: String(issue.body || ""),
+    description,
     completed: issueState === "closed",
     githubIssueId: issueId,
     githubRepositoryId: repositoryId,
