@@ -1435,7 +1435,7 @@ export default function TasksPage() {
                   <option value="priority">Priority</option>
                 </select>
               </label>
-              <span className="task-board-list-count">{displayedTasks.length}</span>
+              <span className="task-board-list-count">{activeTasks.length}</span>
             </header>
             <button type="button" className="task-board-add-btn" onClick={openAddModal} aria-label="Add task">
               +
