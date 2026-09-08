@@ -1,19 +1,65 @@
-Here is a cleaned-up, structured version of your brain dump. I’ve removed the conversational filler and indecision, organizing your thoughts into a clear feature specification for Ariadne while retaining all your specific ideas, examples, and intended mechanics.
+# Ariadne Roadmap Notes
 
-### **Ariadne: New Feature Roadmap**
+This file preserves the useful intent from the original feature brain dump while distinguishing the
+capabilities Ariadne already has from work that is still genuinely planned.
 
-#### **1. Weekly Mission Statement**
-*   **Concept:** A broad, guiding goal set every week to provide clear direction and keep focus away from aimless, long-horizon tasks. It is not a strict target, but a thematic focus.
-    *   *Examples:* "Start checking off to-do list items" or "Academic grind."
-*   **Project Integration:** You can link the Weekly Mission to specific projects or tasks (e.g., linking "Academic grind" to all essay projects).
-*   **Visual UI:** Tasks and projects associated with the active Weekly Mission should have a special visual indicator, like a "glow," to differentiate them from non-mission items.
+## Current baseline: project and repository management
 
-#### **2. Project Manager**
-*   **Concept:** A dedicated space for long-term endeavors (e.g., "Polyvision" machine learning project, or planning individual essays). 
-*   **Structure & Layout:** Keep it simple for now. Display projects in an ungrouped format, like a standard grid. 
-*   **Linking Mechanics:**
-    *   Projects can have due dates or run indefinitely.
-    *   Projects act as a parent container: You can connect individual, granular tasks to them.
-    *   As mentioned above, Projects can be directly linked to the Weekly Mission Statement to highlight their associated tasks.
+The original roadmap described a future **Project Manager**. That capability now exists in Ariadne's
+current product and should no longer be treated as wholly unimplemented.
 
-***
+Current project/repository behavior includes:
+
+- persistent projects with lifecycle/status metadata;
+- task-to-project relationships;
+- GitHub repository synchronization for repository-backed projects;
+- repository/project management surfaced through the Dashboard;
+- local-first project state with authenticated cloud synchronization.
+
+Future project work may extend these capabilities, but it should build on the existing project model rather
+than introducing a second independent Project Manager.
+
+## Planned: Weekly Mission
+
+### Concept
+
+Add one lightweight **Weekly Mission** representing the broad tactical focus of the current week.
+
+Examples:
+
+- "Start checking off to-do list items"
+- "Academic grind"
+- "Ship the operating-system foundation"
+
+The mission is temporary emphasis, not another strategy hierarchy. Ariadne now supports several concurrent
+directions across the eight-vector model, so a Weekly Mission must not assume one global direction or pause
+unrelated active directions.
+
+### Linking
+
+The Weekly Mission should be able to reference existing work rather than duplicating it. Useful associations
+include:
+
+- one or more directions or strategic objectives;
+- existing projects;
+- existing tasks.
+
+For example, an "Academic grind" mission could highlight the relevant academic direction/objective together
+with several essay projects and their tasks.
+
+Replacing the Weekly Mission should not delete, complete, reprioritize, or otherwise mutate linked strategy,
+projects, or tasks.
+
+### Presentation
+
+Mission-associated work should be visibly distinguishable in the surfaces where it already appears. The
+original "glow" idea is one possible presentation treatment, not a requirement for a specific CSS effect.
+
+The mission should remain broad and low-friction: no quantitative mission score, automatic progress
+percentage, second goal tree, or separate project/task store is required.
+
+## Product boundary
+
+Weekly Mission and project management belong to Ariadne because they organize strategy and execution.
+Personal measurement, benchmarking, and vector assessment history remain owned by `NeoLorenzo/Kleos` and
+should not be reintroduced as Ariadne roadmap features.
