@@ -10,8 +10,13 @@ set
           or btrim(coalesce(item.value->>'sourceGoalId', '')) <> ''
           or coalesce(item.value->>'id', '') like 'directional-goal-task-%'
         then
-          (item.value - 'sourceType' - 'sourceGoalId' - 'tags' - 'priority')
+          (item.value - 'id' - 'sourceType' - 'sourceGoalId' - 'tags' - 'priority')
           || jsonb_build_object(
+            'id', case
+              when coalesce(item.value->>'id', '') like 'directional-goal-task-%'
+                then 'task-' || substring(item.value->>'id' from length('directional-goal-task-') + 1)
+              else item.value->>'id'
+            end,
             'sourceType', '',
             'sourceGoalId', '',
             'priority', case
