@@ -151,12 +151,18 @@ async function handleWebhook(request: Request, event: string) {
   }
 
   if (event === "issues") {
-    const issueRecord = buildIssueRecordFromWebhook(payload);
+    let issueRecord = buildIssueRecordFromWebhook(payload);
     if (!issueRecord) {
       return jsonResponse({ ok: true, ignored: "Issue webhook payload was incomplete." });
     }
     if (!(await isTrackedRepositoryForUser(integration.user_id, issueRecord.repository.id))) {
       return jsonResponse({ ok: true, ignored: "Issue repository is not tracked by Ariadne." });
+    }
+    if (issueRecord.body == null) {
+      const publicBody = await fetchPublicIssueBody(issueRecord.repository.full_name, issueRecord.number);
+      if (publicBody !== null) {
+        issueRecord = { ...issueRecord, body: publicBody };
+      }
     }
     await reconcileTasksForUser(integration.user_id, [issueRecord]);
     return jsonResponse({
@@ -482,16 +488,24 @@ async function fetchRepositoryIssues(
 
   const issues: GitHubIssueSyncRecord[] = [];
   for (let page = 1; page <= 50; page += 1) {
-    const response = await fetch(
-      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues?state=all&per_page=100&page=${page}`,
-      { headers: githubHeaders(token) }
-    );
+    const requestUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues?state=all&per_page=100&page=${page}`;
+    const response = await fetch(requestUrl, { headers: githubHeaders(token) });
     if (!response.ok) {
       throw new Error(`GitHub issue listing for ${repositoryFullName} returned HTTP ${response.status}.`);
     }
 
     const payload = await response.json();
     const pageItems = Array.isArray(payload) ? payload : [];
+    let publicItemsById = new Map<number, any>();
+    if (pageItems.some((item) => !item?.pull_request && item?.body == null)) {
+      const publicItems = await fetchPublicRepositoryIssuePage(owner, name, page);
+      publicItemsById = new Map(
+        publicItems
+          .map((item) => [parsePositiveInteger(item?.id), item] as const)
+          .filter(([id]) => Boolean(id)) as Array<readonly [number, any]>
+      );
+    }
+
     for (const item of pageItems) {
       if (item?.pull_request) {
         continue;
@@ -501,11 +515,13 @@ async function fetchRepositoryIssues(
       if (!issueId || !issueNumber) {
         continue;
       }
+      const publicItem = publicItemsById.get(issueId);
+      const resolvedBody = item?.body == null ? publicItem?.body : item.body;
       issues.push({
         id: issueId,
         number: issueNumber,
         title: String(item?.title || ""),
-        body: item?.body == null ? null : String(item.body),
+        body: resolvedBody == null ? null : String(resolvedBody),
         state: String(item?.state || "open"),
         html_url: String(item?.html_url || ""),
         created_at: item?.created_at ? String(item.created_at) : null,
@@ -524,9 +540,45 @@ async function fetchRepositoryIssues(
   return issues;
 }
 
+async function fetchPublicRepositoryIssuePage(owner: string, name: string, page: number) {
+  const response = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues?state=all&per_page=100&page=${page}`,
+    { headers: githubPublicHeaders() }
+  );
+  if (!response.ok) {
+    return [];
+  }
+  const payload = await response.json().catch(() => []);
+  return Array.isArray(payload) ? payload : [];
+}
+
+async function fetchPublicIssueBody(repositoryFullName: string, issueNumber: number) {
+  const [owner, name] = String(repositoryFullName || "").split("/");
+  if (!owner || !name || !issueNumber) {
+    return null;
+  }
+  const response = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues/${issueNumber}`,
+    { headers: githubPublicHeaders() }
+  );
+  if (!response.ok) {
+    return null;
+  }
+  const payload = await response.json().catch(() => null);
+  return payload?.body == null ? null : String(payload.body);
+}
+
+function githubPublicHeaders() {
+  return {
+    Accept: "application/vnd.github.raw+json",
+    "X-GitHub-Api-Version": GITHUB_API_VERSION,
+    "User-Agent": "Ariadne-GitHub-Sync"
+  };
+}
+
 function githubHeaders(token: string) {
   return {
-    Accept: "application/vnd.github+json",
+    Accept: "application/vnd.github.raw+json",
     Authorization: `Bearer ${token}`,
     "X-GitHub-Api-Version": GITHUB_API_VERSION,
     "User-Agent": "Ariadne-GitHub-Sync"
