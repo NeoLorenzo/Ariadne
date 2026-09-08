@@ -312,7 +312,7 @@ export default function DirectionPanel({ userId }) {
                     placeholder="Describe the direction and intended movement"
                     onChange={(event) => setDraft({ ...draft, statement: event.target.value })}
                   />
-                  <p className="direction-form-note">Directions may influence several vectors. Targets and deadlines still belong in outcome goals.</p>
+                  <p className="direction-form-note">Directions may influence several vectors. Strategic objectives define the major changes; concrete targets, deadlines, and next actions belong in Tasks.</p>
                 </section>
 
                 <section className="entity-secondary-section" aria-label="Influenced vectors">
