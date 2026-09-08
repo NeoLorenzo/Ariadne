@@ -159,9 +159,14 @@ async function handleWebhook(request: Request, event: string) {
       return jsonResponse({ ok: true, ignored: "Issue repository is not tracked by Ariadne." });
     }
     if (issueRecord.body == null) {
-      const publicBody = await fetchPublicIssueBody(issueRecord.repository.full_name, issueRecord.number);
-      if (publicBody !== null) {
-        issueRecord = { ...issueRecord, body: publicBody };
+      const token = await getInstallationToken(integration.installation_id);
+      const fetchedBody = await fetchGitHubIssueBody(
+        token,
+        issueRecord.repository.full_name,
+        issueRecord.number
+      );
+      if (fetchedBody !== null) {
+        issueRecord = { ...issueRecord, body: fetchedBody };
       }
     }
     await reconcileTasksForUser(integration.user_id, [issueRecord]);
@@ -488,23 +493,28 @@ async function fetchRepositoryIssues(
 
   const issues: GitHubIssueSyncRecord[] = [];
   for (let page = 1; page <= 50; page += 1) {
-    const requestUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues?state=all&per_page=100&page=${page}`;
-    const response = await fetch(requestUrl, { headers: githubHeaders(token) });
+    const response = await fetch(
+      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues?state=all&per_page=100&page=${page}`,
+      { headers: githubHeaders(token) }
+    );
     if (!response.ok) {
       throw new Error(`GitHub issue listing for ${repositoryFullName} returned HTTP ${response.status}.`);
     }
 
     const payload = await response.json();
     const pageItems = Array.isArray(payload) ? payload : [];
-    let publicItemsById = new Map<number, any>();
-    if (pageItems.some((item) => !item?.pull_request && item?.body == null)) {
-      const publicItems = await fetchPublicRepositoryIssuePage(owner, name, page);
-      publicItemsById = new Map(
-        publicItems
-          .map((item) => [parsePositiveInteger(item?.id), item] as const)
-          .filter(([id]) => Boolean(id)) as Array<readonly [number, any]>
-      );
-    }
+    const detailBodies = new Map<number, string>();
+    await Promise.all(
+      pageItems
+        .filter((item) => !item?.pull_request && item?.body == null)
+        .map(async (item) => {
+          const issueId = parsePositiveInteger(item?.id);
+          const issueNumber = parsePositiveInteger(item?.number);
+          if (!issueId || !issueNumber) return;
+          const body = await fetchGitHubIssueBody(token, repositoryFullName, issueNumber);
+          if (body !== null) detailBodies.set(issueId, body);
+        })
+    );
 
     for (const item of pageItems) {
       if (item?.pull_request) {
@@ -515,8 +525,7 @@ async function fetchRepositoryIssues(
       if (!issueId || !issueNumber) {
         continue;
       }
-      const publicItem = publicItemsById.get(issueId);
-      const resolvedBody = item?.body == null ? publicItem?.body : item.body;
+      const resolvedBody = item?.body == null ? detailBodies.get(issueId) : String(item.body);
       issues.push({
         id: issueId,
         number: issueNumber,
@@ -540,40 +549,24 @@ async function fetchRepositoryIssues(
   return issues;
 }
 
-async function fetchPublicRepositoryIssuePage(owner: string, name: string, page: number) {
-  const response = await fetch(
-    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues?state=all&per_page=100&page=${page}`,
-    { headers: githubPublicHeaders() }
-  );
-  if (!response.ok) {
-    return [];
-  }
-  const payload = await response.json().catch(() => []);
-  return Array.isArray(payload) ? payload : [];
-}
-
-async function fetchPublicIssueBody(repositoryFullName: string, issueNumber: number) {
+async function fetchGitHubIssueBody(
+  token: string,
+  repositoryFullName: string,
+  issueNumber: number
+) {
   const [owner, name] = String(repositoryFullName || "").split("/");
   if (!owner || !name || !issueNumber) {
     return null;
   }
   const response = await fetch(
     `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/issues/${issueNumber}`,
-    { headers: githubPublicHeaders() }
+    { headers: githubHeaders(token) }
   );
   if (!response.ok) {
     return null;
   }
   const payload = await response.json().catch(() => null);
   return payload?.body == null ? null : String(payload.body);
-}
-
-function githubPublicHeaders() {
-  return {
-    Accept: "application/vnd.github.raw+json",
-    "X-GitHub-Api-Version": GITHUB_API_VERSION,
-    "User-Agent": "Ariadne-GitHub-Sync"
-  };
 }
 
 function githubHeaders(token: string) {
