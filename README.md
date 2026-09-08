@@ -1,7 +1,7 @@
 # Ariadne
 
 Personal strategy-to-action operating workspace built with Next.js and Supabase. Ariadne focuses on
-direction, strategic objectives, outcome goals, projects, tasks, and progress signals.
+direction, strategic objectives, projects, tasks, and progress signals.
 
 Personal measurement and benchmarking are owned by the separate
 [`NeoLorenzo/Kleos`](https://github.com/NeoLorenzo/Kleos) application. Ariadne and Kleos currently
@@ -10,13 +10,31 @@ ownership boundaries.
 
 ## Current features
 
-- Dashboard with concurrent multidimensional directions across an eight-vector navigation model, strategic objectives, and measurable outcome goals
+- Dashboard with concurrent multidimensional directions across an eight-vector navigation model and strategic objectives
 - Notice board generated from project and publication signals
 - Coding project management with GitHub repository synchronization
-- Task planning with subtasks, scheduling, manual 0–4 priority, directional-goal links, and time-pressure indicators
+- Task planning with subtasks, scheduling, numeric 0–4 priority, and time-pressure indicators
+- Ari Bot-compatible strategy/task control surface for automatic reprioritization
 - Google OAuth through Supabase
 - Local-first project and task data with authenticated cloud synchronization
 - PWA support and static deployment through GitHub Pages
+
+## Strategy model
+
+Ariadne uses a deliberately small hierarchy:
+
+```text
+Vector State -> Directions -> Strategic Objectives -> Tasks / work
+```
+
+Directions describe desired movement through the eight-dimensional life map. Strategic Objectives
+decompose that movement into the major changes currently required. Strategic Objectives are the
+lowest-level persistent strategy entity; concrete deliverables, deadlines, and next actions belong in
+the ordinary task system.
+
+Task priority has only five numeric values: `0`, `1`, `2`, `3`, and `4`. There is no special
+Directional task priority. Ari Bot can infer how current tasks contribute to enabled Directions and
+active Strategic Objectives and use that relevance as one input into task priority.
 
 ## Kleos boundary
 
@@ -72,8 +90,8 @@ The resulting current schema provides:
 - concurrent directions with lifecycle/order metadata and explicit many-to-many links to the eight canonical navigation vectors
 - user-managed direction revisions, including vector metadata for revisions created after the multidirectional migration
 - strategic objectives without an arbitrary three-active-objective cap
-- count-based outcome goals, bare-minimum thresholds, automatic deadline outcomes, and user-managed revisions
 - bounded semantic operations used by the browser and ChatGPT/Ari Bot control surfaces
+- numeric-only task priority (`0–4`) with legacy goal-generated tasks normalized into ordinary tasks
 
 Kleos-owned `goat_*` persistence is documented and maintained in
 [`NeoLorenzo/Kleos`](https://github.com/NeoLorenzo/Kleos/tree/main/supabase). Ariadne intentionally
@@ -95,9 +113,10 @@ In Supabase Auth URL Configuration:
 The workflow at [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml):
 
 1. installs dependencies with `npm ci`;
-2. resolves the repository base path;
-3. performs a static Next.js export;
-4. uploads and deploys the `out/` artifact.
+2. runs regression tests and privacy checks;
+3. resolves the repository base path;
+4. performs a static Next.js export;
+5. uploads and deploys the `out/` artifact.
 
 Required GitHub Actions secrets:
 
@@ -116,7 +135,8 @@ Required GitHub Actions secrets:
 - Tasks and projects are stored locally for responsive startup.
 - Authenticated users synchronize private data to Supabase.
 - Version checks protect task and project collections from silent concurrent overwrites.
-- Direction/objective/goal edits use durable local-first strategy reconciliation with optimistic conflict detection.
+- Direction/objective edits use durable local-first strategy reconciliation with optimistic conflict detection.
+- Legacy Outcome Goal-generated tasks are retained as ordinary tasks; Outcome Goals are not part of the active data model.
 - Dashboard publication signals are read only after owner authorization.
 - Personal records are never seeded from repository code.
 
