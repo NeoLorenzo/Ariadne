@@ -5,6 +5,7 @@ import {
   OPPORTUNITY_CANDIDATE_SOURCE_LABELS
 } from "@/lib/opportunities/opportunityCandidateModel";
 import { OPPORTUNITY_TYPE_LABELS } from "@/lib/opportunities/opportunityModel";
+import { summarizeOpportunityRequirements } from "@/lib/opportunities/opportunityRequirements";
 import styles from "./OpportunityLandscape.module.css";
 import candidateStyles from "./OpportunityCandidate.module.css";
 
@@ -23,85 +24,45 @@ function reviewBadgeClass(status) {
 }
 
 function CandidateStatus({ status }) {
-  return (
-    <span className={`${styles.lifecycleBadge} ${reviewBadgeClass(status)}`}>
-      {OPPORTUNITY_CANDIDATE_REVIEW_LABELS[status] || "Pending"}
-    </span>
-  );
+  return <span className={`${styles.lifecycleBadge} ${reviewBadgeClass(status)}`}>{OPPORTUNITY_CANDIDATE_REVIEW_LABELS[status] || "Pending"}</span>;
 }
 
 export default function OpportunityCandidateTable({ candidates, onSelect }) {
   if (!candidates.length) return null;
 
-  return (
-    <>
-      <div className={`${styles.tableWrap} ${styles.desktopTable}`}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th className={candidateStyles.candidateOpportunityCell}>Candidate</th>
-              <th className={candidateStyles.candidateTypeCell}>Type</th>
-              <th className={candidateStyles.candidateOrganizationCell}>Organization</th>
-              <th className={candidateStyles.candidateDeadlineCell}>Deadline</th>
-              <th className={candidateStyles.candidateSourceCell}>Source</th>
-              <th className={candidateStyles.candidateRequirementsCell}>Requirements</th>
-            </tr>
-          </thead>
-          <tbody>
-            {candidates.map((candidate) => (
-              <tr key={candidate.id} className={styles.row} onClick={() => onSelect(candidate)}>
-                <td className={candidateStyles.candidateOpportunityCell}>
-                  <div className={styles.opportunityTitleLine}>
-                    <span className={styles.opportunityTitle}>{candidate.title}</span>
-                    <CandidateStatus status={candidate.reviewStatus} />
-                  </div>
-                </td>
-                <td className={candidateStyles.candidateTypeCell}>
-                  <span className={styles.typeBadge}>{OPPORTUNITY_TYPE_LABELS[candidate.type] || "Other"}</span>
-                </td>
-                <td className={candidateStyles.candidateOrganizationCell}>
-                  {candidate.organization || <span className={styles.muted}>—</span>}
-                </td>
-                <td className={candidateStyles.candidateDeadlineCell}>
-                  <span className={!candidate.deadline ? styles.muted : undefined}>{formatDateOnly(candidate.deadline)}</span>
-                </td>
-                <td className={candidateStyles.candidateSourceCell}>
-                  <div className={candidateStyles.sourceSummary}>
-                    <span>{candidate.sourceName || "Unknown source"}</span>
-                    <span className={styles.muted}>{OPPORTUNITY_CANDIDATE_SOURCE_LABELS[candidate.sourceType] || candidate.sourceType}</span>
-                  </div>
-                </td>
-                <td className={candidateStyles.candidateRequirementsCell}>
-                  {candidate.requirements ? <span className={styles.clamp}>{candidate.requirements}</span> : <span className={styles.muted}>—</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  return <>
+    <div className={`${styles.tableWrap} ${styles.desktopTable}`}>
+      <table className={styles.table}>
+        <thead><tr>
+          <th className={candidateStyles.candidateOpportunityCell}>Candidate</th>
+          <th className={candidateStyles.candidateTypeCell}>Type</th>
+          <th className={candidateStyles.candidateOrganizationCell}>Organization</th>
+          <th className={candidateStyles.candidateDeadlineCell}>Deadline</th>
+          <th className={candidateStyles.candidateSourceCell}>Source</th>
+          <th className={candidateStyles.candidateRequirementsCell}>Requirements</th>
+        </tr></thead>
+        <tbody>{candidates.map((candidate) => {
+          const requirementsSummary = summarizeOpportunityRequirements(candidate);
+          return <tr key={candidate.id} className={styles.row} onClick={() => onSelect(candidate)}>
+            <td className={candidateStyles.candidateOpportunityCell}><div className={styles.opportunityTitleLine}><span className={styles.opportunityTitle}>{candidate.title}</span><CandidateStatus status={candidate.reviewStatus} /></div></td>
+            <td className={candidateStyles.candidateTypeCell}><span className={styles.typeBadge}>{OPPORTUNITY_TYPE_LABELS[candidate.type] || "Other"}</span></td>
+            <td className={candidateStyles.candidateOrganizationCell}>{candidate.organization || <span className={styles.muted}>—</span>}</td>
+            <td className={candidateStyles.candidateDeadlineCell}><span className={!candidate.deadline ? styles.muted : undefined}>{formatDateOnly(candidate.deadline)}</span></td>
+            <td className={candidateStyles.candidateSourceCell}><div className={candidateStyles.sourceSummary}><span>{candidate.sourceName || "Unknown source"}</span><span className={styles.muted}>{OPPORTUNITY_CANDIDATE_SOURCE_LABELS[candidate.sourceType] || candidate.sourceType}</span></div></td>
+            <td className={candidateStyles.candidateRequirementsCell}>{requirementsSummary ? <span className={styles.clamp}>{requirementsSummary}</span> : <span className={styles.muted}>—</span>}</td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
 
-      <div className={styles.mobileList}>
-        {candidates.map((candidate) => (
-          <button key={candidate.id} type="button" className={styles.mobileCard} onClick={() => onSelect(candidate)}>
-            <div className={styles.mobileCardHeader}>
-              <span className={styles.mobileCardTitle}>{candidate.title}</span>
-              <CandidateStatus status={candidate.reviewStatus} />
-            </div>
-            <div className={styles.mobileCardMeta}>
-              <span className={styles.typeBadge}>{OPPORTUNITY_TYPE_LABELS[candidate.type] || "Other"}</span>
-              {candidate.organization ? <span>{candidate.organization}</span> : null}
-              <span>·</span>
-              <span>{formatDateOnly(candidate.deadline)}</span>
-            </div>
-            <div className={styles.mobileCardMeta}>
-              <span>{candidate.sourceName || "Unknown source"}</span>
-              <span>·</span>
-              <span>{OPPORTUNITY_CANDIDATE_SOURCE_LABELS[candidate.sourceType] || candidate.sourceType}</span>
-            </div>
-            {candidate.requirements ? <p className={styles.mobileRequirements}>{candidate.requirements}</p> : null}
-          </button>
-        ))}
-      </div>
-    </>
-  );
+    <div className={styles.mobileList}>{candidates.map((candidate) => {
+      const requirementsSummary = summarizeOpportunityRequirements(candidate);
+      return <button key={candidate.id} type="button" className={styles.mobileCard} onClick={() => onSelect(candidate)}>
+        <div className={styles.mobileCardHeader}><span className={styles.mobileCardTitle}>{candidate.title}</span><CandidateStatus status={candidate.reviewStatus} /></div>
+        <div className={styles.mobileCardMeta}><span className={styles.typeBadge}>{OPPORTUNITY_TYPE_LABELS[candidate.type] || "Other"}</span>{candidate.organization ? <span>{candidate.organization}</span> : null}<span>·</span><span>{formatDateOnly(candidate.deadline)}</span></div>
+        <div className={styles.mobileCardMeta}><span>{candidate.sourceName || "Unknown source"}</span><span>·</span><span>{OPPORTUNITY_CANDIDATE_SOURCE_LABELS[candidate.sourceType] || candidate.sourceType}</span></div>
+        {requirementsSummary ? <p className={styles.mobileRequirements}>{requirementsSummary}</p> : null}
+      </button>;
+    })}</div>
+  </>;
 }
