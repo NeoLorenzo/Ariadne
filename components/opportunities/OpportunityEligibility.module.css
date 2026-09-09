@@ -5,10 +5,16 @@
 .eligibilityBadge_not_met, .requirementPill_not_met { color: #fecaca; border-color: rgba(248,113,113,.44); background: rgba(127,29,29,.28); }
 .eligibilityBadge_uncertain, .requirementPill_uncertain { color: #fde68a; border-color: rgba(250,204,21,.42); background: rgba(133,77,14,.28); }
 .eligibilityBadge_unassessed, .requirementPill_unassessed { color: #cbd5e1; border-color: rgba(148,163,184,.28); background: rgba(51,65,85,.36); }
-.requirementPills { display: flex; flex-wrap: wrap; gap: .35rem; }
+.requirementPills { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
 .requirementPill { white-space: normal; text-align: left; }
 .requirementPillButton { cursor: pointer; font: inherit; }
 .requirementPillButton:hover, .requirementPillSelected { filter: brightness(1.16); box-shadow: 0 0 0 2px rgba(148,163,184,.12); }
+.requirementGroup { display: inline-flex; align-items: center; gap: .3rem; flex-wrap: wrap; padding: .25rem .32rem; border: 1px dashed rgba(148,163,184,.3); border-radius: .72rem; }
+.requirementGroup_met { border-color: rgba(74,222,128,.4); }
+.requirementGroup_not_met { border-color: rgba(248,113,113,.42); }
+.requirementGroup_uncertain { border-color: rgba(250,204,21,.4); }
+.requirementGroupLabel { color: #94a3b8; font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 0 .18rem; }
+.requirementGroupChildren { display: inline-flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
 .assessmentPanel { display: grid; gap: .52rem; padding: .72rem; border: 1px solid rgba(100,116,139,.38); border-radius: .7rem; background: rgba(15,23,42,.5); }
 .assessmentPanelHeader { display: flex; justify-content: space-between; gap: .75rem; align-items: baseline; flex-wrap: wrap; color: #f8fafc; font-size: .78rem; }
 .assessmentPanelHeader span { color: #94a3b8; }
