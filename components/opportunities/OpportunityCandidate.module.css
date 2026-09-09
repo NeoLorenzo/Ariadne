@@ -9,12 +9,16 @@
   display: inline-flex;
   align-items: center;
   min-height: 2rem;
+  border: 0;
   border-bottom: 2px solid transparent;
+  background: transparent;
   padding: 0.2rem 0.55rem 0.5rem;
   color: #94a3b8;
+  font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .surfaceTab:hover {
