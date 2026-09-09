@@ -1,0 +1,20 @@
+.eligibilityBlock { display: grid; gap: 0.55rem; }
+.eligibilityHeader { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; color: #aebdce; font-size: 0.76rem; font-weight: 700; }
+.eligibilityBadge, .requirementPill { display: inline-flex; align-items: center; min-height: 1.65rem; border-radius: 999px; border: 1px solid rgba(148,163,184,.32); padding: .18rem .56rem; font-size: .72rem; font-weight: 720; line-height: 1.15; }
+.eligibilityBadge_met, .requirementPill_met { color: #bbf7d0; border-color: rgba(74,222,128,.42); background: rgba(22,101,52,.28); }
+.eligibilityBadge_not_met, .requirementPill_not_met { color: #fecaca; border-color: rgba(248,113,113,.44); background: rgba(127,29,29,.28); }
+.eligibilityBadge_uncertain, .requirementPill_uncertain { color: #fde68a; border-color: rgba(250,204,21,.42); background: rgba(133,77,14,.28); }
+.eligibilityBadge_unassessed, .requirementPill_unassessed { color: #cbd5e1; border-color: rgba(148,163,184,.28); background: rgba(51,65,85,.36); }
+.requirementPills { display: flex; flex-wrap: wrap; gap: .35rem; }
+.requirementPill { white-space: normal; text-align: left; }
+.requirementPillButton { cursor: pointer; font: inherit; }
+.requirementPillButton:hover, .requirementPillSelected { filter: brightness(1.16); box-shadow: 0 0 0 2px rgba(148,163,184,.12); }
+.assessmentPanel { display: grid; gap: .52rem; padding: .72rem; border: 1px solid rgba(100,116,139,.38); border-radius: .7rem; background: rgba(15,23,42,.5); }
+.assessmentPanelHeader { display: flex; justify-content: space-between; gap: .75rem; align-items: baseline; flex-wrap: wrap; color: #f8fafc; font-size: .78rem; }
+.assessmentPanelHeader span { color: #94a3b8; }
+.assessmentPanel p { margin: 0; color: #aebdce; font-size: .75rem; line-height: 1.45; }
+.assessmentActions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.assessmentAction { border: 1px solid rgba(148,163,184,.3); border-radius: .5rem; background: rgba(51,65,85,.36); color: #dbe4ef; padding: .38rem .58rem; font-size: .72rem; font-weight: 700; cursor: pointer; }
+.assessmentActionMet { color: #bbf7d0; border-color: rgba(74,222,128,.38); }
+.assessmentActionNotMet { color: #fecaca; border-color: rgba(248,113,113,.4); }
+.assessmentActionUncertain { color: #fde68a; border-color: rgba(250,204,21,.38); }

@@ -1,230 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  DateInput,
-  GhostButton,
-  ModalBody,
-  ModalFooter,
-  ModalShell,
-  PrimaryButton,
-  SecondaryButton,
-  Select,
-  TextArea,
-  TextInput,
-  useModalDialog
-} from "@/components/ui/AriadneUI";
-import {
-  OPPORTUNITY_CANDIDATE_REVIEW_LABELS,
-  OPPORTUNITY_CANDIDATE_SOURCE_LABELS,
-  validateOpportunityCandidate
-} from "@/lib/opportunities/opportunityCandidateModel";
+import { DateInput, GhostButton, ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton, Select, TextArea, TextInput, useModalDialog } from "@/components/ui/AriadneUI";
+import { OPPORTUNITY_CANDIDATE_REVIEW_LABELS, OPPORTUNITY_CANDIDATE_SOURCE_LABELS, validateOpportunityCandidate } from "@/lib/opportunities/opportunityCandidateModel";
 import { OPPORTUNITY_TYPES, OPPORTUNITY_TYPE_LABELS } from "@/lib/opportunities/opportunityModel";
+import OpportunityRequirementPills from "./OpportunityRequirementPills";
 import OpportunityRequirementsEditor from "./OpportunityRequirementsEditor";
 import styles from "./OpportunityLandscape.module.css";
 import candidateStyles from "./OpportunityCandidate.module.css";
 
-const EMPTY_FORM = {
-  title: "",
-  type: "job",
-  organization: "",
-  canonicalUrl: "",
-  description: "",
-  standardizedRequirements: [],
-  miscRequirements: "",
-  deadline: "",
-  startDate: "",
-  rejectionReason: ""
-};
+const EMPTY_FORM = { title: "", type: "job", organization: "", canonicalUrl: "", description: "", standardizedRequirements: [], miscRequirements: "", deadline: "", startDate: "", rejectionReason: "" };
+function toForm(candidate) { if (!candidate) return EMPTY_FORM; return { title: candidate.title || "", type: candidate.type || "other", organization: candidate.organization || "", canonicalUrl: candidate.canonicalUrl || candidate.sourceUrl || "", description: candidate.description || "", standardizedRequirements: candidate.standardizedRequirements || [], miscRequirements: candidate.miscRequirements || candidate.requirements || "", deadline: candidate.deadline || "", startDate: candidate.startDate || "", rejectionReason: candidate.rejectionReason || "" }; }
+function formatTimestamp(value) { if (!value) return "—"; const date = new Date(value); if (Number.isNaN(date.getTime())) return "—"; return new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date); }
 
-function toForm(candidate) {
-  if (!candidate) return EMPTY_FORM;
-  return {
-    title: candidate.title || "",
-    type: candidate.type || "other",
-    organization: candidate.organization || "",
-    canonicalUrl: candidate.canonicalUrl || candidate.sourceUrl || "",
-    description: candidate.description || "",
-    standardizedRequirements: candidate.standardizedRequirements || [],
-    miscRequirements: candidate.miscRequirements || candidate.requirements || "",
-    deadline: candidate.deadline || "",
-    startDate: candidate.startDate || "",
-    rejectionReason: candidate.rejectionReason || ""
-  };
-}
-
-function formatTimestamp(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
-}
-
-export default function OpportunityCandidateEditor({ isOpen, candidate, isBusy, onClose, onSave, onAccept, onReview }) {
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [errors, setErrors] = useState({});
-  const dialogRef = useModalDialog(isOpen, onClose);
-  const isExisting = Boolean(candidate?.id);
-  const isReviewed = isExisting && candidate.reviewStatus !== "pending";
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setForm(toForm(candidate));
-    setErrors({});
-  }, [candidate, isOpen]);
-
+export default function OpportunityCandidateEditor({ isOpen, candidate, isBusy, onClose, onSave, onAccept, onReview, assessments = [], onSetAssessment, onClearAssessment }) {
+  const [form, setForm] = useState(EMPTY_FORM); const [errors, setErrors] = useState({}); const dialogRef = useModalDialog(isOpen, onClose); const isExisting = Boolean(candidate?.id); const isReviewed = isExisting && candidate.reviewStatus !== "pending";
+  useEffect(() => { if (isOpen) { setForm(toForm(candidate)); setErrors({}); } }, [candidate, isOpen]);
   if (!isOpen) return null;
+  const setField = (field, value) => { setForm((current) => ({ ...current, [field]: value })); if (errors[field] || errors.general) setErrors((current) => ({ ...current, [field]: undefined, general: undefined })); };
+  const candidateForValidation = () => ({ ...candidate, ...form, sourceType: candidate?.sourceType || "manual", sourceName: candidate?.sourceName || "Manual", reviewStatus: candidate?.reviewStatus || "pending" });
+  const validate = () => { const nextErrors = validateOpportunityCandidate(candidateForValidation()); if (Object.keys(nextErrors).length) { setErrors(nextErrors); return false; } return true; };
+  const submit = async (event) => { event.preventDefault(); if (!validate()) return; const accepted = await onSave(form); if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be saved." })); };
+  const accept = async () => { if (!isExisting || isReviewed || !validate()) return; const accepted = await onAccept(form); if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be accepted." })); };
+  const review = async (status) => { if (!isExisting || isReviewed) return; const accepted = await onReview(status, form.rejectionReason); if (!accepted) setErrors((current) => ({ ...current, general: "The review state could not be changed." })); };
+  const assessmentCandidate = isExisting ? { ...candidate, standardizedRequirements: form.standardizedRequirements } : null;
 
-  const setField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }));
-    if (errors[field] || errors.general) setErrors((current) => ({ ...current, [field]: undefined, general: undefined }));
-  };
-
-  const candidateForValidation = () => ({
-    ...candidate,
-    ...form,
-    sourceType: candidate?.sourceType || "manual",
-    sourceName: candidate?.sourceName || "Manual",
-    reviewStatus: candidate?.reviewStatus || "pending"
-  });
-
-  const validate = () => {
-    const nextErrors = validateOpportunityCandidate(candidateForValidation());
-    if (Object.keys(nextErrors).length) { setErrors(nextErrors); return false; }
-    return true;
-  };
-
-  const submit = async (event) => {
-    event.preventDefault();
-    if (!validate()) return;
-    const accepted = await onSave(form);
-    if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be saved." }));
-  };
-
-  const accept = async () => {
-    if (!isExisting || isReviewed || !validate()) return;
-    const accepted = await onAccept(form);
-    if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be accepted." }));
-  };
-
-  const review = async (status) => {
-    if (!isExisting || isReviewed) return;
-    const accepted = await onReview(status, form.rejectionReason);
-    if (!accepted) setErrors((current) => ({ ...current, general: "The review state could not be changed." }));
-  };
-
-  return (
-    <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="candidate-editor-title">
-      <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close candidate editor" />
-      <ModalShell ref={dialogRef} as="form" className={styles.editor} onSubmit={submit}>
-        <header className={`ff-modal-header ${styles.editorHeader}`}>
-          <div>
-            <h3 id="candidate-editor-title">{isExisting ? "Review Candidate" : "Add Candidate"}</h3>
-            {isExisting ? <p className={candidateStyles.editorSubtitle}>{OPPORTUNITY_CANDIDATE_REVIEW_LABELS[candidate.reviewStatus] || candidate.reviewStatus}</p> : null}
-          </div>
-          <span className={styles.editorHeaderSpacer} />
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button>
-        </header>
-
-        <ModalBody className={styles.editorBody}>
-          {isExisting ? (
-            <section className={candidateStyles.provenancePanel} aria-label="Candidate provenance">
-              <div className={candidateStyles.provenanceHeader}>
-                <span>Provenance</span>
-                <span className={styles.typeBadge}>{OPPORTUNITY_CANDIDATE_SOURCE_LABELS[candidate.sourceType] || candidate.sourceType}</span>
-              </div>
-              <div className={candidateStyles.provenanceGrid}>
-                <div className={candidateStyles.provenanceItem}><span>Source</span><strong>{candidate.sourceName || "—"}</strong></div>
-                <div className={candidateStyles.provenanceItem}><span>External ID</span><strong>{candidate.sourceExternalId || "—"}</strong></div>
-                <div className={candidateStyles.provenanceItem}><span>First discovered</span><strong>{formatTimestamp(candidate.discoveredAt)}</strong></div>
-                <div className={candidateStyles.provenanceItem}><span>Last seen</span><strong>{formatTimestamp(candidate.lastSeenAt)}</strong></div>
-                <div className={`${candidateStyles.provenanceItem} ${candidateStyles.provenanceWide}`}>
-                  <span>Source URL</span>
-                  {candidate.sourceUrl ? <a href={candidate.sourceUrl} target="_blank" rel="noreferrer">{candidate.sourceUrl}</a> : <strong>—</strong>}
-                </div>
-                <div className={candidateStyles.provenanceItem}><span>Fingerprint</span><strong>{candidate.contentHash || "—"}</strong></div>
-                <div className={candidateStyles.provenanceItem}><span>Matched opportunity</span><strong>{candidate.matchedOpportunityId || "—"}</strong></div>
-              </div>
-            </section>
-          ) : null}
-
-          <div className={styles.editorGrid}>
-            <div className={styles.fieldFull}>
-              <label htmlFor="candidate-title">Title</label>
-              <TextInput id="candidate-title" value={form.title} onChange={(event) => setField("title", event.target.value)} placeholder="e.g. Policy Research Fellowship" autoFocus={!isExisting} disabled={isReviewed} required />
-              {errors.title ? <p className={styles.fieldError}>{errors.title}</p> : null}
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="candidate-type">Type</label>
-              <Select id="candidate-type" value={form.type} onChange={(event) => setField("type", event.target.value)} disabled={isReviewed}>
-                {OPPORTUNITY_TYPES.map((type) => <option key={type} value={type}>{OPPORTUNITY_TYPE_LABELS[type]}</option>)}
-              </Select>
-              {errors.type ? <p className={styles.fieldError}>{errors.type}</p> : null}
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="candidate-organization">Organization / institution</label>
-              <TextInput id="candidate-organization" value={form.organization} onChange={(event) => setField("organization", event.target.value)} disabled={isReviewed} />
-            </div>
-
-            <div className={styles.fieldFull}>
-              <label htmlFor="candidate-url">Canonical opportunity link</label>
-              <TextInput id="candidate-url" type="url" value={form.canonicalUrl} onChange={(event) => setField("canonicalUrl", event.target.value)} placeholder="https://…" disabled={isReviewed} />
-              {errors.canonicalUrl ? <p className={styles.fieldError}>{errors.canonicalUrl}</p> : null}
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="candidate-deadline">Application deadline</label>
-              <DateInput id="candidate-deadline" value={form.deadline} onChange={(event) => setField("deadline", event.target.value)} disabled={isReviewed} />
-              {errors.deadline ? <p className={styles.fieldError}>{errors.deadline}</p> : null}
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor="candidate-start-date">Start date</label>
-              <DateInput id="candidate-start-date" value={form.startDate} onChange={(event) => setField("startDate", event.target.value)} disabled={isReviewed} />
-              {errors.startDate ? <p className={styles.fieldError}>{errors.startDate}</p> : null}
-            </div>
-
-            <OpportunityRequirementsEditor
-              standardizedRequirements={form.standardizedRequirements}
-              miscRequirements={form.miscRequirements}
-              disabled={isReviewed}
-              onChange={({ standardizedRequirements, miscRequirements }) => {
-                setForm((current) => ({ ...current, standardizedRequirements, miscRequirements }));
-                if (errors.standardizedRequirements || errors.general) setErrors((current) => ({ ...current, standardizedRequirements: undefined, general: undefined }));
-              }}
-            />
-            {errors.standardizedRequirements ? <div className={styles.fieldFull}><p className={styles.fieldError}>{errors.standardizedRequirements}</p></div> : null}
-
-            <div className={styles.fieldFull}>
-              <label htmlFor="candidate-description">Description / notes</label>
-              <TextArea id="candidate-description" size="medium" rows={5} value={form.description} onChange={(event) => setField("description", event.target.value)} disabled={isReviewed} />
-            </div>
-
-            {isExisting && !isReviewed ? (
-              <div className={styles.fieldFull}>
-                <label htmlFor="candidate-rejection-reason">Review note (optional)</label>
-                <TextArea id="candidate-rejection-reason" size="small" rows={2} value={form.rejectionReason} onChange={(event) => setField("rejectionReason", event.target.value)} placeholder="Why reject or mark as duplicate…" />
-              </div>
-            ) : null}
-          </div>
-
-          {isReviewed && candidate.rejectionReason ? <p className={candidateStyles.reviewReason}><strong>Review note:</strong> {candidate.rejectionReason}</p> : null}
-          {errors.general ? <p className={styles.formError}>{errors.general}</p> : null}
-        </ModalBody>
-
-        <ModalFooter className={styles.editorFooter}>
-          {isExisting && !isReviewed ? <>
-            <GhostButton type="button" onClick={() => review("duplicate")} disabled={isBusy}>Mark duplicate</GhostButton>
-            <GhostButton type="button" className={styles.dangerButton} onClick={() => review("rejected")} disabled={isBusy}>Reject</GhostButton>
-          </> : null}
-          <span className={styles.footerSpacer} />
-          <SecondaryButton type="button" onClick={onClose} disabled={isBusy}>{isReviewed ? "Close" : "Cancel"}</SecondaryButton>
-          {!isReviewed ? <PrimaryButton type="submit" disabled={isBusy}>{isBusy ? "Saving…" : "Save"}</PrimaryButton> : null}
-          {isExisting && !isReviewed ? <PrimaryButton type="button" onClick={accept} disabled={isBusy}>{isBusy ? "Working…" : "Accept"}</PrimaryButton> : null}
-        </ModalFooter>
-      </ModalShell>
-    </div>
-  );
+  return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="candidate-editor-title">
+    <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close candidate editor" />
+    <ModalShell ref={dialogRef} as="form" className={styles.editor} onSubmit={submit}>
+      <header className={`ff-modal-header ${styles.editorHeader}`}><div><h3 id="candidate-editor-title">{isExisting ? "Review Candidate" : "Add Candidate"}</h3>{isExisting ? <p className={candidateStyles.editorSubtitle}>{OPPORTUNITY_CANDIDATE_REVIEW_LABELS[candidate.reviewStatus] || candidate.reviewStatus}</p> : null}</div><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button></header>
+      <ModalBody className={styles.editorBody}>
+        {isExisting ? <section className={candidateStyles.provenancePanel} aria-label="Candidate provenance"><div className={candidateStyles.provenanceHeader}><span>Provenance</span><span className={styles.typeBadge}>{OPPORTUNITY_CANDIDATE_SOURCE_LABELS[candidate.sourceType] || candidate.sourceType}</span></div><div className={candidateStyles.provenanceGrid}><div className={candidateStyles.provenanceItem}><span>Source</span><strong>{candidate.sourceName || "—"}</strong></div><div className={candidateStyles.provenanceItem}><span>External ID</span><strong>{candidate.sourceExternalId || "—"}</strong></div><div className={candidateStyles.provenanceItem}><span>First discovered</span><strong>{formatTimestamp(candidate.discoveredAt)}</strong></div><div className={candidateStyles.provenanceItem}><span>Last seen</span><strong>{formatTimestamp(candidate.lastSeenAt)}</strong></div><div className={`${candidateStyles.provenanceItem} ${candidateStyles.provenanceWide}`}><span>Source URL</span>{candidate.sourceUrl ? <a href={candidate.sourceUrl} target="_blank" rel="noreferrer">{candidate.sourceUrl}</a> : <strong>—</strong>}</div><div className={candidateStyles.provenanceItem}><span>Fingerprint</span><strong>{candidate.contentHash || "—"}</strong></div><div className={candidateStyles.provenanceItem}><span>Matched opportunity</span><strong>{candidate.matchedOpportunityId || "—"}</strong></div></div></section> : null}
+        <div className={styles.editorGrid}>
+          <div className={styles.fieldFull}><label htmlFor="candidate-title">Title</label><TextInput id="candidate-title" value={form.title} onChange={(event) => setField("title", event.target.value)} placeholder="e.g. Policy Research Fellowship" autoFocus={!isExisting} disabled={isReviewed} required />{errors.title ? <p className={styles.fieldError}>{errors.title}</p> : null}</div>
+          <div className={styles.field}><label htmlFor="candidate-type">Type</label><Select id="candidate-type" value={form.type} onChange={(event) => setField("type", event.target.value)} disabled={isReviewed}>{OPPORTUNITY_TYPES.map((type) => <option key={type} value={type}>{OPPORTUNITY_TYPE_LABELS[type]}</option>)}</Select>{errors.type ? <p className={styles.fieldError}>{errors.type}</p> : null}</div>
+          <div className={styles.field}><label htmlFor="candidate-organization">Organization / institution</label><TextInput id="candidate-organization" value={form.organization} onChange={(event) => setField("organization", event.target.value)} disabled={isReviewed} /></div>
+          <div className={styles.fieldFull}><label htmlFor="candidate-url">Canonical opportunity link</label><TextInput id="candidate-url" type="url" value={form.canonicalUrl} onChange={(event) => setField("canonicalUrl", event.target.value)} placeholder="https://…" disabled={isReviewed} />{errors.canonicalUrl ? <p className={styles.fieldError}>{errors.canonicalUrl}</p> : null}</div>
+          <div className={styles.field}><label htmlFor="candidate-deadline">Application deadline</label><DateInput id="candidate-deadline" value={form.deadline} onChange={(event) => setField("deadline", event.target.value)} disabled={isReviewed} />{errors.deadline ? <p className={styles.fieldError}>{errors.deadline}</p> : null}</div>
+          <div className={styles.field}><label htmlFor="candidate-start-date">Start date</label><DateInput id="candidate-start-date" value={form.startDate} onChange={(event) => setField("startDate", event.target.value)} disabled={isReviewed} />{errors.startDate ? <p className={styles.fieldError}>{errors.startDate}</p> : null}</div>
+          {assessmentCandidate?.standardizedRequirements?.length ? <div className={styles.fieldFull}><OpportunityRequirementPills opportunity={assessmentCandidate} assessments={assessments} editable showOverall onSetAssessment={onSetAssessment} onClearAssessment={onClearAssessment} /></div> : null}
+          <OpportunityRequirementsEditor standardizedRequirements={form.standardizedRequirements} miscRequirements={form.miscRequirements} disabled={isReviewed} onChange={({ standardizedRequirements, miscRequirements }) => { setForm((current) => ({ ...current, standardizedRequirements, miscRequirements })); if (errors.standardizedRequirements || errors.general) setErrors((current) => ({ ...current, standardizedRequirements: undefined, general: undefined })); }} />
+          {errors.standardizedRequirements ? <div className={styles.fieldFull}><p className={styles.fieldError}>{errors.standardizedRequirements}</p></div> : null}
+          <div className={styles.fieldFull}><label htmlFor="candidate-description">Description / notes</label><TextArea id="candidate-description" size="medium" rows={5} value={form.description} onChange={(event) => setField("description", event.target.value)} disabled={isReviewed} /></div>
+          {isExisting && !isReviewed ? <div className={styles.fieldFull}><label htmlFor="candidate-rejection-reason">Review note (optional)</label><TextArea id="candidate-rejection-reason" size="small" rows={2} value={form.rejectionReason} onChange={(event) => setField("rejectionReason", event.target.value)} placeholder="Why reject or mark as duplicate…" /></div> : null}
+        </div>
+        {isReviewed && candidate.rejectionReason ? <p className={candidateStyles.reviewReason}><strong>Review note:</strong> {candidate.rejectionReason}</p> : null}{errors.general ? <p className={styles.formError}>{errors.general}</p> : null}
+      </ModalBody>
+      <ModalFooter className={styles.editorFooter}>{isExisting && !isReviewed ? <><GhostButton type="button" onClick={() => review("duplicate")} disabled={isBusy}>Mark duplicate</GhostButton><GhostButton type="button" className={styles.dangerButton} onClick={() => review("rejected")} disabled={isBusy}>Reject</GhostButton></> : null}<span className={styles.footerSpacer} /><SecondaryButton type="button" onClick={onClose} disabled={isBusy}>{isReviewed ? "Close" : "Cancel"}</SecondaryButton>{!isReviewed ? <PrimaryButton type="submit" disabled={isBusy}>{isBusy ? "Saving…" : "Save"}</PrimaryButton> : null}{isExisting && !isReviewed ? <PrimaryButton type="button" onClick={accept} disabled={isBusy}>{isBusy ? "Working…" : "Accept"}</PrimaryButton> : null}</ModalFooter>
+    </ModalShell>
+  </div>;
 }
