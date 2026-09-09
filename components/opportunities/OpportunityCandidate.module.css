@@ -1,0 +1,152 @@
+.surfaceTabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.55rem 1.05rem 0;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.22);
+}
+
+.surfaceTab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border-bottom: 2px solid transparent;
+  padding: 0.2rem 0.55rem 0.5rem;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.surfaceTab:hover {
+  color: #dbeafe;
+}
+
+.surfaceTabActive {
+  border-bottom-color: #38bdf8;
+  color: #e0f2fe;
+}
+
+.candidateOpportunityCell { width: 22%; }
+.candidateTypeCell { width: 11%; }
+.candidateOrganizationCell { width: 16%; }
+.candidateDeadlineCell { width: 14%; }
+.candidateSourceCell { width: 17%; }
+.candidateRequirementsCell { width: 20%; }
+
+.sourceSummary {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.sourceSummary > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reviewBadgePending {
+  color: #fde68a !important;
+  border-color: rgba(245, 158, 11, 0.38) !important;
+  background: rgba(146, 64, 14, 0.18) !important;
+}
+
+.reviewBadgeAccepted {
+  color: #bbf7d0 !important;
+  border-color: rgba(74, 222, 128, 0.35) !important;
+  background: rgba(22, 101, 52, 0.18) !important;
+}
+
+.reviewBadgeRejected {
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.38) !important;
+  background: rgba(127, 29, 29, 0.18) !important;
+}
+
+.reviewBadgeDuplicate {
+  color: #ddd6fe !important;
+  border-color: rgba(167, 139, 250, 0.34) !important;
+  background: rgba(91, 33, 182, 0.16) !important;
+}
+
+.editorSubtitle {
+  margin: 0.18rem 0 0;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.provenancePanel {
+  margin-bottom: 1rem;
+  border: 1px solid rgba(100, 116, 139, 0.32);
+  border-radius: 0.72rem;
+  background: rgba(15, 23, 42, 0.38);
+  padding: 0.8rem;
+}
+
+.provenanceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.65rem;
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+
+.provenanceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 0.85rem;
+}
+
+.provenanceItem {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.provenanceItem > span {
+  color: #64748b;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.provenanceItem strong,
+.provenanceItem a {
+  min-width: 0;
+  overflow: hidden;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provenanceItem a {
+  color: #7dd3fc;
+  text-decoration: none;
+}
+
+.provenanceItem a:hover { text-decoration: underline; }
+.provenanceWide { grid-column: 1 / -1; }
+
+.reviewReason {
+  margin: 0.8rem 0 0;
+  border-left: 2px solid rgba(148, 163, 184, 0.45);
+  padding-left: 0.65rem;
+  color: #aebdce;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px), (max-aspect-ratio: 2/3) {
+  .surfaceTabs { padding: 0.45rem 0.78rem 0; }
+  .provenanceGrid { grid-template-columns: 1fr; }
+  .provenanceWide { grid-column: auto; }
+}
