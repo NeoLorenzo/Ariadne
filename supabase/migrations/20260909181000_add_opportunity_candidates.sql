@@ -23,9 +23,7 @@ create table if not exists public.opportunity_candidates (
   rejection_reason text,
   matched_opportunity_id text references public.opportunities(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint accepted_candidate_requires_match
-    check (review_status <> 'accepted' or matched_opportunity_id is not null)
+  updated_at timestamptz not null default now()
 );
 
 create index if not exists opportunity_candidates_user_status_deadline_idx
