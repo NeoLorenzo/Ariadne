@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
+import OpportunityCandidateInbox from "@/components/opportunities/OpportunityCandidateInbox";
 import OpportunityEditor from "@/components/opportunities/OpportunityEditor";
+import OpportunityLandscapeTabs from "@/components/opportunities/OpportunityLandscapeTabs";
 import OpportunityTable from "@/components/opportunities/OpportunityTable";
 import {
   OPPORTUNITY_TYPES,
@@ -38,6 +40,8 @@ function matchesSearch(opportunity, query) {
 }
 
 export default function OpportunitiesPage() {
+  const [activeView, setActiveView] = useState("landscape");
+  const [candidateEditorOpen, setCandidateEditorOpen] = useState(false);
   const [opportunities, setOpportunities] = useState([]);
   const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +62,12 @@ export default function OpportunitiesPage() {
   const refreshSyncState = (resolvedUserId = userId) => {
     setSyncState(resolvedUserId ? getOpportunitySyncState(resolvedUserId) : EMPTY_SYNC_STATE);
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("view") === "inbox") setActiveView("inbox");
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -87,6 +97,18 @@ export default function OpportunitiesPage() {
     void initialize();
     return () => { isMounted = false; };
   }, []);
+
+  const changeView = (nextView) => {
+    const resolvedView = nextView === "inbox" ? "inbox" : "landscape";
+    setActiveView(resolvedView);
+    if (resolvedView !== "inbox") setCandidateEditorOpen(false);
+
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (resolvedView === "inbox") url.searchParams.set("view", "inbox");
+    else url.searchParams.delete("view");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  };
 
   const filteredOpportunities = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -247,6 +269,14 @@ export default function OpportunitiesPage() {
       ? "No opportunities match these filters."
       : "No active opportunities.";
 
+  if (activeView === "inbox") {
+    return (
+      <AppShell activeNavItem="opportunities" hideMobileNav={candidateEditorOpen}>
+        <OpportunityCandidateInbox onViewChange={changeView} onEditorOpenChange={setCandidateEditorOpen} />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell activeNavItem="opportunities" hideMobileNav={isEditorOpen}>
       <section className={styles.workspace}>
@@ -260,6 +290,8 @@ export default function OpportunitiesPage() {
             <span className={styles.toolbarSpacer} />
             <button type="button" className={styles.addButton} onClick={openAdd} aria-label="Add opportunity" title="Add opportunity">+</button>
           </div>
+
+          <OpportunityLandscapeTabs activeView="landscape" onChange={changeView} />
 
           <div className={styles.filters}>
             <input
