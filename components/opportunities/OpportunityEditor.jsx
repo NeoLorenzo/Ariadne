@@ -23,7 +23,7 @@ export default function OpportunityEditor({ isOpen, opportunity, isBusy, onClose
   const setField = (field, value) => { setForm((current) => ({ ...current, [field]: value })); if (errors[field] || errors.general) setErrors((current) => ({ ...current, [field]: undefined, general: undefined })); };
   const submit = async (event) => { event.preventDefault(); const nextErrors = validateOpportunity(form); if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; } const accepted = await onSave(form); if (!accepted) setErrors((current) => ({ ...current, general: "The opportunity could not be saved." })); };
   const requestDelete = async () => { if (!isEditing) return; if (!window.confirm(`Delete “${opportunity.title}”? This removes it from the Opportunity Landscape.`)) return; await onDelete(opportunity.id); };
-  const assessmentOpportunity = isEditing ? { ...opportunity, standardizedRequirements: form.standardizedRequirements } : null;
+  const assessmentOpportunity = isEditing ? opportunity : null;
 
   return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="opportunity-editor-title">
     <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close opportunity editor" />

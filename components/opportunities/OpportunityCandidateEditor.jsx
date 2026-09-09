@@ -23,7 +23,7 @@ export default function OpportunityCandidateEditor({ isOpen, candidate, isBusy, 
   const submit = async (event) => { event.preventDefault(); if (!validate()) return; const accepted = await onSave(form); if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be saved." })); };
   const accept = async () => { if (!isExisting || isReviewed || !validate()) return; const accepted = await onAccept(form); if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be accepted." })); };
   const review = async (status) => { if (!isExisting || isReviewed) return; const accepted = await onReview(status, form.rejectionReason); if (!accepted) setErrors((current) => ({ ...current, general: "The review state could not be changed." })); };
-  const assessmentCandidate = isExisting ? { ...candidate, standardizedRequirements: form.standardizedRequirements } : null;
+  const assessmentCandidate = isExisting ? candidate : null;
 
   return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="candidate-editor-title">
     <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close candidate editor" />
