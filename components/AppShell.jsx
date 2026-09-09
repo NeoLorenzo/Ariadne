@@ -9,7 +9,8 @@ import { useIsMobileExperience } from "@/lib/device/useIsMobileExperience";
 const NAV_ITEMS = [
   { key: "dashboard", href: "/", label: "Dashboard", icon: "dashboard" },
   { key: "tasks", href: "/tasks", label: "Tasks", icon: "tasks" },
-  { key: "opportunities", href: "/opportunities", label: "Opportunities", icon: "opportunities" }
+  { key: "opportunities", href: "/opportunities", label: "Opportunities", icon: "opportunities" },
+  { key: "opportunity-candidates", href: "/opportunities/candidates", label: "Candidate Inbox", icon: "opportunities" }
 ];
 
 export default function AppShell({ activeNavItem = "", hideMobileNav = false, children }) {
