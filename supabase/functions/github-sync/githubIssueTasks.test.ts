@@ -13,6 +13,7 @@ const issue = (overrides: Record<string, unknown> = {}) => ({
   html_url: "https://github.com/NeoLorenzo/Ariadne/issues/22",
   created_at: "2026-09-06T13:35:37Z",
   updated_at: "2026-09-06T13:35:37Z",
+  closed_at: null,
   repository: {
     id: 1223499763,
     full_name: "NeoLorenzo/Ariadne"
@@ -33,6 +34,7 @@ describe("GitHub issue task reconciliation", () => {
       title: "Sync GitHub issues",
       description: "Implementation details",
       completed: false,
+      completedAt: null,
       githubIssueId: 1001,
       githubRepositoryId: 1223499763,
       githubRepositoryFullName: "NeoLorenzo/Ariadne",
@@ -62,11 +64,13 @@ describe("GitHub issue task reconciliation", () => {
       updatedAt: 123456789
     };
 
+    const closedAt = "2026-09-06T14:59:30Z";
     const [closed] = buildReconciledIssueTasks([customized], [
       issue({
         title: "Renamed on GitHub",
         body: "Updated GitHub body",
         state: "closed",
+        closed_at: closedAt,
         updated_at: "2026-09-06T15:00:00Z"
       })
     ]);
@@ -76,6 +80,7 @@ describe("GitHub issue task reconciliation", () => {
       title: "Renamed on GitHub",
       description: "Updated GitHub body",
       completed: true,
+      completedAt: Date.parse(closedAt),
       githubIssueState: "closed",
       priority: 3,
       dueDate: "2026-09-10",
@@ -95,10 +100,58 @@ describe("GitHub issue task reconciliation", () => {
     expect(reopened).toMatchObject({
       id: "github-issue-1001",
       completed: false,
+      completedAt: null,
       githubIssueState: "open",
       priority: 3,
       description: "Updated GitHub body"
     });
+  });
+
+  it("preserves a stable completion timestamp while an issue remains closed", () => {
+    const closedAt = "2026-09-06T14:59:30Z";
+    const [created] = buildReconciledIssueTasks([], [issue()]);
+    const [closed] = buildReconciledIssueTasks([created], [
+      issue({ state: "closed", closed_at: closedAt, updated_at: "2026-09-06T15:00:00Z" })
+    ]);
+    const [editedWhileClosed] = buildReconciledIssueTasks([closed], [
+      issue({
+        state: "closed",
+        closed_at: closedAt,
+        title: "Edited after close",
+        updated_at: "2026-09-06T18:00:00Z"
+      })
+    ]);
+
+    expect((editedWhileClosed as any).completedAt).toBe(Date.parse(closedAt));
+  });
+
+  it("falls back to the GitHub issue update time when close time is unavailable", () => {
+    const [created] = buildReconciledIssueTasks([], [issue()]);
+    const updatedAt = "2026-09-06T15:00:00Z";
+    const [closed] = buildReconciledIssueTasks([created], [
+      issue({ state: "closed", closed_at: null, updated_at: updatedAt })
+    ]);
+
+    expect((closed as any).completedAt).toBe(Date.parse(updatedAt));
+  });
+
+  it("does not infer a historical timestamp for an already-closed legacy task", () => {
+    const legacyClosed = {
+      id: "github-issue-1001",
+      sourceType: "github-issue",
+      githubIssueId: 1001,
+      title: "Legacy closed issue",
+      description: "Legacy body",
+      completed: true,
+      githubIssueState: "closed",
+      githubIssueUpdatedAt: Date.parse("2026-09-06T15:00:00Z")
+    };
+
+    const [reconciled] = buildReconciledIssueTasks([legacyClosed], [
+      issue({ state: "closed", closed_at: null, updated_at: "2026-09-06T19:00:00Z" })
+    ]);
+
+    expect((reconciled as any).completedAt).toBeNull();
   });
 
   it("updates a task when only the GitHub issue body changes", () => {
@@ -113,7 +166,8 @@ describe("GitHub issue task reconciliation", () => {
     expect(updated).toMatchObject({
       title: "Sync GitHub issues",
       description: "Body changed on GitHub",
-      completed: false
+      completed: false,
+      completedAt: null
     });
   });
 
@@ -135,7 +189,7 @@ describe("GitHub issue task reconciliation", () => {
 
   it("does not import historical closed issues that were never represented in Ariadne", () => {
     const result = buildReconciledIssueTasks([], [
-      issue({ state: "closed", updated_at: "2026-09-06T17:00:00Z" })
+      issue({ state: "closed", closed_at: "2026-09-06T16:59:30Z", updated_at: "2026-09-06T17:00:00Z" })
     ]);
     expect(result).toEqual([]);
   });
@@ -176,15 +230,18 @@ describe("GitHub issue task reconciliation", () => {
       githubIssueUpdatedAt: 1,
       title: "Stale title",
       completed: false,
+      completedAt: null,
       priority: 4,
       description: "Stale description"
     };
 
+    const closedAt = "2026-09-06T17:59:30Z";
     const [repaired] = buildReconciledIssueTasks([stale], [
       issue({
         title: "Authoritative title",
         body: "Authoritative body",
         state: "closed",
+        closed_at: closedAt,
         updated_at: "2026-09-06T18:00:00Z"
       })
     ]);
@@ -193,6 +250,7 @@ describe("GitHub issue task reconciliation", () => {
       title: "Authoritative title",
       description: "Authoritative body",
       completed: true,
+      completedAt: Date.parse(closedAt),
       githubIssueState: "closed",
       priority: 4
     });

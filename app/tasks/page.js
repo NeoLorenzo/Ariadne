@@ -21,7 +21,7 @@ import {
   purgeExpiredTaskTombstones,
   restoreDeletedTask
 } from "@/lib/tasks/taskTombstones";
-import { createTaskSignatureMap, getTaskSyncSignature, isGitHubIssueTask, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeSubtaskList, sanitizeTask, sanitizeTaskList } from "@/lib/tasks/reconcile";
+import { applyCompletionTransition, createTaskSignatureMap, getTaskSyncSignature, isGitHubIssueTask, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeSubtaskList, sanitizeTask, sanitizeTaskList } from "@/lib/tasks/reconcile";
 import { createTaskWriteCoordinator } from "@/lib/tasks/writeCoordinator";
 
 const TASK_STORAGE_KEY = "fabbro_tasks_v1";
@@ -30,6 +30,7 @@ const TASK_TOMBSTONE_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 
 const EMPTY_FORM = {
   completed: false,
+  completedAt: null,
   title: "",
   description: "",
   dueDate: "",
@@ -997,7 +998,6 @@ export default function TasksPage() {
     setForm(EMPTY_FORM);
     setIsTaskModalOpen(true);
   };
-
   const closeTaskModal = () => {
     draggedSubtaskIdRef.current = "";
     setDraggedSubtaskId("");
@@ -1023,6 +1023,9 @@ export default function TasksPage() {
 
     const nextTaskShape = {
       completed: isEditingGitHubIssue ? Boolean(editingTask?.completed) : Boolean(form.completed),
+      completedAt: isEditingGitHubIssue
+        ? (editingTask?.completedAt ?? null)
+        : (form.completed ? (form.completedAt ?? null) : null),
       title,
       description: form.description.trim(),
       dueDate: normalizeDateInput(form.dueDate),
@@ -1091,6 +1094,7 @@ export default function TasksPage() {
     setTaskFormError("");
     setForm({
       completed: Boolean(task.completed),
+      completedAt: task.completedAt ?? null,
       title: task.title || "",
       description: task.description || "",
       dueDate: task.dueDate || "",
@@ -1181,6 +1185,7 @@ export default function TasksPage() {
         ...task,
         id: createTaskId(),
         title: makeCopyTitle(task.title),
+        completedAt: task.completed ? now : null,
         sourceType: "",
         sourceGoalId: "",
         tags: [],
@@ -1189,6 +1194,7 @@ export default function TasksPage() {
         subtasks: sanitizeSubtaskList(task.subtasks).map((subtask) => ({
           ...subtask,
           id: createTaskId(),
+          completedAt: subtask.completed ? now : null,
           createdAt: now,
           updatedAt: now
         })),
@@ -1200,13 +1206,26 @@ export default function TasksPage() {
 
   const addDraftSubtask = () => {
     const now = Date.now();
-    setForm((current) => ({ ...current, subtasks: [...(current.subtasks || []), { id: createTaskId(), title: "", description: "", completed: false, createdAt: now, updatedAt: now }] }));
+    setForm((current) => ({ ...current, subtasks: [...(current.subtasks || []), { id: createTaskId(), title: "", description: "", completed: false, completedAt: null, createdAt: now, updatedAt: now }] }));
   };
 
-  const updateDraftSubtask = (subtaskId, updates) => setForm((current) => ({
-    ...current,
-    subtasks: (current.subtasks || []).map((item) => item.id === subtaskId ? { ...item, ...updates, updatedAt: Date.now() } : item)
-  }));
+  const updateDraftSubtask = (subtaskId, updates) => setForm((current) => {
+    const now = Date.now();
+    return {
+      ...current,
+      subtasks: (current.subtasks || []).map((item) => {
+        if (item.id !== subtaskId) return item;
+        if (Object.prototype.hasOwnProperty.call(updates, "completed")) {
+          const { completed, ...otherUpdates } = updates;
+          return {
+            ...applyCompletionTransition(item, completed, now),
+            ...otherUpdates
+          };
+        }
+        return { ...item, ...updates, updatedAt: now };
+      })
+    };
+  });
 
   const removeDraftSubtask = (subtaskId) => setForm((current) => ({ ...current, subtasks: (current.subtasks || []).filter((item) => item.id !== subtaskId) }));
 
@@ -1264,19 +1283,29 @@ export default function TasksPage() {
     setDraggedSubtaskId("");
   };
 
-  const toggleTaskSubtask = (taskId, subtaskId) => setTasks((currentTasks) => currentTasks.map((task) =>
-    task.id === taskId ? {
-      ...task,
-      subtasks: (task.subtasks || []).map((item) => item.id === subtaskId ? { ...item, completed: !item.completed, updatedAt: Date.now() } : item),
-      updatedAt: Date.now()
-    } : task
-  ));
+  const toggleTaskSubtask = (taskId, subtaskId) => setTasks((currentTasks) => {
+    const now = Date.now();
+    return currentTasks.map((task) =>
+      task.id === taskId ? {
+        ...task,
+        subtasks: (task.subtasks || []).map((item) =>
+          item.id === subtaskId
+            ? applyCompletionTransition(item, !item.completed, now)
+            : item
+        ),
+        updatedAt: now
+      } : task
+    );
+  });
 
-  const toggleTaskCompleted = (taskId) => setTasks((currentTasks) => currentTasks.map((task) =>
-    task.id === taskId && !isGitHubIssueTask(task)
-      ? { ...task, completed: !task.completed, updatedAt: Date.now() }
-      : task
-  ));
+  const toggleTaskCompleted = (taskId) => setTasks((currentTasks) => {
+    const now = Date.now();
+    return currentTasks.map((task) =>
+      task.id === taskId && !isGitHubIssueTask(task)
+        ? applyCompletionTransition(task, !task.completed, now)
+        : task
+    );
+  });
 
   const renderTaskCard = (task) => {
     const directionalGoalId = getDirectionalGoalId(task);
@@ -1493,7 +1522,7 @@ export default function TasksPage() {
                     <button
                       type="button"
                       className={`task-editor-completion${form.completed ? " is-complete" : ""}`}
-                      onClick={() => setForm((current) => ({ ...current, completed: !current.completed }))}
+                      onClick={() => setForm((current) => applyCompletionTransition(current, !current.completed))}
                       disabled={isGitHubIssueTask(editingTask)}
                       title={isGitHubIssueTask(editingTask) ? "Completion is managed by GitHub" : undefined}
                       aria-label={isGitHubIssueTask(editingTask) ? "Completion managed by GitHub" : form.completed ? "Mark task incomplete" : "Mark task complete"}
