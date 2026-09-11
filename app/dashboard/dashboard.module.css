@@ -1,0 +1,367 @@
+.pageHeader {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.headerIntro {
+  display: grid;
+  gap: 4px;
+}
+
+.headerSubtitle,
+.sectionDescription {
+  margin: 0;
+  color: var(--text-muted, #8fa0bb);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.eyebrow,
+.directionIndex {
+  color: var(--accent, #39bdf8);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.utilityMenu {
+  position: relative;
+  margin-left: auto;
+}
+
+.utilityMenu > summary {
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid var(--border, #263247);
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: var(--text-secondary, #aebbd0);
+  background: var(--surface, #111722);
+}
+
+.utilityMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.utilityPopover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  min-width: 180px;
+  padding: 10px;
+  border: 1px solid var(--border, #263247);
+  border-radius: 10px;
+  background: var(--surface-raised, #141b27);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+}
+
+.dashboardBody {
+  display: grid;
+  gap: 18px;
+}
+
+.nowSection,
+.strategyOverview {
+  border: 1px solid var(--border, #263247);
+  border-radius: 12px;
+  background: var(--surface, #0f1520);
+}
+
+.nowSection {
+  padding: 16px;
+}
+
+.nowHeader,
+.strategyHeader,
+.titleRow,
+.vectorCardTop,
+.vectorMeta {
+  display: flex;
+  align-items: center;
+}
+
+.nowHeader,
+.strategyHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nowHeader h3,
+.strategyHeader h3,
+.directionCard h4 {
+  margin: 0;
+}
+
+.titleRow {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.countPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(89, 157, 255, 0.11);
+  color: var(--text-secondary, #aebbd0);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.nowGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.attentionCard,
+.navCard {
+  min-width: 0;
+  border: 1px solid var(--border, #263247);
+  border-radius: 9px;
+  padding: 11px 12px;
+  background: var(--surface-raised, #131a26);
+}
+
+.attentionCard {
+  border-left-width: 3px;
+}
+
+.attentionCard[data-severity="danger"] {
+  border-left-color: #ef4444;
+}
+
+.attentionCard[data-severity="major"],
+.attentionCard[data-severity="warning"] {
+  border-left-color: #eab308;
+}
+
+.attentionCard[data-severity="info"] {
+  border-left-color: #38bdf8;
+}
+
+.attentionLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-muted, #8fa0bb);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.attentionCard p,
+.navCard p {
+  margin: 0;
+  color: var(--text-secondary, #b8c4d6);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.navLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.navCard {
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.navCard:hover {
+  border-color: var(--accent, #39bdf8);
+  transform: translateY(-1px);
+}
+
+.navCard strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-primary, #f3f7fb);
+}
+
+.strategyOverview {
+  padding: 16px;
+}
+
+.manageButton {
+  flex: 0 0 auto;
+  border: 1px solid var(--border, #263247);
+  border-radius: 8px;
+  padding: 7px 11px;
+  color: var(--text-primary, #f3f7fb);
+  background: transparent;
+  cursor: pointer;
+}
+
+.manageButton:hover {
+  border-color: var(--accent, #39bdf8);
+}
+
+.vectorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.vectorCard {
+  min-width: 0;
+  border: 1px solid var(--border, #263247);
+  border-radius: 9px;
+  padding: 10px;
+  background: var(--surface-raised, #131a26);
+}
+
+.vectorCardTop,
+.vectorMeta {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vectorCardTop strong {
+  font-size: 0.84rem;
+}
+
+.vectorScore {
+  color: var(--text-primary, #f3f7fb);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.vectorMeta {
+  margin-top: 5px;
+  color: var(--text-muted, #8fa0bb);
+  font-size: 0.68rem;
+}
+
+.vectorDirectionNames {
+  margin: 7px 0 0;
+  color: var(--text-secondary, #b8c4d6);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snapshotMeta {
+  margin-top: 8px;
+  color: var(--text-muted, #8fa0bb);
+  font-size: 0.73rem;
+}
+
+.directionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.directionCard {
+  min-width: 0;
+  border: 1px solid var(--border, #263247);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.directionCard h4 {
+  margin-top: 4px;
+  color: var(--text-primary, #f3f7fb);
+  font-size: 0.92rem;
+}
+
+.directionStatement {
+  display: -webkit-box;
+  margin: 7px 0 9px;
+  overflow: hidden;
+  color: var(--text-secondary, #b8c4d6);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.vectorPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.vectorPills span {
+  border: 1px solid var(--border, #263247);
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: var(--text-muted, #8fa0bb);
+  font-size: 0.67rem;
+}
+
+.emptyStrategy {
+  margin-top: 14px;
+  border: 1px dashed var(--border, #263247);
+  border-radius: 9px;
+  padding: 12px;
+  color: var(--text-muted, #8fa0bb);
+}
+
+.strategyManager {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #263247);
+}
+
+.operationalGrid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.operationalColumn {
+  min-width: 0;
+}
+
+.quickActionsCompact {
+  opacity: 0.92;
+}
+
+@media (max-width: 1180px) {
+  .vectorGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .directionGrid,
+  .operationalGrid,
+  .nowGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .pageHeader,
+  .nowHeader,
+  .strategyHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .utilityMenu {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .vectorGrid,
+  .navLinks {
+    grid-template-columns: 1fr;
+  }
+
+  .manageButton {
+    width: 100%;
+  }
+}
