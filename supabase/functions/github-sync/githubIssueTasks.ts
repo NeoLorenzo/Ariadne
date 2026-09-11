@@ -10,6 +10,7 @@ export type GitHubIssueSyncRecord = {
   html_url: string;
   created_at?: string | null;
   updated_at?: string | null;
+  closed_at?: string | null;
   repository: {
     id: number;
     full_name: string;
@@ -99,6 +100,12 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
   const description = issue.body == null
     ? String(existing?.description || "")
     : String(issue.body);
+  const existingCompletedAt = completionTimestamp(existing?.completedAt);
+  const completedAt = issueState === "closed"
+    ? (Boolean(existing?.completed) && existingCompletedAt !== null
+        ? existingCompletedAt
+        : timestamp(issue.closed_at) ?? issueUpdatedAt)
+    : null;
 
   const remoteFields = {
     id: taskId,
@@ -107,6 +114,7 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
     title: String(issue.title || "").trim() || `GitHub issue #${issueNumber}`,
     description,
     completed: issueState === "closed",
+    completedAt,
     githubIssueId: issueId,
     githubRepositoryId: repositoryId,
     githubRepositoryFullName: String(issue.repository.full_name || "").trim(),
@@ -145,6 +153,7 @@ function remoteIssueFieldsEqual(existing: TaskRecord, next: TaskRecord) {
     "title",
     "description",
     "completed",
+    "completedAt",
     "githubIssueId",
     "githubRepositoryId",
     "githubRepositoryFullName",
@@ -167,6 +176,12 @@ function normalizeUrl(value: unknown) {
 function positiveInteger(value: unknown) {
   const numeric = Number(value);
   return Number.isSafeInteger(numeric) && numeric > 0 ? numeric : null;
+}
+
+function completionTimestamp(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric >= 0 ? numeric : null;
 }
 
 function timestamp(value: unknown) {
