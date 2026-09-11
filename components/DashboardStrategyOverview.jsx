@@ -64,6 +64,15 @@ export default function DashboardStrategyOverview({ userId }) {
   const snapshot = snapshotState.snapshot;
   const staleSnapshot = snapshot ? isKleosSnapshotStale(snapshot) : false;
 
+  const toggleStrategyManager = () => {
+    if (showStrategyManager) {
+      void loadDirectionsState(userId)
+        .then((nextState) => setDirectionsState(nextState || EMPTY_DIRECTIONS_STATE))
+        .catch(() => {});
+    }
+    setShowStrategyManager((current) => !current);
+  };
+
   return (
     <section className={styles.strategyOverview} aria-labelledby="dashboard-strategy-title">
       <header className={styles.strategyHeader}>
@@ -81,7 +90,7 @@ export default function DashboardStrategyOverview({ userId }) {
           type="button"
           className={styles.manageButton}
           aria-expanded={showStrategyManager}
-          onClick={() => setShowStrategyManager((current) => !current)}
+          onClick={toggleStrategyManager}
         >
           {showStrategyManager ? "Close strategy controls" : "Manage strategy"}
         </button>
@@ -160,7 +169,8 @@ function formatState(result, status) {
   if (result.status === "unknown") return "Unknown";
   const score = Number(result.score);
   if (!Number.isFinite(score)) return "—";
-  return Number.isInteger(score) ? String(score) : score.toFixed(1);
+  const formatted = Number.isInteger(score) ? String(score) : score.toFixed(1);
+  return `${formatted}/100`;
 }
 
 function formatConfidence(result) {
