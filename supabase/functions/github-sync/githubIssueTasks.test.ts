@@ -135,6 +135,25 @@ describe("GitHub issue task reconciliation", () => {
     expect((closed as any).completedAt).toBe(Date.parse(updatedAt));
   });
 
+  it("does not infer a historical timestamp for an already-closed legacy task", () => {
+    const legacyClosed = {
+      id: "github-issue-1001",
+      sourceType: "github-issue",
+      githubIssueId: 1001,
+      title: "Legacy closed issue",
+      description: "Legacy body",
+      completed: true,
+      githubIssueState: "closed",
+      githubIssueUpdatedAt: Date.parse("2026-09-06T15:00:00Z")
+    };
+
+    const [reconciled] = buildReconciledIssueTasks([legacyClosed], [
+      issue({ state: "closed", closed_at: null, updated_at: "2026-09-06T19:00:00Z" })
+    ]);
+
+    expect((reconciled as any).completedAt).toBeNull();
+  });
+
   it("updates a task when only the GitHub issue body changes", () => {
     const [created] = buildReconciledIssueTasks([], [issue()]);
     const [updated] = buildReconciledIssueTasks([created], [
