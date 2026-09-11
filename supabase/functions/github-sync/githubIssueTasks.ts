@@ -101,8 +101,9 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
     ? String(existing?.description || "")
     : String(issue.body);
   const existingCompletedAt = completionTimestamp(existing?.completedAt);
+  const wasCompleted = Boolean(existing?.completed);
   const completedAt = issueState === "closed"
-    ? (Boolean(existing?.completed) && existingCompletedAt !== null
+    ? (wasCompleted
         ? existingCompletedAt
         : timestamp(issue.closed_at) ?? issueUpdatedAt)
     : null;
