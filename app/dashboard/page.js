@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import DashboardStrategyOverview from "@/components/DashboardStrategyOverview";
@@ -235,7 +236,10 @@ export default function DashboardPage() {
     return noticeBoardItems.slice(0, INITIAL_NOTICE_LIMIT);
   }, [noticeBoardItems, isNoticeBoardExpanded]);
 
-  const attentionItems = useMemo(() => noticeBoardItems.slice(0, 3), [noticeBoardItems]);
+  const attentionItems = useMemo(() => {
+    const actionable = noticeBoardItems.filter((noticeItem) => noticeItem.severity !== "success");
+    return (actionable.length ? actionable : noticeBoardItems).slice(0, 3);
+  }, [noticeBoardItems]);
 
   return (
     <AppShell currentPageLabel="Dashboard" activeNavItem="dashboard">
@@ -293,14 +297,14 @@ export default function DashboardPage() {
               )}
 
               <div className={styles.navLinks} aria-label="Primary execution surfaces">
-                <a className={styles.navCard} href="/tasks">
+                <Link className={styles.navCard} href="/tasks">
                   <strong>Tasks</strong>
                   <p>Open the execution list and work from current priorities.</p>
-                </a>
-                <a className={styles.navCard} href="/opportunities">
+                </Link>
+                <Link className={styles.navCard} href="/opportunities">
                   <strong>Opportunities</strong>
                   <p>Review the Landscape and pending opportunity candidates.</p>
-                </a>
+                </Link>
               </div>
             </section>
 
