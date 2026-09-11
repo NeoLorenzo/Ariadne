@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
-import DirectionPanel from "@/components/DirectionPanel";
+import DashboardStrategyOverview from "@/components/DashboardStrategyOverview";
 import GitHubReposModule from "@/components/GitHubReposModule";
 import { SecondaryButton } from "@/components/ui/AriadneUI";
 import { buildFullAppDataText, copyTextToClipboard } from "@/lib/export/appDataText";
@@ -17,12 +17,8 @@ import {
   loadCachedSubstackSignal,
   requestServerSubstackRefresh
 } from "@/lib/signals/substackSignalRepository";
+import styles from "./dashboard.module.css";
 
-const LORENZO_ROQUE_SUBSTACK = {
-  archiveUrl: "https://lorenzoroque.substack.com/api/v1/archive?sort=new&offset=0&limit=1",
-  feedJsonUrl:
-    "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Florenzoroque.substack.com%2Ffeed"
-};
 const PROTOLORENZO_VIDEO_STATE_STORAGE_KEY = "fabbro_youtube_state_v1";
 const GITHUB_REPO_PROJECT_ID_PREFIX = "github-repo-";
 const PROJECT_STATUS_ACTIVE = "active";
@@ -30,6 +26,7 @@ const REPO_STATUS_TAG_ACTIVE = "active";
 const DEFAULT_NOTICE_BOARD_ITEMS = [];
 const DASHBOARD_NOTICE_CACHE_NAMESPACE = "dashboard.notice_board";
 const DAY_MS = 24 * 60 * 60 * 1000;
+const INITIAL_NOTICE_LIMIT = 4;
 const DASHBOARD_LINKS = [
   {
     label: "GitHub Repos",
@@ -56,6 +53,7 @@ export default function DashboardPage() {
   const [protoLorenzoLatestScheduledDate, setProtoLorenzoLatestScheduledDate] = useState("");
   const [copyState, setCopyState] = useState({ status: "idle", message: "" });
   const [canonicalProjects, setCanonicalProjects] = useState([]);
+  const [isNoticeBoardExpanded, setIsNoticeBoardExpanded] = useState(false);
 
   const handleProjectsChange = useCallback(({ projects }) => {
     setCanonicalProjects(Array.isArray(projects) ? projects : []);
@@ -82,9 +80,7 @@ export default function DashboardPage() {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -110,10 +106,7 @@ export default function DashboardPage() {
     };
 
     void loadLatestPostTimestamp();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
@@ -126,17 +119,13 @@ export default function DashboardPage() {
     void supabase.auth
       .getSession()
       .then(({ data }) => {
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
         const nextUserId = data?.session?.user?.id || null;
         setAuthUserId(nextUserId);
         writeLastKnownSyncUserId(nextUserId);
       })
       .catch(() => {
-        if (isMounted) {
-          setAuthUserId(readLastKnownSyncUserId());
-        }
+        if (isMounted) setAuthUserId(readLastKnownSyncUserId());
       });
 
     const {
@@ -164,7 +153,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let isMounted = true;
-
     const lastKnownUserId = authUserId || readLastKnownSyncUserId() || "signed-out";
     const cachedBootEntry = readSyncCacheEntry({
       namespace: DASHBOARD_NOTICE_CACHE_NAMESPACE,
@@ -179,9 +167,8 @@ export default function DashboardPage() {
       namespace: DASHBOARD_NOTICE_CACHE_NAMESPACE,
       userId: cacheUserId
     });
-    const cachedPayload = cachedEntry?.payload;
-    if (isMounted && Array.isArray(cachedPayload)) {
-      setNoticeBoardItems(cachedPayload);
+    if (isMounted && Array.isArray(cachedEntry?.payload)) {
+      setNoticeBoardItems(cachedEntry.payload);
     }
 
     const nextNoticeItems = buildDashboardNotices({
@@ -202,9 +189,7 @@ export default function DashboardPage() {
       signature: nextNoticeSignature
     });
 
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [
     authUserId,
     canonicalProjects,
@@ -213,23 +198,10 @@ export default function DashboardPage() {
     substackLatestPostTimestamp
   ]);
 
-  const handleProtoLorenzoScheduledDateChange = (nextDateValue) => {
-    const normalizedDate = normalizeDateInputValue(nextDateValue);
-    setProtoLorenzoLatestScheduledDate(normalizedDate);
-    writeProtoLorenzoVideoStateToStorage({
-      ...readProtoLorenzoVideoStateFromStorage(),
-      protoLorenzoLatestScheduledDate: normalizedDate
-    });
-  };
-
-  const videoBacklogSeverity = resolveVideoBacklogSeverity(protoLorenzoVideoBacklogDays);
-
   const copyFullAppData = async () => {
-    if (copyState.status === "copying") {
-      return;
-    }
-
+    if (copyState.status === "copying") return;
     setCopyState({ status: "copying", message: "" });
+
     try {
       const exportText = await buildFullAppDataText({
         userId: authUserId,
@@ -258,79 +230,131 @@ export default function DashboardPage() {
     error: "Try copy again"
   }[copyState.status] || "Copy all data";
 
-  const [isNoticeBoardExpanded, setIsNoticeBoardExpanded] = useState(false);
-  const INITIAL_NOTICE_LIMIT = 4;
-
   const visibleNoticeItems = useMemo(() => {
     if (isNoticeBoardExpanded) return noticeBoardItems;
     return noticeBoardItems.slice(0, INITIAL_NOTICE_LIMIT);
   }, [noticeBoardItems, isNoticeBoardExpanded]);
 
+  const attentionItems = useMemo(() => noticeBoardItems.slice(0, 3), [noticeBoardItems]);
+
   return (
     <AppShell currentPageLabel="Dashboard" activeNavItem="dashboard">
       <section className="dashboard-workspace">
         <div className="dashboard-container">
-          <header className="dashboard-header">
-            <h2 className="dashboard-title">Dashboard</h2>
-            <SecondaryButton
-              className="dashboard-copy-data-btn"
-              onClick={copyFullAppData}
-              disabled={copyState.status === "copying"}
-              aria-live="polite"
-              title={copyState.message || "Copy all stored app data as structured text"}
-            >
-              {copyButtonLabel}
-            </SecondaryButton>
+          <header className={`dashboard-header ${styles.pageHeader}`}>
+            <div className={styles.headerIntro}>
+              <span className={styles.eyebrow}>Operating overview</span>
+              <h2 className="dashboard-title">Dashboard</h2>
+              <p className={styles.headerSubtitle}>What needs attention now, followed by the current strategic state.</p>
+            </div>
+            <details className={styles.utilityMenu}>
+              <summary aria-label="Dashboard utilities">•••</summary>
+              <div className={styles.utilityPopover}>
+                <SecondaryButton
+                  className="dashboard-copy-data-btn"
+                  onClick={copyFullAppData}
+                  disabled={copyState.status === "copying"}
+                  aria-live="polite"
+                  title={copyState.message || "Copy all stored app data as structured text"}
+                >
+                  {copyButtonLabel}
+                </SecondaryButton>
+              </div>
+            </details>
           </header>
 
-          <div className="dashboard-body">
-            <section className="dashboard-strategy" aria-label="Strategy">
-              <DirectionPanel userId={authUserId} />
-            </section>
-
-            <section className="notice-board-module" aria-label="Notice board">
-              <header className="notice-board-header">
-                <div className="notice-board-title-group">
-                  <h3 className="notice-board-title">Notice board</h3>
-                  {noticeBoardItems.length ? (
-                    <span className="notice-board-count-pill">{noticeBoardItems.length} issue{noticeBoardItems.length === 1 ? "" : "s"}</span>
-                  ) : null}
+          <div className={`dashboard-body ${styles.dashboardBody}`}>
+            <section className={styles.nowSection} aria-labelledby="dashboard-now-title">
+              <header className={styles.nowHeader}>
+                <div>
+                  <span className={styles.eyebrow}>Attention</span>
+                  <div className={styles.titleRow}>
+                    <h3 id="dashboard-now-title">Now</h3>
+                    <span className={styles.countPill}>{noticeBoardItems.length} active signal{noticeBoardItems.length === 1 ? "" : "s"}</span>
+                  </div>
                 </div>
-                {noticeBoardItems.length > INITIAL_NOTICE_LIMIT ? (
-                  <button
-                    type="button"
-                    className="notice-board-toggle-btn"
-                    aria-expanded={isNoticeBoardExpanded}
-                    onClick={() => setIsNoticeBoardExpanded(!isNoticeBoardExpanded)}
-                  >
-                    {isNoticeBoardExpanded ? "Collapse" : `View all (${noticeBoardItems.length})`}
-                  </button>
-                ) : null}
               </header>
 
-              <ul className="notice-board-list">
-                {visibleNoticeItems.length ? visibleNoticeItems.map((noticeItem) => (
-                  <li
-                    key={noticeItem.id}
-                    className={`notice-board-item ${noticeItem.severity ? `is-${noticeItem.severity}` : ""}`}
-                  >
-                    <div className="notice-board-item-header">
-                      <span className={`notice-severity-badge is-${noticeItem.severity || "info"}`}>
-                        {noticeItem.title}
-                      </span>
-                    </div>
-                    <p className="notice-board-item-text">{noticeItem.text}</p>
-                  </li>
-                )) : (
-                  <li className="notice-board-empty">No active notices.</li>
-                )}
-              </ul>
+              {attentionItems.length ? (
+                <div className={styles.nowGrid}>
+                  {attentionItems.map((noticeItem) => (
+                    <article
+                      className={styles.attentionCard}
+                      data-severity={noticeItem.severity || "info"}
+                      key={noticeItem.id}
+                    >
+                      <span className={styles.attentionLabel}>{noticeItem.title}</span>
+                      <p>{noticeItem.text}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyStrategy}>No active operational notices.</div>
+              )}
+
+              <div className={styles.navLinks} aria-label="Primary execution surfaces">
+                <a className={styles.navCard} href="/tasks">
+                  <strong>Tasks</strong>
+                  <p>Open the execution list and work from current priorities.</p>
+                </a>
+                <a className={styles.navCard} href="/opportunities">
+                  <strong>Opportunities</strong>
+                  <p>Review the Landscape and pending opportunity candidates.</p>
+                </a>
+              </div>
             </section>
 
-            <GitHubReposModule onProjectsChange={handleProjectsChange} />
+            <DashboardStrategyOverview userId={authUserId} />
 
-            <section className="quick-actions-module" aria-label="Quick actions">
-              <h3 className="quick-actions-title">Quick actions</h3>
+            <div className={styles.operationalGrid}>
+              <div className={styles.operationalColumn}>
+                <section className="notice-board-module" aria-label="Notice board">
+                  <header className="notice-board-header">
+                    <div className="notice-board-title-group">
+                      <h3 className="notice-board-title">Notice board</h3>
+                      {noticeBoardItems.length ? (
+                        <span className="notice-board-count-pill">{noticeBoardItems.length} issue{noticeBoardItems.length === 1 ? "" : "s"}</span>
+                      ) : null}
+                    </div>
+                    {noticeBoardItems.length > INITIAL_NOTICE_LIMIT ? (
+                      <button
+                        type="button"
+                        className="notice-board-toggle-btn"
+                        aria-expanded={isNoticeBoardExpanded}
+                        onClick={() => setIsNoticeBoardExpanded(!isNoticeBoardExpanded)}
+                      >
+                        {isNoticeBoardExpanded ? "Collapse" : `View all (${noticeBoardItems.length})`}
+                      </button>
+                    ) : null}
+                  </header>
+
+                  <ul className="notice-board-list">
+                    {visibleNoticeItems.length ? visibleNoticeItems.map((noticeItem) => (
+                      <li
+                        key={noticeItem.id}
+                        className={`notice-board-item ${noticeItem.severity ? `is-${noticeItem.severity}` : ""}`}
+                      >
+                        <div className="notice-board-item-header">
+                          <span className={`notice-severity-badge is-${noticeItem.severity || "info"}`}>
+                            {noticeItem.title}
+                          </span>
+                        </div>
+                        <p className="notice-board-item-text">{noticeItem.text}</p>
+                      </li>
+                    )) : (
+                      <li className="notice-board-empty">No active notices.</li>
+                    )}
+                  </ul>
+                </section>
+              </div>
+
+              <div className={styles.operationalColumn}>
+                <GitHubReposModule onProjectsChange={handleProjectsChange} />
+              </div>
+            </div>
+
+            <section className={`quick-actions-module ${styles.quickActionsCompact}`} aria-label="Quick actions">
+              <h3 className="quick-actions-title">External shortcuts</h3>
               <div className="quick-actions-list">
                 {DASHBOARD_LINKS.map((dashboardLink) => (
                   <a
@@ -351,73 +375,6 @@ export default function DashboardPage() {
       </section>
     </AppShell>
   );
-}
-
-async function fetchLatestSubstackEntry() {
-  const directEntry = await fetchLatestSubstackArchiveEntry();
-  if (directEntry) {
-    return directEntry;
-  }
-
-  return fetchLatestSubstackFeedEntry();
-}
-
-async function fetchLatestSubstackArchiveEntry() {
-  try {
-    const response = await fetch(LORENZO_ROQUE_SUBSTACK.archiveUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store"
-    });
-    if (!response.ok) {
-      return null;
-    }
-
-    const archiveRows = await response.json();
-    const latestPost = Array.isArray(archiveRows) ? archiveRows[0] : null;
-    const publishedAt = parseFlexibleDate(latestPost?.post_date || latestPost?.postDate);
-    if (!publishedAt) {
-      return null;
-    }
-    return {
-      publishedAt: publishedAt.toISOString(),
-      title: String(latestPost?.title || ""),
-      url: String(
-        latestPost?.canonical_url ||
-          latestPost?.canonicalUrl ||
-          (latestPost?.slug
-            ? `https://lorenzoroque.substack.com/p/${latestPost.slug}`
-            : "")
-      )
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function fetchLatestSubstackFeedEntry() {
-  try {
-    const response = await fetch(LORENZO_ROQUE_SUBSTACK.feedJsonUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store"
-    });
-    if (!response.ok) {
-      return null;
-    }
-
-    const feedPayload = await response.json();
-    const latestItem = Array.isArray(feedPayload?.items) ? feedPayload.items[0] : null;
-    const publishedAt = parseFlexibleDate(latestItem?.pubDate || latestItem?.pubdate);
-    if (!publishedAt) {
-      return null;
-    }
-    return {
-      publishedAt: publishedAt.toISOString(),
-      title: String(latestItem?.title || ""),
-      url: String(latestItem?.link || "")
-    };
-  } catch {
-    return null;
-  }
 }
 
 function buildDashboardNotices({
@@ -446,7 +403,7 @@ function buildDashboardNotices({
 function buildRepoCommitWarningNotices(projectList) {
   const safeProjects = Array.isArray(projectList) ? projectList : [];
   const now = Date.now();
-  const oneDayMs = 1 * DAY_MS;
+  const oneDayMs = DAY_MS;
   const weekMs = 7 * DAY_MS;
   const twoWeeksMs = 14 * DAY_MS;
   const threeMonthsMs = 90 * DAY_MS;
@@ -454,161 +411,121 @@ function buildRepoCommitWarningNotices(projectList) {
   return safeProjects
     .filter((project) => {
       const projectId = String(project?.id || "");
-      if (!projectId.startsWith(GITHUB_REPO_PROJECT_ID_PREFIX)) {
-        return false;
-      }
-
-      const completionStatus = normalizeProjectCompletionStatus(project?.completionStatus);
-      if (completionStatus !== PROJECT_STATUS_ACTIVE) {
-        return false;
-      }
-
-      const repoStatusTag = normalizeRepoStatusTag(project?.repoStatusTag);
-      if (repoStatusTag !== REPO_STATUS_TAG_ACTIVE) {
-        return false;
-      }
-
-      const lastCommitAt = Number(project?.lastCommitAt);
-      return Number.isFinite(lastCommitAt);
+      if (!projectId.startsWith(GITHUB_REPO_PROJECT_ID_PREFIX)) return false;
+      if (normalizeProjectCompletionStatus(project?.completionStatus) !== PROJECT_STATUS_ACTIVE) return false;
+      if (normalizeRepoStatusTag(project?.repoStatusTag) !== REPO_STATUS_TAG_ACTIVE) return false;
+      return Number.isFinite(Number(project?.lastCommitAt));
     })
     .map((project) => {
       const lastCommitAt = Number(project.lastCommitAt);
       const elapsedMs = Math.max(0, now - lastCommitAt);
       const inactiveDays = Math.floor(elapsedMs / DAY_MS);
       const repoName = String(project?.title || "Unknown repo").trim() || "Unknown repo";
+      const identity = String(project?.id || repoName).toLowerCase();
 
       if (elapsedMs > threeMonthsMs) {
         return {
-          id: `repo-inactivity-danger-${String(project?.id || repoName).toLowerCase()}`,
+          id: `repo-inactivity-danger-${identity}`,
           title: "Danger",
           severity: "danger",
           sortWeight: elapsedMs,
           text: `${repoName} has no commit for ${inactiveDays} days (over 3 months).`
         };
       }
-
       if (elapsedMs > twoWeeksMs) {
         return {
-          id: `major-repo-inactivity-${String(project?.id || repoName).toLowerCase()}`,
+          id: `major-repo-inactivity-${identity}`,
           title: "Major warning",
           severity: "major",
           sortWeight: elapsedMs,
           text: `${repoName} has no commit for ${inactiveDays} days (over 2 weeks).`
         };
       }
-
       if (elapsedMs > weekMs) {
         return {
-          id: `repo-inactivity-warning-${String(project?.id || repoName).toLowerCase()}`,
+          id: `repo-inactivity-warning-${identity}`,
           title: "Warning",
           severity: "warning",
           sortWeight: elapsedMs,
           text: `${repoName} has no commit for ${inactiveDays} days (over 1 week).`
         };
       }
-
       if (elapsedMs > oneDayMs) {
         return {
-          id: `repo-inactivity-info-${String(project?.id || repoName).toLowerCase()}`,
+          id: `repo-inactivity-info-${identity}`,
           title: "Info",
           severity: "info",
           sortWeight: elapsedMs,
           text: `${repoName} has no commit for ${inactiveDays} ${inactiveDays === 1 ? "day" : "days"} (over 1 day).`
         };
       }
-
       return null;
     })
     .filter(Boolean);
 }
 
 function buildSubstackPublicationNotices(daysSinceLastPublication, hasSubstackTimestamp) {
-  if (!hasSubstackTimestamp) {
-    return [];
-  }
-
-  if (!Number.isFinite(daysSinceLastPublication) || daysSinceLastPublication < 2) {
+  if (!hasSubstackTimestamp || !Number.isFinite(daysSinceLastPublication) || daysSinceLastPublication < 2) {
     return [];
   }
 
   const elapsedMs = daysSinceLastPublication * DAY_MS;
   if (daysSinceLastPublication >= 14) {
-    return [
-      {
-        id: "substack-publication-danger",
-        title: "Danger",
-        severity: "danger",
-        sortWeight: elapsedMs,
-        text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (2+ weeks).`
-      }
-    ];
-  }
-
-  if (daysSinceLastPublication >= 7) {
-    return [
-      {
-        id: "substack-publication-major",
-        title: "Major warning",
-        severity: "major",
-        sortWeight: elapsedMs,
-        text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (1+ week).`
-      }
-    ];
-  }
-
-  if (daysSinceLastPublication >= 4) {
-    return [
-      {
-        id: "substack-publication-warning",
-        title: "Warning",
-        severity: "warning",
-        sortWeight: elapsedMs,
-        text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (4+ days).`
-      }
-    ];
-  }
-
-  return [
-    {
-      id: "substack-publication-info",
-      title: "Info",
-      severity: "info",
+    return [{
+      id: "substack-publication-danger",
+      title: "Danger",
+      severity: "danger",
       sortWeight: elapsedMs,
-      text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (2+ days).`
-    }
-  ];
+      text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (2+ weeks).`
+    }];
+  }
+  if (daysSinceLastPublication >= 7) {
+    return [{
+      id: "substack-publication-major",
+      title: "Major warning",
+      severity: "major",
+      sortWeight: elapsedMs,
+      text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (1+ week).`
+    }];
+  }
+  if (daysSinceLastPublication >= 4) {
+    return [{
+      id: "substack-publication-warning",
+      title: "Warning",
+      severity: "warning",
+      sortWeight: elapsedMs,
+      text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (4+ days).`
+    }];
+  }
+  return [{
+    id: "substack-publication-info",
+    title: "Info",
+    severity: "info",
+    sortWeight: elapsedMs,
+    text: `Lorenzo Roque Substack has no publication for ${daysSinceLastPublication} days (2+ days).`
+  }];
 }
 
-function buildProtoLorenzoVideoNotices(protoLorenzoVideoBacklogDays) {
-  const videoBacklogSeverity = resolveVideoBacklogSeverity(protoLorenzoVideoBacklogDays);
-  if (!videoBacklogSeverity) {
-    return [];
-  }
+function buildProtoLorenzoVideoNotices(daysUntilScheduledDate) {
+  const severity = resolveVideoBacklogSeverity(daysUntilScheduledDate);
+  if (!severity) return [];
 
-  const noticeTitleBySeverity = {
+  const titleBySeverity = {
     danger: "Danger",
     major: "Major warning",
     warning: "Warning",
     info: "Info",
     success: "Success"
   };
-  const severitySortWeightBySeverity = {
-    danger: 5,
-    major: 4,
-    warning: 3,
-    info: 2,
-    success: 1
-  };
+  const weightBySeverity = { danger: 5, major: 4, warning: 3, info: 2, success: 1 };
 
-  return [
-    {
-      id: "protolorenzo-video-backlog",
-      title: noticeTitleBySeverity[videoBacklogSeverity] || "Info",
-      severity: videoBacklogSeverity,
-      sortWeight: severitySortWeightBySeverity[videoBacklogSeverity] || 0,
-      text: `ProtoLorenzo video backlog is ${formatVideoBacklogDayCount(protoLorenzoVideoBacklogDays)}.`
-    }
-  ];
+  return [{
+    id: "protolorenzo-video-backlog",
+    title: titleBySeverity[severity] || "Info",
+    severity,
+    sortWeight: weightBySeverity[severity] || 0,
+    text: `ProtoLorenzo video backlog is ${formatVideoBacklogDayCount(daysUntilScheduledDate)}.`
+  }];
 }
 
 function normalizeProjectCompletionStatus(rawValue) {
@@ -619,83 +536,16 @@ function normalizeRepoStatusTag(rawValue) {
   return String(rawValue || "").trim().toLowerCase();
 }
 
-function parseFlexibleDate(rawValue) {
-  if (typeof rawValue !== "string") {
-    return null;
-  }
-
-  const trimmed = rawValue.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const direct = new Date(trimmed);
-  if (!Number.isNaN(direct.getTime())) {
-    return direct;
-  }
-
-  const isoLikeMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (!isoLikeMatch) {
-    return null;
-  }
-
-  const day = Number(isoLikeMatch[1]);
-  const month = Number(isoLikeMatch[2]);
-  const yearPart = Number(isoLikeMatch[3]);
-  const year = yearPart < 100 ? 2000 + yearPart : yearPart;
-  const fallback = new Date(year, month - 1, day);
-  if (Number.isNaN(fallback.getTime())) {
-    return null;
-  }
-
-  return fallback;
-}
-
 function calculateDaysSinceTimestamp(timestamp) {
-  if (!Number.isFinite(timestamp)) {
-    return null;
-  }
-
+  if (!Number.isFinite(timestamp)) return null;
   return Math.max(0, Math.floor((Date.now() - Number(timestamp)) / DAY_MS));
 }
 
-function resolveSignalRecencyClass(daysSinceLastPublication) {
-  if (!Number.isFinite(daysSinceLastPublication)) {
-    return "";
-  }
-  if (daysSinceLastPublication >= 14) {
-    return "is-danger";
-  }
-  if (daysSinceLastPublication >= 7) {
-    return "is-major";
-  }
-  if (daysSinceLastPublication >= 4) {
-    return "is-warning";
-  }
-  if (daysSinceLastPublication >= 2) {
-    return "is-info";
-  }
-  return "";
-}
-
-function formatSignalDayCount(daysSinceLastPublication) {
-  if (!Number.isFinite(daysSinceLastPublication)) {
-    return "--";
-  }
-
-  return new Intl.NumberFormat("en-GB").format(daysSinceLastPublication);
-}
-
 function readProtoLorenzoVideoStateFromStorage() {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
+  if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(PROTOLORENZO_VIDEO_STATE_STORAGE_KEY);
-    if (!raw) {
-      return {};
-    }
+    if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
@@ -703,34 +553,18 @@ function readProtoLorenzoVideoStateFromStorage() {
   }
 }
 
-function writeProtoLorenzoVideoStateToStorage(nextState) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const safeState = nextState && typeof nextState === "object" ? nextState : {};
-  window.localStorage.setItem(PROTOLORENZO_VIDEO_STATE_STORAGE_KEY, JSON.stringify(safeState));
-}
-
 function normalizeDateInputValue(value) {
-  if (typeof value !== "string") {
-    return "";
-  }
-
+  if (typeof value !== "string") return "";
   const trimmed = value.trim();
   return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : "";
 }
 
 function calculateDaysUntilScheduledDate(dateValue) {
   const normalizedDate = normalizeDateInputValue(dateValue);
-  if (!normalizedDate) {
-    return null;
-  }
+  if (!normalizedDate) return null;
 
   const scheduledDate = new Date(`${normalizedDate}T00:00:00`);
-  if (Number.isNaN(scheduledDate.getTime())) {
-    return null;
-  }
+  if (Number.isNaN(scheduledDate.getTime())) return null;
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -738,29 +572,16 @@ function calculateDaysUntilScheduledDate(dateValue) {
 }
 
 function resolveVideoBacklogSeverity(daysUntilScheduledDate) {
-  if (!Number.isFinite(daysUntilScheduledDate)) {
-    return "";
-  }
-  if (daysUntilScheduledDate <= 2) {
-    return "danger";
-  }
-  if (daysUntilScheduledDate <= 5) {
-    return "major";
-  }
-  if (daysUntilScheduledDate <= 8) {
-    return "warning";
-  }
-  if (daysUntilScheduledDate <= 14) {
-    return "info";
-  }
+  if (!Number.isFinite(daysUntilScheduledDate)) return "";
+  if (daysUntilScheduledDate <= 2) return "danger";
+  if (daysUntilScheduledDate <= 5) return "major";
+  if (daysUntilScheduledDate <= 8) return "warning";
+  if (daysUntilScheduledDate <= 14) return "info";
   return "success";
 }
 
 function formatVideoBacklogDayCount(daysUntilScheduledDate) {
-  if (!Number.isFinite(daysUntilScheduledDate)) {
-    return "--";
-  }
-
+  if (!Number.isFinite(daysUntilScheduledDate)) return "--";
   const formattedDayCount = new Intl.NumberFormat("en-GB").format(daysUntilScheduledDate);
   return `${formattedDayCount} day${daysUntilScheduledDate === 1 ? "" : "s"}`;
 }
