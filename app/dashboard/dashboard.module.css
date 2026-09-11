@@ -25,38 +25,6 @@
   text-transform: uppercase;
 }
 
-.utilityMenu {
-  position: relative;
-  margin-left: auto;
-}
-
-.utilityMenu > summary {
-  cursor: pointer;
-  list-style: none;
-  border: 1px solid var(--border, #263247);
-  border-radius: 8px;
-  padding: 7px 10px;
-  color: var(--text-secondary, #aebbd0);
-  background: var(--surface, #111722);
-}
-
-.utilityMenu > summary::-webkit-details-marker {
-  display: none;
-}
-
-.utilityPopover {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  z-index: 20;
-  min-width: 180px;
-  padding: 10px;
-  border: 1px solid var(--border, #263247);
-  border-radius: 10px;
-  background: var(--surface-raised, #141b27);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
-}
-
 .dashboardBody {
   display: grid;
   gap: 18px;
@@ -350,11 +318,6 @@
   .strategyHeader {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .utilityMenu {
-    margin-left: 0;
-    align-self: flex-end;
   }
 
   .vectorGrid,
