@@ -5,8 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import DashboardStrategyOverview from "@/components/DashboardStrategyOverview";
 import GitHubReposModule from "@/components/GitHubReposModule";
-import { SecondaryButton } from "@/components/ui/AriadneUI";
-import { buildFullAppDataText, copyTextToClipboard } from "@/lib/export/appDataText";
 import { supabase } from "@/lib/supabase/client";
 import {
   readLastKnownSyncUserId,
@@ -52,7 +50,6 @@ export default function DashboardPage() {
   const [authUserId, setAuthUserId] = useState(() => readLastKnownSyncUserId());
   const [substackLatestPostTimestamp, setSubstackLatestPostTimestamp] = useState(null);
   const [protoLorenzoLatestScheduledDate, setProtoLorenzoLatestScheduledDate] = useState("");
-  const [copyState, setCopyState] = useState({ status: "idle", message: "" });
   const [canonicalProjects, setCanonicalProjects] = useState([]);
   const [isNoticeBoardExpanded, setIsNoticeBoardExpanded] = useState(false);
 
@@ -199,38 +196,6 @@ export default function DashboardPage() {
     substackLatestPostTimestamp
   ]);
 
-  const copyFullAppData = async () => {
-    if (copyState.status === "copying") return;
-    setCopyState({ status: "copying", message: "" });
-
-    try {
-      const exportText = await buildFullAppDataText({
-        userId: authUserId,
-        projects: canonicalProjects,
-        noticeBoardItems,
-        signals: {
-          substackLatestPostTimestamp,
-          substackDaysSinceLastPublication,
-          protoLorenzoLatestScheduledDate,
-          protoLorenzoVideoBacklogDays
-        }
-      });
-      await copyTextToClipboard(exportText);
-      setCopyState({ status: "copied", message: "Full app data copied to the clipboard." });
-    } catch (error) {
-      setCopyState({
-        status: "error",
-        message: `Copy failed: ${error?.message || "Unknown error"}`
-      });
-    }
-  };
-
-  const copyButtonLabel = {
-    copying: "Copying…",
-    copied: "Copied",
-    error: "Try copy again"
-  }[copyState.status] || "Copy all data";
-
   const visibleNoticeItems = useMemo(() => {
     if (isNoticeBoardExpanded) return noticeBoardItems;
     return noticeBoardItems.slice(0, INITIAL_NOTICE_LIMIT);
@@ -251,20 +216,6 @@ export default function DashboardPage() {
               <h2 className="dashboard-title">Dashboard</h2>
               <p className={styles.headerSubtitle}>What needs attention now, followed by the current strategic state.</p>
             </div>
-            <details className={styles.utilityMenu}>
-              <summary aria-label="Dashboard utilities">•••</summary>
-              <div className={styles.utilityPopover}>
-                <SecondaryButton
-                  className="dashboard-copy-data-btn"
-                  onClick={copyFullAppData}
-                  disabled={copyState.status === "copying"}
-                  aria-live="polite"
-                  title={copyState.message || "Copy all stored app data as structured text"}
-                >
-                  {copyButtonLabel}
-                </SecondaryButton>
-              </div>
-            </details>
           </header>
 
           <div className={`dashboard-body ${styles.dashboardBody}`}>
