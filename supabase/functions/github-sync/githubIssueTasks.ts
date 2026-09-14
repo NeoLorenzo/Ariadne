@@ -134,6 +134,7 @@ function buildGitHubIssueTask(existing: TaskRecord | null, issue: GitHubIssueSyn
     ...base,
     ...remoteFields,
     dueDate: String(base.dueDate || ""),
+    targetDate: String(base.targetDate || ""),
     dueTime: String(base.dueTime || ""),
     priority: Number.isInteger(Number(base.priority)) ? Number(base.priority) : 0,
     estimatedHours: String(base.estimatedHours || ""),
