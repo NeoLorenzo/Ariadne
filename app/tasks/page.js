@@ -17,16 +17,16 @@ import {
 import {
   isTaskDeleted,
   markTaskDeleted,
-  normalizeTaskTombstone,
   purgeExpiredTaskTombstones,
   restoreDeletedTask
 } from "@/lib/tasks/taskTombstones";
-import { applyCompletionTransition, createTaskSignatureMap, getTaskSyncSignature, isGitHubIssueTask, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeSubtaskList, sanitizeTask, sanitizeTaskList } from "@/lib/tasks/reconcile";
+import { applyCompletionTransition, createTaskSignatureMap, getTaskSyncSignature, isGitHubIssueTask, mergeTaskSnapshots, reconcileTaskSnapshots, sanitizeSubtaskList, sanitizeTaskList } from "@/lib/tasks/reconcile";
 import { createTaskWriteCoordinator } from "@/lib/tasks/writeCoordinator";
 
 const TASK_STORAGE_KEY = "fabbro_tasks_v1";
 const TASKS_SYNC_CACHE_NAMESPACE = "tasks.resolved_cloud";
 const TASK_TOMBSTONE_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+const TARGET_DATE_COLOR = "#38bdf8";
 
 const EMPTY_FORM = {
   completed: false,
@@ -34,6 +34,7 @@ const EMPTY_FORM = {
   title: "",
   description: "",
   dueDate: "",
+  targetDate: "",
   dueTime: "",
   priority: 0,
   sourceGoalId: "",
@@ -107,7 +108,7 @@ export default function TasksPage() {
   useEffect(() => {
     try {
       const savedSortMode = window.localStorage.getItem(TASK_SORT_STORAGE_KEY);
-      if (savedSortMode === "due-date" || savedSortMode === "priority") {
+      if (savedSortMode === "due-date" || savedSortMode === "target-date" || savedSortMode === "priority") {
         setSortMode(savedSortMode);
       }
     } catch {
@@ -116,7 +117,9 @@ export default function TasksPage() {
   }, []);
 
   const changeSortMode = (nextSortMode) => {
-    const normalizedSortMode = nextSortMode === "priority" ? "priority" : "due-date";
+    const normalizedSortMode = nextSortMode === "priority" || nextSortMode === "target-date"
+      ? nextSortMode
+      : "due-date";
     setSortMode(normalizedSortMode);
     try {
       window.localStorage.setItem(TASK_SORT_STORAGE_KEY, normalizedSortMode);
@@ -1029,6 +1032,7 @@ export default function TasksPage() {
       title,
       description: form.description.trim(),
       dueDate: normalizeDateInput(form.dueDate),
+      targetDate: normalizeDateInput(form.targetDate),
       dueTime: normalizeTimeInput(form.dueTime),
       priority: form.sourceGoalId ? 0 : normalizePriority(form.priority),
       estimatedHours: normalizedEstimatedHours,
@@ -1098,6 +1102,7 @@ export default function TasksPage() {
       title: task.title || "",
       description: task.description || "",
       dueDate: task.dueDate || "",
+      targetDate: task.targetDate || "",
       dueTime: task.dueTime || "",
       priority: directionalGoalId ? 0 : normalizePriority(task.priority, task.materialConsequence),
       sourceGoalId: directionalGoalId,
@@ -1317,9 +1322,11 @@ export default function TasksPage() {
     const timePressureColor = getTimePressureColor(timePressureRatio);
     const description = String(task.description || "").trim();
     const normalizedDueDate = normalizeDateInput(task.dueDate);
+    const normalizedTargetDate = normalizeDateInput(task.targetDate);
     const normalizedEstimatedHours = normalizeEstimatedHours(task.estimatedHours);
     const hasDescription = Boolean(description);
     const hasDueDate = Boolean(normalizedDueDate);
+    const hasTargetDate = Boolean(normalizedTargetDate);
     const hasEstimatedTime = normalizedEstimatedHours !== "";
     const hasTimePressure = hasEstimatedTime
       && timePressureRatio !== null
@@ -1419,6 +1426,7 @@ export default function TasksPage() {
           </div>
         ) : null}
         {hasDueDate ? <p className="task-card-date">{formatDueInDays(task.dueDate, task.dueTime)}</p> : null}
+        {hasTargetDate ? <p className="task-card-date task-card-target-date" style={{ color: TARGET_DATE_COLOR }}>{formatTargetInDays(task.targetDate)}</p> : null}
         {hasEstimatedTime || hasTimePressure ? (
           <div className="task-card-metrics">
             {hasEstimatedTime ? (
@@ -1461,6 +1469,7 @@ export default function TasksPage() {
                   onChange={(event) => changeSortMode(event.target.value)}
                 >
                   <option value="due-date">Due date</option>
+                  <option value="target-date">Target date</option>
                   <option value="priority">Priority</option>
                 </select>
               </label>
@@ -1572,6 +1581,7 @@ export default function TasksPage() {
 
                   <div className="task-editor-metadata-row">
                     <label className="task-editor-meta-control"><span>▣</span><input id="task-due-date" type="date" aria-label="Due date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} /></label>
+                    <label className="task-editor-meta-control" style={{ color: TARGET_DATE_COLOR }}><span>Target</span><input id="task-target-date" type="date" aria-label="Target date" value={form.targetDate} style={{ color: TARGET_DATE_COLOR }} onChange={(event) => setForm((current) => ({ ...current, targetDate: event.target.value }))} /></label>
                     <label className="task-editor-meta-control"><span>◷</span><input id="task-due-time" type="time" aria-label="Due time" value={form.dueTime} onChange={(event) => setForm((current) => ({ ...current, dueTime: event.target.value }))} /></label>
                     <label className="task-editor-meta-control"><span>Priority</span>
                     <select
@@ -1618,7 +1628,7 @@ export default function TasksPage() {
                       <button type="button" className="task-editor-hide-completed" onClick={() => setHideCompletedSubtasks((current) => !current)}>{hideCompletedSubtasks ? "Show completed" : "Hide completed"}</button>
                     </div>
                     {areSubtasksExpanded ? <div className="task-editor-subtask-list">
-                      {(form.subtasks || []).filter((subtask) => !hideCompletedSubtasks || !subtask.completed).map((subtask, index) => (
+                      {(form.subtasks || []).filter((subtask) => !hideCompletedSubtasks || !subtask.completed).map((subtask) => (
                         <div
                           className={`task-editor-subtask-row${draggedSubtaskId === subtask.id ? " is-dragging" : ""}`}
                           key={subtask.id}
@@ -1721,226 +1731,6 @@ export default function TasksPage() {
     </AppShell>
   );
 }
-
-/* production task sanitization/reconciliation lives in lib/tasks/reconcile.js */
-/*
-function sanitizeTask(task) {
-  if (!task || typeof task !== "object") {
-    return null;
-  }
-
-  const title = String(task.title || "").trim();
-  if (!title) {
-    return null;
-  }
-
-  const directionalGoalId = getDirectionalGoalId(task);
-  const createdAt = Number.isFinite(Number(task.createdAt)) ? Number(task.createdAt) : 0;
-  const tombstone = normalizeTaskTombstone(task);
-  return {
-    id: String(task.id || createTaskId()),
-    completed: Boolean(task.completed),
-    title,
-    description: String(task.description || "").trim(),
-    dueDate: normalizeDateInput(task.dueDate),
-    dueTime: normalizeTimeInput(task.dueTime),
-    priority: directionalGoalId ? 0 : normalizePriority(task.priority, task.materialConsequence),
-    estimatedHours: normalizeEstimatedHours(task.estimatedHours ?? task.difficulty),
-    subtasks: sanitizeSubtaskList(task.subtasks),
-    sourceType: directionalGoalId ? "directional-goal" : "",
-    sourceGoalId: directionalGoalId,
-    tags: directionalGoalId ? ["directional-goal"] : [],
-    deleted: tombstone.deleted,
-    deletedAt: tombstone.deletedAt,
-    createdAt,
-    updatedAt: Number.isFinite(Number(task.updatedAt)) ? Number(task.updatedAt) : createdAt
-  };
-}
-
-function sanitizeSubtaskList(rawSubtasks) {
-  if (!Array.isArray(rawSubtasks)) return [];
-  return rawSubtasks.map((subtask) => {
-    if (!subtask || typeof subtask !== "object") return null;
-    const title = String(subtask.title || "").trim();
-    if (!title) return null;
-    const createdAt = Number.isFinite(Number(subtask.createdAt)) ? Number(subtask.createdAt) : 0;
-    return {
-      id: String(subtask.id || createTaskId()),
-      title,
-      description: String(subtask.description || "").trim(),
-      completed: Boolean(subtask.completed),
-      createdAt,
-      updatedAt: Number.isFinite(Number(subtask.updatedAt)) ? Number(subtask.updatedAt) : createdAt
-    };
-  }).filter(Boolean);
-}
-
-function buildTaskCloudSyncBadges({
-  tasks,
-  cloudSnapshotSignaturesByTaskId,
-  hasSupabase,
-  cloudUserId,
-  isCloudSyncReady,
-  isCloudWriteInFlight,
-  didCloudWriteFail
-}) {
-  const badgeByTaskId = {};
-  const safeTasks = Array.isArray(tasks) ? tasks : [];
-
-  safeTasks.forEach((task) => {
-    const taskId = String(task?.id || "");
-
-    if (!hasSupabase || !cloudUserId) {
-      badgeByTaskId[taskId] = { label: "Local", tone: "local" };
-      return;
-    }
-
-    if (!isCloudSyncReady) {
-      badgeByTaskId[taskId] = { label: "Syncing", tone: "syncing" };
-      return;
-    }
-
-    if (didCloudWriteFail) {
-      badgeByTaskId[taskId] = { label: "Retry", tone: "error" };
-      return;
-    }
-
-    const cloudSnapshotSignature = cloudSnapshotSignaturesByTaskId?.[taskId];
-    const currentTaskSignature = getTaskSyncSignature(task);
-
-    if (!cloudSnapshotSignature) {
-      badgeByTaskId[taskId] = isCloudWriteInFlight
-        ? { label: "Pending", tone: "pending" }
-        : { label: "Local only", tone: "local" };
-      return;
-    }
-
-    if (cloudSnapshotSignature !== currentTaskSignature) {
-      badgeByTaskId[taskId] = { label: "Pending", tone: "pending" };
-      return;
-    }
-
-    badgeByTaskId[taskId] = { label: "Synced", tone: "synced" };
-  });
-
-  return badgeByTaskId;
-}
-
-function getTaskSyncSignature(task) {
-  const sanitizedTask = sanitizeTask(task);
-  if (!sanitizedTask) {
-    return "";
-  }
-
-  return JSON.stringify({
-    id: sanitizedTask.id,
-    completed: sanitizedTask.completed,
-    title: sanitizedTask.title,
-    description: sanitizedTask.description,
-    dueDate: sanitizedTask.dueDate,
-    dueTime: sanitizedTask.dueTime,
-    priority: sanitizedTask.priority,
-    estimatedHours: sanitizedTask.estimatedHours,
-    subtasks: sanitizedTask.subtasks,
-    sourceType: sanitizedTask.sourceType,
-    sourceGoalId: sanitizedTask.sourceGoalId,
-    tags: sanitizedTask.tags,
-    deleted: sanitizedTask.deleted,
-    deletedAt: sanitizedTask.deletedAt,
-    createdAt: sanitizedTask.createdAt,
-    updatedAt: sanitizedTask.updatedAt
-  });
-}
-
-function createTaskSignatureMap(taskList) {
-  const signatureMap = {};
-  const safeTasks = Array.isArray(taskList) ? taskList : [];
-
-  safeTasks.forEach((task) => {
-    const taskId = String(task?.id || "");
-    if (!taskId) {
-      return;
-    }
-
-    signatureMap[taskId] = getTaskSyncSignature(task);
-  });
-
-  return signatureMap;
-}
-
-function sanitizeTaskList(rawTasks) {
-  if (!Array.isArray(rawTasks)) {
-    return [];
-  }
-
-  return rawTasks.map((task) => sanitizeTask(task)).filter(Boolean);
-}
-
-function mergeTaskSnapshots(preferredTasks, fallbackTasks) {
-  const preferred = sanitizeTaskList(preferredTasks);
-  const fallback = sanitizeTaskList(fallbackTasks);
-  const mergedById = new Map(fallback.map((task) => [task.id, task]));
-
-  preferred.forEach((task) => {
-    const existing = mergedById.get(task.id);
-    if (!existing || Number(task.updatedAt || 0) >= Number(existing.updatedAt || 0)) {
-      mergedById.set(task.id, task);
-    }
-  });
-
-  return [...mergedById.values()];
-}
-
-function reconcileTaskSnapshots(localTasks, remoteTasks, baselineSignaturesByTaskId = {}) {
-  const localById = new Map(sanitizeTaskList(localTasks).map((task) => [task.id, task]));
-  const remoteById = new Map(sanitizeTaskList(remoteTasks).map((task) => [task.id, task]));
-  const baselineSignatures =
-    baselineSignaturesByTaskId && typeof baselineSignaturesByTaskId === "object"
-      ? baselineSignaturesByTaskId
-      : {};
-  const taskIds = new Set([
-    ...localById.keys(),
-    ...remoteById.keys(),
-    ...Object.keys(baselineSignatures)
-  ]);
-  const reconciled = [];
-
-  taskIds.forEach((taskId) => {
-    const localTask = localById.get(taskId) || null;
-    const remoteTask = remoteById.get(taskId) || null;
-    const baselineSignature = String(baselineSignatures[taskId] || "");
-    const localSignature = localTask ? getTaskSyncSignature(localTask) : "";
-    const remoteSignature = remoteTask ? getTaskSyncSignature(remoteTask) : "";
-    const localChanged = localSignature !== baselineSignature;
-    const remoteChanged = remoteSignature !== baselineSignature;
-
-    if (localChanged && !remoteChanged) {
-      if (localTask) reconciled.push(localTask);
-      return;
-    }
-
-    if (remoteChanged && !localChanged) {
-      if (remoteTask) reconciled.push(remoteTask);
-      return;
-    }
-
-    if (localChanged && remoteChanged && localTask && remoteTask) {
-      const localUpdatedAt = Number(localTask.updatedAt || 0);
-      const remoteUpdatedAt = Number(remoteTask.updatedAt || 0);
-      reconciled.push(localUpdatedAt > remoteUpdatedAt ? localTask : remoteTask);
-      return;
-    }
-
-    if (remoteTask) {
-      reconciled.push(remoteTask);
-    } else if (localTask && localChanged) {
-      reconciled.push(localTask);
-    }
-  });
-
-  return reconciled;
-}
-*/
 
 function buildTaskCloudSyncBadges({
   tasks,
@@ -2092,6 +1882,23 @@ function formatDueInDays(dueDate, dueTime) {
   }, and ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
 }
 
+function formatTargetInDays(targetDate) {
+  const targetTimestamp = getTargetTimestamp(targetDate);
+  if (targetTimestamp === null) {
+    return "No target date";
+  }
+
+  const differenceMs = targetTimestamp - Date.now();
+  const isPast = differenceMs < 0;
+  const absoluteMinutes = Math.floor(Math.abs(differenceMs) / 60000);
+  const totalHours = Math.floor(absoluteMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const minutes = absoluteMinutes % 60;
+  const duration = `${days} ${days === 1 ? "day" : "days"}, ${hours} ${hours === 1 ? "hour" : "hours"}, and ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return isPast ? `Target was ${duration} ago` : `Target in ${duration}`;
+}
+
 function getDueTimestamp(dueDate, dueTime) {
   if (!dueDate) {
     return null;
@@ -2111,6 +1918,15 @@ function getDueTimestamp(dueDate, dueTime) {
   return dueDateTime.getTime();
 }
 
+function getTargetTimestamp(targetDate) {
+  const normalizedDate = normalizeDateInput(targetDate);
+  if (!normalizedDate) {
+    return null;
+  }
+  const targetDateTime = new Date(`${normalizedDate}T23:59:00`);
+  return Number.isNaN(targetDateTime.getTime()) ? null : targetDateTime.getTime();
+}
+
 function areTasksIdentical(firstTask, secondTask) {
   const firstTitle = normalizeCompareText(firstTask.title);
   const secondTitle = normalizeCompareText(secondTask.title);
@@ -2127,6 +1943,12 @@ function areTasksIdentical(firstTask, secondTask) {
   const firstDueDate = normalizeDateInput(firstTask.dueDate);
   const secondDueDate = normalizeDateInput(secondTask.dueDate);
   if (firstDueDate !== secondDueDate) {
+    return false;
+  }
+
+  const firstTargetDate = normalizeDateInput(firstTask.targetDate);
+  const secondTargetDate = normalizeDateInput(secondTask.targetDate);
+  if (firstTargetDate !== secondTargetDate) {
     return false;
   }
 
