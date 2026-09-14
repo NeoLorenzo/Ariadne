@@ -35,6 +35,7 @@ describe("GitHub issue task reconciliation", () => {
       description: "Implementation details",
       completed: false,
       completedAt: null,
+      targetDate: "",
       githubIssueId: 1001,
       githubRepositoryId: 1223499763,
       githubRepositoryFullName: "NeoLorenzo/Ariadne",
@@ -59,6 +60,7 @@ describe("GitHub issue task reconciliation", () => {
       priority: 3,
       description: "Locally edited description",
       dueDate: "2026-09-10",
+      targetDate: "2026-09-08",
       estimatedHours: "2.5",
       subtasks: [{ id: "s1", title: "Local subtask", completed: false }],
       updatedAt: 123456789
@@ -84,6 +86,7 @@ describe("GitHub issue task reconciliation", () => {
       githubIssueState: "closed",
       priority: 3,
       dueDate: "2026-09-10",
+      targetDate: "2026-09-08",
       estimatedHours: "2.5",
       updatedAt: 123456789
     });
@@ -103,6 +106,7 @@ describe("GitHub issue task reconciliation", () => {
       completedAt: null,
       githubIssueState: "open",
       priority: 3,
+      targetDate: "2026-09-08",
       description: "Updated GitHub body"
     });
   });
@@ -232,6 +236,7 @@ describe("GitHub issue task reconciliation", () => {
       completed: false,
       completedAt: null,
       priority: 4,
+      targetDate: "2026-09-12",
       description: "Stale description"
     };
 
@@ -252,7 +257,8 @@ describe("GitHub issue task reconciliation", () => {
       completed: true,
       completedAt: Date.parse(closedAt),
       githubIssueState: "closed",
-      priority: 4
+      priority: 4,
+      targetDate: "2026-09-12"
     });
   });
 });
