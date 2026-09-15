@@ -24,7 +24,7 @@ function RequirementCell({ opportunity, assessments }) {
 }
 function ApplicationBadge({ application }) {
   if (!application) return null;
-  return <span className={styles.applicationStatusBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || "Applied"}</span>;
+  return <span className={styles.lifecycleBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || "Applied"}</span>;
 }
 
 export default function OpportunityTable({ opportunities, onSelect, assessmentsByEntity = {}, applicationsByOpportunity = {} }) {
