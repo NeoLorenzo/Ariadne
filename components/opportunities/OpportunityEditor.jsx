@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { DateInput, GhostButton, ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton, Select, TextArea, TextInput, useModalDialog } from "@/components/ui/AriadneUI";
 import { OPPORTUNITY_TYPES, OPPORTUNITY_TYPE_LABELS, validateOpportunity } from "@/lib/opportunities/opportunityModel";
+import { OPPORTUNITY_APPLICATION_STATUS_LABELS } from "@/lib/opportunities/opportunityApplicationModel";
 import OpportunityRequirementPills from "./OpportunityRequirementPills";
 import OpportunityRequirementsEditor from "./OpportunityRequirementsEditor";
 import styles from "./OpportunityLandscape.module.css";
@@ -13,7 +14,7 @@ function toForm(opportunity) {
   return { title: opportunity.title || "", type: opportunity.type || "other", organization: opportunity.organization || "", url: opportunity.url || "", description: opportunity.description || "", standardizedRequirements: opportunity.standardizedRequirements || [], miscRequirements: opportunity.miscRequirements || opportunity.requirements || "", deadline: opportunity.deadline || "", startDate: opportunity.startDate || "" };
 }
 
-export default function OpportunityEditor({ isOpen, opportunity, isBusy, onClose, onSave, onDelete, onArchiveToggle, assessments = [], onSetAssessment, onClearAssessment }) {
+export default function OpportunityEditor({ isOpen, opportunity, application, isBusy, onClose, onSave, onDelete, onArchiveToggle, onMarkApplied, onOpenApplication, assessments = [], onSetAssessment, onClearAssessment }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const dialogRef = useModalDialog(isOpen, onClose);
@@ -37,6 +38,7 @@ export default function OpportunityEditor({ isOpen, opportunity, isBusy, onClose
           <div className={styles.fieldFull}><label htmlFor="opportunity-url">Link</label><TextInput id="opportunity-url" type="url" value={form.url} onChange={(event) => setField("url", event.target.value)} placeholder="https://…" />{errors.url ? <p className={styles.fieldError}>{errors.url}</p> : null}</div>
           <div className={styles.field}><label htmlFor="opportunity-deadline">Application deadline</label><DateInput id="opportunity-deadline" value={form.deadline} onChange={(event) => setField("deadline", event.target.value)} />{errors.deadline ? <p className={styles.fieldError}>{errors.deadline}</p> : null}</div>
           <div className={styles.field}><label htmlFor="opportunity-start-date">Start date</label><DateInput id="opportunity-start-date" value={form.startDate} onChange={(event) => setField("startDate", event.target.value)} />{errors.startDate ? <p className={styles.fieldError}>{errors.startDate}</p> : null}</div>
+          {application ? <div className={styles.fieldFull}><div className={styles.applicationSummary}><strong>Application: {OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</strong><button type="button" className={styles.inlineAction} onClick={() => onOpenApplication?.(application)}>Open application</button></div></div> : null}
           {assessmentOpportunity?.standardizedRequirements?.length ? <div className={styles.fieldFull}><OpportunityRequirementPills opportunity={assessmentOpportunity} assessments={assessments} editable showOverall onSetAssessment={onSetAssessment} onClearAssessment={onClearAssessment} /></div> : null}
           <OpportunityRequirementsEditor standardizedRequirements={form.standardizedRequirements} miscRequirements={form.miscRequirements} onChange={({ standardizedRequirements, miscRequirements }) => { setForm((current) => ({ ...current, standardizedRequirements, miscRequirements })); if (errors.standardizedRequirements || errors.general) setErrors((current) => ({ ...current, standardizedRequirements: undefined, general: undefined })); }} />
           {errors.standardizedRequirements ? <div className={styles.fieldFull}><p className={styles.fieldError}>{errors.standardizedRequirements}</p></div> : null}
@@ -44,7 +46,7 @@ export default function OpportunityEditor({ isOpen, opportunity, isBusy, onClose
         </div>
         {errors.general ? <p className={styles.formError}>{errors.general}</p> : null}
       </ModalBody>
-      <ModalFooter className={styles.editorFooter}>{isEditing ? <><GhostButton type="button" onClick={() => onArchiveToggle(opportunity)} disabled={isBusy}>{opportunity.archived ? "Restore" : "Archive"}</GhostButton><GhostButton type="button" className={styles.dangerButton} onClick={requestDelete} disabled={isBusy}>Delete</GhostButton></> : null}<span className={styles.footerSpacer} /><SecondaryButton type="button" onClick={onClose} disabled={isBusy}>Cancel</SecondaryButton><PrimaryButton type="submit" disabled={isBusy}>{isBusy ? "Saving…" : "Save"}</PrimaryButton></ModalFooter>
+      <ModalFooter className={styles.editorFooter}>{isEditing ? <><GhostButton type="button" onClick={() => onArchiveToggle(opportunity)} disabled={isBusy}>{opportunity.archived ? "Restore" : "Archive"}</GhostButton><GhostButton type="button" className={styles.dangerButton} onClick={requestDelete} disabled={isBusy}>Delete</GhostButton>{!application ? <GhostButton type="button" onClick={() => onMarkApplied?.(opportunity)} disabled={isBusy}>Mark as applied</GhostButton> : null}</> : null}<span className={styles.footerSpacer} /><SecondaryButton type="button" onClick={onClose} disabled={isBusy}>Cancel</SecondaryButton><PrimaryButton type="submit" disabled={isBusy}>{isBusy ? "Saving…" : "Save"}</PrimaryButton></ModalFooter>
     </ModalShell>
   </div>;
 }
