@@ -1790,7 +1790,12 @@ function writeTasksToStorage(taskList) {
     return;
   }
 
-  window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(sanitizeTaskList(taskList)));
+  try {
+    window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(sanitizeTaskList(taskList)));
+  } catch {
+    // Local task persistence is best-effort. Cloud sync remains authoritative when
+    // browser storage is unavailable or its quota has been exhausted.
+  }
 }
 
 function getTaskCollectionCacheSignature(cachePayload) {
