@@ -16,15 +16,15 @@ export default function OpportunityApplicationTable({ applications, opportunityB
   return <>
     <div className={`${styles.tableWrap} ${styles.desktopTable}`}>
       <table className={styles.table}>
-        <thead><tr><th className={styles.applicationOpportunityCell}>Opportunity</th><th>Organization</th><th>Type</th><th>Applied</th><th>Status</th><th>Last updated</th></tr></thead>
+        <thead><tr><th className={styles.opportunityCell}>Opportunity</th><th>Organization</th><th>Type</th><th>Applied</th><th>Status</th><th>Last updated</th></tr></thead>
         <tbody>{applications.map((application) => {
           const opportunity = opportunityById[application.opportunityId];
           return <tr key={application.id} className={styles.row} onClick={() => onSelect(application)}>
-            <td className={styles.applicationOpportunityCell}><span className={styles.opportunityTitle}>{opportunity?.title || "Unknown opportunity"}</span></td>
+            <td className={styles.opportunityCell}><span className={styles.opportunityTitle}>{opportunity?.title || "Unknown opportunity"}</span></td>
             <td>{opportunity?.organization || <span className={styles.muted}>—</span>}</td>
             <td><span className={styles.typeBadge}>{OPPORTUNITY_TYPE_LABELS[opportunity?.type] || "Other"}</span></td>
             <td>{formatDate(application.submittedAt)}</td>
-            <td><span className={styles.applicationStatusBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</span></td>
+            <td><span className={styles.lifecycleBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</span></td>
             <td>{formatDate(application.statusUpdatedAt)}</td>
           </tr>;
         })}</tbody>
@@ -33,7 +33,7 @@ export default function OpportunityApplicationTable({ applications, opportunityB
     <div className={styles.mobileList}>{applications.map((application) => {
       const opportunity = opportunityById[application.opportunityId];
       return <button key={application.id} type="button" className={styles.mobileCard} onClick={() => onSelect(application)}>
-        <div className={styles.mobileCardHeader}><span className={styles.mobileCardTitle}>{opportunity?.title || "Unknown opportunity"}</span><span className={styles.applicationStatusBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</span></div>
+        <div className={styles.mobileCardHeader}><span className={styles.mobileCardTitle}>{opportunity?.title || "Unknown opportunity"}</span><span className={styles.lifecycleBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</span></div>
         <div className={styles.mobileCardMeta}>{opportunity?.organization ? <span>{opportunity.organization}</span> : null}<span>{OPPORTUNITY_TYPE_LABELS[opportunity?.type] || "Other"}</span><span>·</span><span>Applied {formatDate(application.submittedAt)}</span></div>
       </button>;
     })}</div>
