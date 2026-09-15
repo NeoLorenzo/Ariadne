@@ -54,15 +54,15 @@ export default function OpportunityApplicationEditor({ isOpen, application, oppo
     <ModalShell ref={dialogRef} as="form" className={styles.editor} onSubmit={submit}>
       <header className={`ff-modal-header ${styles.editorHeader}`}><h3 id="application-editor-title">Application</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button></header>
       <ModalBody className={styles.editorBody}>
-        <div className={styles.applicationSummary}>
-          <strong>{opportunity?.title || "Unknown opportunity"}</strong>
-          <span>{opportunity?.organization || "Unknown organization"} · {OPPORTUNITY_TYPE_LABELS[opportunity?.type] || "Other"}</span>
-          {onOpenOpportunity ? <button type="button" className={styles.inlineAction} onClick={() => onOpenOpportunity(opportunity)}>Open Landscape record</button> : null}
-        </div>
         <div className={styles.editorGrid}>
+          <div className={styles.fieldFull}>
+            <strong>{opportunity?.title || "Unknown opportunity"}</strong>
+            <span className={styles.muted}>{opportunity?.organization || "Unknown organization"} · {OPPORTUNITY_TYPE_LABELS[opportunity?.type] || "Other"}</span>
+            {onOpenOpportunity ? <SecondaryButton type="button" onClick={() => onOpenOpportunity(opportunity)}>Open Landscape record</SecondaryButton> : null}
+          </div>
           <div className={styles.field}><label htmlFor="application-submitted">Submitted</label><DateInput id="application-submitted" value={submittedDate} onChange={(event) => { setSubmittedDate(event.target.value); setError(""); }} required /></div>
           <div className={styles.field}><label htmlFor="application-status">Status</label><Select id="application-status" value={status} onChange={(event) => { setStatus(event.target.value); setError(""); }}>{OPPORTUNITY_APPLICATION_STATUSES.map((value) => <option key={value} value={value}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[value]}</option>)}</Select></div>
-          <div className={styles.fieldFull}><label>Status last changed</label><div className={styles.readOnlyValue}>{formatDateTime(application.statusUpdatedAt)}</div></div>
+          <div className={styles.fieldFull}><label>Status last changed</label><div className={styles.muted}>{formatDateTime(application.statusUpdatedAt)}</div></div>
           <div className={styles.fieldFull}><label htmlFor="application-notes">Notes</label><TextArea id="application-notes" size="medium" rows={6} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Useful application context, response details, next-stage notes…" /></div>
         </div>
         {error ? <p className={styles.formError}>{error}</p> : null}
