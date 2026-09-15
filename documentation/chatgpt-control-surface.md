@@ -80,7 +80,11 @@ No Outcome Goal CRUD remains. No generic SQL mutation operation is added to Aria
 
 ### Opportunity Applications
 
-Applications are stored separately from canonical Opportunities and always reference an existing Landscape Opportunity.
+Applications are stored separately from canonical Opportunities and always reference an existing Landscape Opportunity. The lifecycle is:
+
+```text
+Opportunity Candidate Inbox -> Opportunity Landscape -> Application
+```
 
 - `chatgpt.get_opportunity_applications(include_closed)`
 - `chatgpt.create_opportunity_application(opportunity_id, submitted_at, notes)`
