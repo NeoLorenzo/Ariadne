@@ -3,26 +3,24 @@
 import candidateStyles from "./OpportunityCandidate.module.css";
 
 export default function OpportunityLandscapeTabs({ activeView, onChange }) {
+  const tabs = [
+    ["landscape", "Landscape"],
+    ["applications", "Applications"],
+    ["inbox", "Review inbox"]
+  ];
+
   return (
     <div className={candidateStyles.surfaceTabs} aria-label="Opportunity Landscape views" role="tablist">
-      <button
+      {tabs.map(([value, label]) => <button
+        key={value}
         type="button"
         role="tab"
-        aria-selected={activeView === "landscape"}
-        className={`${candidateStyles.surfaceTab}${activeView === "landscape" ? ` ${candidateStyles.surfaceTabActive}` : ""}`}
-        onClick={() => onChange("landscape")}
+        aria-selected={activeView === value}
+        className={`${candidateStyles.surfaceTab}${activeView === value ? ` ${candidateStyles.surfaceTabActive}` : ""}`}
+        onClick={() => onChange(value)}
       >
-        Landscape
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={activeView === "inbox"}
-        className={`${candidateStyles.surfaceTab}${activeView === "inbox" ? ` ${candidateStyles.surfaceTabActive}` : ""}`}
-        onClick={() => onChange("inbox")}
-      >
-        Review inbox
-      </button>
+        {label}
+      </button>)}
     </div>
   );
 }
