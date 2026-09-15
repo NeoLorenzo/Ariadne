@@ -31,6 +31,7 @@ Strategic Objectives are the lowest-level persistent strategy node. There is no 
 - `chatgpt.get_projects(...)`
 - `chatgpt.get_strategy()`
 - `chatgpt.get_signals()`
+- `chatgpt.get_opportunity_applications(include_closed)`
 
 `chatgpt.get_strategy()` returns Directions and Strategic Objectives. It does not return Outcome Goals.
 
@@ -77,6 +78,16 @@ Allowed project updates are limited to user-facing Ariadne metadata such as titl
 
 No Outcome Goal CRUD remains. No generic SQL mutation operation is added to Ariadne itself.
 
+### Opportunity Applications
+
+Applications are stored separately from canonical Opportunities and always reference an existing Landscape Opportunity.
+
+- `chatgpt.get_opportunity_applications(include_closed)`
+- `chatgpt.create_opportunity_application(opportunity_id, submitted_at, notes)`
+- `chatgpt.update_opportunity_application(application_id, patch)`
+
+The create operation records a confirmed submission with status `submitted`. The update operation accepts only `status`, `submitted_at`, and `notes`; status changes update `status_updated_at`. Application records cannot target Opportunity candidates directly, and the linked canonical Opportunity cannot be deleted while application history exists.
+
 Direction content edits preserve the existing revision/history behavior. Strategic Objectives are persisted directly beneath Directions and concrete deliverables, deadlines, and next actions belong in Tasks.
 
 ## Ari Bot
@@ -102,6 +113,8 @@ With the Supabase connection enabled, normal requests can be phrased around Aria
 - "Mark the Ariadne task about X complete."
 - "Update my Ariadne strategic objective about technical credibility."
 - "Read my Ariadne projects and archive anything marked complete."
+- "I just submitted the Sussex consultancy application."
+- "Mark my application to X as interviewing."
 
 ChatGPT should resolve the Ariadne Supabase project, use the `chatgpt` functions for normal application operations, and return the result in user-facing language.
 
@@ -112,6 +125,7 @@ ChatGPT should resolve the Ariadne Supabase project, use the `chatgpt` functions
 - The control surface assumes Ariadne remains a single-owner workspace and refuses to resolve an owner if multiple distinct owners appear in core tables.
 - Writes are bounded by operation and field allowlists.
 - Task deletion is soft deletion.
+- Opportunity Application writes are bounded to application-specific state and cannot mutate the linked Opportunity.
 - The existing Ariadne storage model remains canonical; there is no second ChatGPT data store.
 
 ## MCP
