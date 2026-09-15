@@ -1,0 +1,64 @@
+name: Apply issue 82 task storage guard
+
+on:
+  push:
+    branches: ["fix/82-localstorage-quota"]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/82-localstorage-quota
+
+      - name: Apply narrow storage guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("app/tasks/page.js")
+          source = path.read_text()
+          old = '''function writeTasksToStorage(taskList) {
+            if (typeof window === "undefined") {
+              return;
+            }
+
+            window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(sanitizeTaskList(taskList)));
+          }'''
+          new = '''function writeTasksToStorage(taskList) {
+            if (typeof window === "undefined") {
+              return;
+            }
+
+            try {
+              window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(sanitizeTaskList(taskList)));
+            } catch {
+              // Local task persistence is best-effort. Cloud sync remains authoritative when
+              // browser storage is unavailable or its quota has been exhausted.
+            }
+          }'''
+          if old not in source:
+              raise SystemExit("Expected task storage writer was not found; refusing broad edit.")
+          path.write_text(source.replace(old, new, 1))
+          Path(".github/workflows/apply-fix-82.yml").unlink()
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run regression tests
+        run: npm test
+
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/tasks/page.js .github/workflows/apply-fix-82.yml
+          git commit -m "Guard task local cache writes for #82"
+          git push origin HEAD:fix/82-localstorage-quota
