@@ -89,6 +89,10 @@ begin
     raise exception 'canonical_url must use http or https' using errcode = '22023';
   end if;
 
+  -- Serialize candidate identity checks for this owner so concurrent discovery runs
+  -- cannot race past deduplication and create parallel records.
+  perform pg_advisory_xact_lock(hashtext(p_user_id::text));
+
   if normalized_source_external_id is not null then
     select *
     into existing_row
