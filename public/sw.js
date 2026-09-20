@@ -1,9 +1,5 @@
 const CACHE_NAME = "ariadne-v4";
-const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, "");
-const CORE_ASSETS = [
-  `${SCOPE_PATH || ""}/`,
-  `${SCOPE_PATH || ""}/manifest.webmanifest`
-];
+const CORE_ASSETS = ["/", "/manifest.webmanifest"];
 const CACHEABLE_DESTINATIONS = new Set([
   "document",
   "script",
@@ -91,7 +87,7 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResponse;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match(`${SCOPE_PATH || ""}/`)))
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/")))
     );
     return;
   }
