@@ -1,0 +1,301 @@
+.provider {
+  --sidebar-width: 15.5rem;
+  --sidebar-width-icon: 4.5rem;
+  display: flex;
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--fs-color-bg);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  width: var(--sidebar-width);
+  height: 100dvh;
+  flex: 0 0 var(--sidebar-width);
+  flex-direction: column;
+  border-right: var(--fs-border-width) solid var(--fs-color-border);
+  background: color-mix(in srgb, var(--fs-color-text) 2.5%, var(--fs-color-bg));
+  transition:
+    width var(--fs-motion-normal) var(--fs-motion-ease),
+    flex-basis var(--fs-motion-normal) var(--fs-motion-ease);
+}
+
+.iconCollapsible[data-state="collapsed"] {
+  width: var(--sidebar-width-icon);
+  flex-basis: var(--sidebar-width-icon);
+}
+
+.header,
+.footer {
+  flex: 0 0 auto;
+  padding: var(--fs-space-3);
+}
+
+.header {
+  border-bottom: var(--fs-border-width) solid var(--fs-color-border);
+}
+
+.footer {
+  margin-top: auto;
+  border-top: var(--fs-border-width) solid var(--fs-color-border);
+}
+
+.content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--fs-space-3) var(--fs-space-2);
+}
+
+.group {
+  display: grid;
+  gap: var(--fs-space-2);
+}
+
+.group + .group {
+  margin-top: var(--fs-space-4);
+}
+
+.groupLabel {
+  min-height: 1.6rem;
+  padding: 0 var(--fs-space-3);
+  color: var(--fs-color-text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  transition: opacity var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.sidebar[data-state="collapsed"] .groupLabel {
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  opacity: 0;
+}
+
+.groupContent {
+  min-width: 0;
+}
+
+.menu {
+  display: grid;
+  gap: var(--fs-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menuItem {
+  min-width: 0;
+}
+
+.menuButton {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 2.55rem;
+  align-items: center;
+  gap: 0.72rem;
+  padding: 0.55rem 0.7rem;
+  overflow: hidden;
+  border: var(--fs-border-width) solid transparent;
+  border-radius: var(--fs-radius-control);
+  background: transparent;
+  color: var(--fs-color-text-muted);
+  font-family: var(--fs-font-primary);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color var(--fs-motion-fast) var(--fs-motion-ease),
+    background var(--fs-motion-fast) var(--fs-motion-ease),
+    border-color var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.menuButton:hover,
+.menuButton:focus-visible {
+  border-color: var(--fs-color-border);
+  background: color-mix(in srgb, var(--fs-color-text) 5%, transparent);
+  color: var(--fs-color-text);
+  outline: none;
+}
+
+.menuButtonActive {
+  border-color: color-mix(in srgb, var(--fs-accent) 42%, var(--fs-color-border));
+  background: color-mix(in srgb, var(--fs-accent) 13%, transparent);
+  color: var(--fs-color-text);
+}
+
+.menuButtonActive::before {
+  position: absolute;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  left: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--fs-accent);
+  content: "";
+}
+
+.menuIcon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 1.15rem;
+  stroke-width: 1.8;
+}
+
+.menuLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    opacity var(--fs-motion-fast) var(--fs-motion-ease),
+    width var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.sidebar[data-state="collapsed"] .menuButton {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0.55rem;
+}
+
+.sidebar[data-state="collapsed"] .menuLabel {
+  width: 0;
+  opacity: 0;
+}
+
+.rail {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  bottom: 0;
+  z-index: 50;
+  width: 10px;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+}
+
+.rail::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: transparent;
+  content: "";
+  transition: background var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.rail:hover::after,
+.rail:focus-visible::after {
+  background: color-mix(in srgb, var(--fs-accent) 58%, var(--fs-color-border));
+}
+
+.rail:focus-visible {
+  outline: none;
+}
+
+.trigger {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: var(--fs-border-width) solid var(--fs-color-border);
+  border-radius: var(--fs-radius-control);
+  background: transparent;
+  color: var(--fs-color-text-muted);
+  transition:
+    color var(--fs-motion-fast) var(--fs-motion-ease),
+    background var(--fs-motion-fast) var(--fs-motion-ease),
+    border-color var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.trigger:hover,
+.trigger:focus-visible {
+  border-color: var(--fs-color-border-strong);
+  background: color-mix(in srgb, var(--fs-color-text) 6%, transparent);
+  color: var(--fs-color-text);
+  outline: none;
+}
+
+.trigger svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.inset {
+  min-width: 0;
+  min-height: 100dvh;
+  flex: 1 1 auto;
+  background: var(--fs-color-bg);
+}
+
+.mobileClose,
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .provider {
+    display: block;
+  }
+
+  .sidebar.mobile {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 90;
+    width: min(19rem, calc(100vw - 3rem));
+    height: 100dvh;
+    flex-basis: auto;
+    transform: translateX(-102%);
+    box-shadow: 1.25rem 0 3rem rgba(0, 0, 0, 0.42);
+    transition: transform var(--fs-motion-normal) var(--fs-motion-ease);
+  }
+
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: block;
+    border: 0;
+    background: rgba(0, 0, 0, 0.68);
+    backdrop-filter: blur(3px);
+  }
+
+  .mobileClose {
+    position: absolute;
+    top: var(--fs-space-3);
+    right: var(--fs-space-3);
+    z-index: 3;
+    display: inline-grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: var(--fs-border-width) solid var(--fs-color-border);
+    border-radius: var(--fs-radius-control);
+    background: var(--fs-color-bg);
+    color: var(--fs-color-text-muted);
+  }
+
+  .mobileClose svg {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .inset {
+    width: 100%;
+  }
+}

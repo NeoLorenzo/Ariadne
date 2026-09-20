@@ -1,0 +1,50 @@
+.header {
+  min-height: 4.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandLink {
+  display: flex;
+  width: 100%;
+  min-height: 2.7rem;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.25rem 0.35rem;
+  overflow: hidden;
+  border-radius: var(--fs-radius-control);
+  text-decoration: none;
+}
+
+.brandLink:hover,
+.brandLink:focus-visible {
+  background: color-mix(in srgb, var(--fs-color-text) 5%, transparent);
+  outline: none;
+}
+
+.brandLockup {
+  display: block;
+  width: 126px;
+  max-width: 100%;
+  height: auto;
+}
+
+.brandMark {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .header {
+    justify-content: flex-start;
+    padding-right: 3.2rem;
+  }
+
+  .brandLockup {
+    width: 132px;
+  }
+}

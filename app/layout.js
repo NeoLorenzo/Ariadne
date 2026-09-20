@@ -1,3 +1,4 @@
+import "@/fabbro-design/fabbro-tokens.css";
 import "./globals.css";
 import AppAccessGate from "@/components/AppAccessGate";
 import GitHubTaskReadOnlyGuard from "@/components/GitHubTaskReadOnlyGuard";
@@ -25,7 +26,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-100 antialiased">
+      <body data-fabbro-product="ariadne" className="bg-slate-950 text-slate-100 antialiased">
         <AppAccessGate>
           <PwaRegistrar />
           <GitHubTaskReadOnlyGuard />
