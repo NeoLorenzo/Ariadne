@@ -12,7 +12,7 @@ import {
 const AUTHORIZED_EMAIL = "theneolorenzo@gmail.com";
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-ariadne-cron-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 
@@ -45,12 +45,14 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const owner = await getAuthorizedOwner(request);
+    const body = await request.json().catch(() => ({}));
+    const cronOwnerId = await getAuthorizedCronOwner(request);
+    const owner = cronOwnerId
+      ? { userId: cronOwnerId, email: AUTHORIZED_EMAIL }
+      : await getAuthorizedOwner(request);
     if (!owner) {
       return jsonResponse({ error: "Not authorized." }, 403);
     }
-
-    const body = await request.json().catch(() => ({}));
     const searchProfiles = normalizeRequestedSearchProfiles(body?.queries);
     const resultsPerQuery = clampInteger(body?.resultsPerQuery, 1, 25, 10);
     const dryRun = body?.dryRun === true;
@@ -328,6 +330,25 @@ async function ingestCandidate(userId: string, candidate: NormalizedAdzunaCandid
       p_last_seen_at: candidate.lastSeenAt
     })
   });
+}
+
+async function getAuthorizedCronOwner(request: Request) {
+  const suppliedSecret = request.headers.get("x-ariadne-cron-secret") || "";
+  if (!suppliedSecret) {
+    return null;
+  }
+
+  try {
+    const ownerId = await adminJson("/rest/v1/rpc/authorize_adzuna_job_discovery_cron", {
+      method: "POST",
+      body: JSON.stringify({ p_secret: suppliedSecret })
+    });
+    const normalized = String(ownerId || "").trim();
+    return normalized || null;
+  } catch (error) {
+    console.error("Adzuna cron authorization failed", error);
+    return null;
+  }
 }
 
 async function getAuthorizedOwner(request: Request) {
