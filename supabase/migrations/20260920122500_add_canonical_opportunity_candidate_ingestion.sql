@@ -47,7 +47,7 @@ begin
     raise exception 'user_id is required' using errcode = '22023';
   end if;
 
-  if auth.role() <> 'service_role' then
+  if coalesce(auth.role(), '') <> 'service_role' then
     if auth.uid() is null or auth.uid() <> p_user_id or not public.is_ariadne_owner() then
       raise exception 'Not authorized to ingest opportunity candidates' using errcode = '42501';
     end if;
