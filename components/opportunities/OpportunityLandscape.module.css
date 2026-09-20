@@ -403,6 +403,32 @@
   font-weight: 700;
 }
 
+.descriptionExcerptNotice {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  border-radius: 0.55rem;
+  background: rgba(14, 116, 144, 0.1);
+  padding: 0.55rem 0.65rem;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.descriptionExcerptNotice a {
+  flex: 0 0 auto;
+  color: #7dd3fc;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.descriptionExcerptNotice a:hover {
+  text-decoration: underline;
+}
+
 .fieldError {
   margin: 0;
   color: #fca5a5;
