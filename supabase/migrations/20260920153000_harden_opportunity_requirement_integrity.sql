@@ -8,16 +8,16 @@ immutable
 set search_path = pg_catalog
 as $$
   select case
-    when coalesce(p_label, '') ~* '\\m(cv|resume|résumé)\\M' then 'cv_resume'
-    when coalesce(p_label, '') ~* '\\mcover(ing)?[[:space:]]+letter\\M' then 'cover_letter'
-    when coalesce(p_label, '') ~* '\\m(reference|references|referee|referees|recommender|recommenders|recommendation letter|recommendation letters)\\M' then 'references'
-    when coalesce(p_label, '') ~* '\\mwriting sample\\M' then 'writing_sample'
-    when coalesce(p_label, '') ~* '\\m(research proposal|statement of research interest)\\M' then 'research_proposal'
-    when coalesce(p_label, '') ~* '\\mabstract\\M' then 'abstract'
-    when coalesce(p_label, '') ~* '\\mportfolio\\M' then 'portfolio'
-    when coalesce(p_label, '') ~* '\\mscreencast\\M' then 'screencast'
-    when coalesce(p_label, '') ~* '\\m(online application|application form)\\M' then 'application_form'
-    when coalesce(p_label, '') ~* '\\m(transcript|transcripts|degree transcript|degree transcripts|academic transcript|academic transcripts)\\M' then 'transcript'
+    when coalesce(p_label, '') ~* '\m(cv|resume|résumé)\M' then 'cv_resume'
+    when coalesce(p_label, '') ~* '\mcover(ing)?[[:space:]]+letter\M' then 'cover_letter'
+    when coalesce(p_label, '') ~* '\m(reference|references|referee|referees|recommender|recommenders|recommendation letter|recommendation letters)\M' then 'references'
+    when coalesce(p_label, '') ~* '\mwriting sample\M' then 'writing_sample'
+    when coalesce(p_label, '') ~* '\m(research proposal|statement of research interest)\M' then 'research_proposal'
+    when coalesce(p_label, '') ~* '\mabstract\M' then 'abstract'
+    when coalesce(p_label, '') ~* '\mportfolio\M' then 'portfolio'
+    when coalesce(p_label, '') ~* '\mscreencast\M' then 'screencast'
+    when coalesce(p_label, '') ~* '\m(online application|application form)\M' then 'application_form'
+    when coalesce(p_label, '') ~* '\m(transcript|transcripts|degree transcript|degree transcripts|academic transcript|academic transcripts)\M' then 'transcript'
     else 'other'
   end
 $$;
@@ -29,9 +29,9 @@ immutable
 set search_path = pg_catalog
 as $$
   select case
-    when coalesce(p_label, '') ~* '\\m(two|2)\\M' then 2
-    when coalesce(p_label, '') ~* '\\m(three|3)\\M' then 3
-    when coalesce(p_label, '') ~* '\\m(four|4)\\M' then 4
+    when coalesce(p_label, '') ~* '\m(two|2)\M' then 2
+    when coalesce(p_label, '') ~* '\m(three|3)\M' then 3
+    when coalesce(p_label, '') ~* '\m(four|4)\M' then 4
     else 1
   end
 $$;
@@ -62,9 +62,9 @@ begin
   if nullif(btrim(coalesce(v_label, '')), '') is null
      or not exists (
        select 1
-       from jsonb_array_elements(p_node) value
-       where jsonb_typeof(value) = 'object'
-         and value->>'kind' = 'application_component'
+       from jsonb_array_elements(p_node) as marker(value)
+       where jsonb_typeof(marker.value) = 'object'
+         and marker.value->>'kind' = 'application_component'
      ) then
     raise exception 'Malformed requirement array is not a recognized legacy application-component tuple: %', p_node
       using errcode = '23514';
