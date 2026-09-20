@@ -55,13 +55,18 @@ Do not commit any of these values to the repository.
 
 ## Authorization
 
-The Edge Function must be deployed with JWT verification enabled.
+The Edge Function uses explicit application-level authorization for both invocation paths:
 
-It performs an additional owner-email check before any Adzuna request or candidate write. The service-role credential is used only inside the Edge Function to call the narrow candidate-ingestion RPC.
+- signed-in manual scans must present a valid Supabase user JWT for the Ariadne owner email;
+- scheduled scans must present a high-entropy internal cron secret stored in Supabase Vault.
+
+The Edge Function is deployed with platform JWT verification disabled only because pg_cron cannot provide the owner's short-lived user JWT. Every POST is still rejected unless one of the two explicit authorization paths succeeds.
+
+The cron secret is generated inside the database, never committed to the repository, and validated through the service-role-only `authorize_adzuna_job_discovery_cron(...)` RPC.
 
 ## Invocation
 
-The implementation is manually invocable from the Opportunity Candidate Inbox using **Scan Adzuna**. Scheduling should only be enabled after scan precision is validated.
+The implementation is manually invocable from the Opportunity Candidate Inbox using **Scan Adzuna** and is also scheduled through Supabase pg_cron.
 
 Default run:
 
@@ -194,3 +199,32 @@ Repeated discoveries refresh observation/provenance fields without resetting rev
 Adzuna's `redirect_url` is stored as `source_url`.
 
 The integration does not claim that an Adzuna redirect is an employer-canonical URL, so `canonical_url` remains empty unless Adzuna itself supplies a direct canonical application URL in a future supported response shape.
+
+
+## Scheduling
+
+Production discovery runs three times per day:
+
+```text
+06:15 UTC
+12:15 UTC
+18:15 UTC
+```
+
+The schedule is stored as the pg_cron job `adzuna-job-discovery`.
+
+Each scheduled run calls the same Edge Function and therefore uses exactly the same search profiles, relevance scoring, normalization, deduplication, and candidate-ingestion path as a manual scan. With 24 searches per run, the normal schedule uses 72 Adzuna search requests per day.
+
+The cron request uses an internal secret held in Supabase Vault. The secret is not exposed to the browser or committed to source control.
+
+## Initial v1 reconciliation
+
+The original broad-query production scan created 143 candidates before relevance-v2 was introduced.
+
+The one-time reconciliation:
+
+- rejected 48 clearly noisy legacy candidates using deterministic rules consistent with relevance-v2;
+- retained 23 ambiguous or plausibly useful legacy candidates as pending for normal Opportunity Review;
+- preserved every record for auditability rather than deleting scan history.
+
+Rejected legacy records are tagged in `source_payload.legacy_v1_reconciliation` with their reconciliation reason. Retained records are tagged as `retained_for_review`.
