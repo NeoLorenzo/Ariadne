@@ -2,9 +2,12 @@ import {
   annotateCandidateEvaluation,
   buildAdzunaDetailsUrl,
   buildAdzunaSearchUrl,
+  calculateAdzunaDescriptionRetryAt,
+  classifyAdzunaDetailHttpFailure,
   enrichAdzunaCandidateDescription,
   evaluateAdzunaCandidate,
   extractAdzunaDetailDescription,
+  getAdzunaDescriptionEnrichmentDecision,
   normalizeAdzunaJob,
   normalizeRequestedSearchProfiles,
   type AdzunaCandidateEvaluation,
@@ -215,6 +218,7 @@ Deno.serve(async (request) => {
     const enrichmentQueue: Array<{
       candidateId: string;
       candidate: NormalizedAdzunaCandidate;
+      attemptCount: number;
     }> = [];
     const descriptionEnrichment = {
       enabled: enrichDescriptions,
@@ -222,7 +226,10 @@ Deno.serve(async (request) => {
       attempted: 0,
       enriched: 0,
       cachedFull: 0,
+      cachedUnavailable: 0,
+      backoffSkipped: 0,
       unavailable: 0,
+      retryLater: 0,
       skippedReviewed: 0,
       deferred: 0,
       failed: 0,
@@ -248,7 +255,12 @@ Deno.serve(async (request) => {
         const reviewStatus = String(persisted?.review_status || "");
         const candidateId = String(persisted?.id || "").trim();
 
-        if (persistedPayload?.description_completeness === "full") {
+        const enrichmentDecision = getAdzunaDescriptionEnrichmentDecision(
+          persistedPayload,
+          runStartedAt
+        );
+
+        if (enrichmentDecision.action === "skip_full") {
           descriptionEnrichment.cachedFull += 1;
           continue;
         }
@@ -258,10 +270,24 @@ Deno.serve(async (request) => {
           continue;
         }
 
+        if (enrichmentDecision.action === "skip_unavailable") {
+          descriptionEnrichment.cachedUnavailable += 1;
+          continue;
+        }
+
+        if (enrichmentDecision.action === "skip_backoff") {
+          descriptionEnrichment.backoffSkipped += 1;
+          continue;
+        }
+
         if (candidateId && !queuedCandidateIds.has(candidateId)) {
           queuedCandidateIds.add(candidateId);
           if (enrichmentQueue.length < MAX_DESCRIPTION_ENRICHMENTS_PER_RUN) {
-            enrichmentQueue.push({ candidateId, candidate });
+            enrichmentQueue.push({
+              candidateId,
+              candidate,
+              attemptCount: enrichmentDecision.attemptCount
+            });
           } else {
             descriptionEnrichment.deferred += 1;
           }
@@ -279,35 +305,145 @@ Deno.serve(async (request) => {
       const enrichmentResults = await mapWithConcurrency(
         enrichmentQueue,
         DESCRIPTION_ENRICHMENT_CONCURRENCY,
-        async ({ candidateId, candidate }, index) => {
+        async ({ candidateId, candidate, attemptCount }, index) => {
           descriptionEnrichment.attempted += 1;
           if (index > 0) {
             await delay(DESCRIPTION_ENRICHMENT_DELAY_MS);
           }
-          try {
-            const detailUrl = buildAdzunaDetailsUrl(candidate.sourceExternalId);
-            if (!detailUrl) throw new Error("Missing Adzuna detail URL.");
 
-            const response = await fetchWithTimeout(detailUrl, {
+          const attemptedAt = new Date();
+          const detailUrl = buildAdzunaDetailsUrl(candidate.sourceExternalId);
+          if (!detailUrl) {
+            try {
+              await recordCandidateDescriptionEnrichmentAttempt(
+                owner.userId,
+                candidateId,
+                "unavailable",
+                "missing_detail_url",
+                null,
+                attemptedAt
+              );
+              return {
+                ok: true as const,
+                status: "unavailable" as const
+              };
+            } catch (error) {
+              return {
+                ok: false as const,
+                externalId: candidate.sourceExternalId,
+                title: candidate.title,
+                error: error instanceof Error ? error.message : "Failed to persist unavailable enrichment state."
+              };
+            }
+          }
+
+          let response: Response;
+          try {
+            response = await fetchWithTimeout(detailUrl, {
               headers: {
                 Accept: "text/html,application/xhtml+xml",
-                "User-Agent": "Ariadne-Adzuna-Discovery/3.0"
+                "User-Agent": "Ariadne-Adzuna-Discovery/3.1"
               }
             }, 10000);
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : "Detail-page request failed.";
+            const nextRetryAt = calculateAdzunaDescriptionRetryAt({
+              attemptCount,
+              now: attemptedAt
+            });
 
-            if (!response.ok) {
-              throw new Error(`Adzuna detail page returned HTTP ${response.status}.`);
+            try {
+              await recordCandidateDescriptionEnrichmentAttempt(
+                owner.userId,
+                candidateId,
+                "retry_later",
+                reason,
+                nextRetryAt,
+                attemptedAt
+              );
+              return {
+                ok: true as const,
+                status: "retry_later" as const
+              };
+            } catch (stateError) {
+              return {
+                ok: false as const,
+                externalId: candidate.sourceExternalId,
+                title: candidate.title,
+                error: stateError instanceof Error
+                  ? stateError.message
+                  : "Failed to persist retry-later enrichment state."
+              };
             }
+          }
 
+          if (!response.ok) {
+            const classification = classifyAdzunaDetailHttpFailure(response.status);
+            const reason = classification.reason;
+
+            try {
+              if (classification.status === "retry_later") {
+                const nextRetryAt = calculateAdzunaDescriptionRetryAt({
+                  attemptCount,
+                  retryAfter: response.headers.get("retry-after") || "",
+                  now: attemptedAt
+                });
+                await recordCandidateDescriptionEnrichmentAttempt(
+                  owner.userId,
+                  candidateId,
+                  "retry_later",
+                  reason,
+                  nextRetryAt,
+                  attemptedAt
+                );
+                return {
+                  ok: true as const,
+                  status: "retry_later" as const
+                };
+              }
+
+              await recordCandidateDescriptionEnrichmentAttempt(
+                owner.userId,
+                candidateId,
+                "unavailable",
+                reason,
+                null,
+                attemptedAt
+              );
+              return {
+                ok: true as const,
+                status: "unavailable" as const
+              };
+            } catch (stateError) {
+              return {
+                ok: false as const,
+                externalId: candidate.sourceExternalId,
+                title: candidate.title,
+                error: stateError instanceof Error
+                  ? stateError.message
+                  : "Failed to persist HTTP enrichment outcome."
+              };
+            }
+          }
+
+          try {
             const html = await response.text();
             const detailDescription = extractAdzunaDetailDescription(html);
             const enriched = enrichAdzunaCandidateDescription(
               candidate,
               detailDescription,
-              new Date()
+              attemptedAt
             );
 
             if (enriched === candidate) {
+              await recordCandidateDescriptionEnrichmentAttempt(
+                owner.userId,
+                candidateId,
+                "unavailable",
+                "no_fuller_description",
+                null,
+                attemptedAt
+              );
               return {
                 ok: true as const,
                 status: "unavailable" as const
@@ -337,6 +473,7 @@ Deno.serve(async (request) => {
                 status: "reviewed" as const
               };
             }
+
             return {
               ok: false as const,
               externalId: candidate.sourceExternalId,
@@ -344,12 +481,35 @@ Deno.serve(async (request) => {
               error: `Description enrichment was not persisted (${String(persisted?.reason || "unknown")}).`
             };
           } catch (error) {
-            return {
-              ok: false as const,
-              externalId: candidate.sourceExternalId,
-              title: candidate.title,
-              error: error instanceof Error ? error.message : "Description enrichment failed."
-            };
+            const reason = error instanceof Error ? error.message : "Description enrichment failed.";
+            const nextRetryAt = calculateAdzunaDescriptionRetryAt({
+              attemptCount,
+              now: attemptedAt
+            });
+
+            try {
+              await recordCandidateDescriptionEnrichmentAttempt(
+                owner.userId,
+                candidateId,
+                "retry_later",
+                reason,
+                nextRetryAt,
+                attemptedAt
+              );
+              return {
+                ok: true as const,
+                status: "retry_later" as const
+              };
+            } catch (stateError) {
+              return {
+                ok: false as const,
+                externalId: candidate.sourceExternalId,
+                title: candidate.title,
+                error: stateError instanceof Error
+                  ? stateError.message
+                  : "Failed to persist retry-later enrichment state."
+              };
+            }
           }
         }
       );
@@ -360,6 +520,7 @@ Deno.serve(async (request) => {
           if (result.status === "cached") descriptionEnrichment.cachedFull += 1;
           if (result.status === "reviewed") descriptionEnrichment.skippedReviewed += 1;
           if (result.status === "unavailable") descriptionEnrichment.unavailable += 1;
+          if (result.status === "retry_later") descriptionEnrichment.retryLater += 1;
           continue;
         }
         descriptionEnrichment.failed += 1;
@@ -488,6 +649,27 @@ async function ingestCandidate(userId: string, candidate: NormalizedAdzunaCandid
       p_start_date: null,
       p_discovered_at: candidate.discoveredAt,
       p_last_seen_at: candidate.lastSeenAt
+    })
+  });
+}
+
+async function recordCandidateDescriptionEnrichmentAttempt(
+  userId: string,
+  candidateId: string,
+  status: "unavailable" | "retry_later",
+  reason: string,
+  nextRetryAt: string | null,
+  attemptedAt: Date
+) {
+  return await adminJson("/rest/v1/rpc/record_opportunity_candidate_description_enrichment_attempt", {
+    method: "POST",
+    body: JSON.stringify({
+      p_user_id: userId,
+      p_candidate_id: candidateId,
+      p_status: status,
+      p_reason: reason || null,
+      p_next_retry_at: nextRetryAt,
+      p_attempted_at: attemptedAt.toISOString()
     })
   });
 }
