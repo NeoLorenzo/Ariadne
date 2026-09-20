@@ -1,5 +1,7 @@
 # Opportunity Requirement Integrity
 
+This document defines the canonical requirement-document invariants inside the broader [Opportunity System](./opportunity-system.md). The review agent's operating contract is documented in [Opportunity Review Agent](./opportunity-review-agent.md).
+
 Ariadne treats opportunity requirements as three related but distinct data channels:
 
 - `standardized_requirements`: machine-readable eligibility criteria, application components, and one source-text node.
