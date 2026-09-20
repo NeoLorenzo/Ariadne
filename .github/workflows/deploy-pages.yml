@@ -32,15 +32,6 @@ jobs:
           node-version: 20
           cache: "npm"
 
-      - name: Resolve base path
-        id: basepath
-        run: |
-          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
-            echo "value=" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=/${{ github.event.repository.name }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Install dependencies
         run: npm ci
 
@@ -53,7 +44,7 @@ jobs:
       - name: Build static export
         env:
           STATIC_EXPORT: "true"
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.basepath.outputs.value }}
+          NEXT_PUBLIC_BASE_PATH: ""
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUBSTACK_ARCHIVE_SYNC_URL: ${{ secrets.NEXT_PUBLIC_SUBSTACK_ARCHIVE_SYNC_URL }}
