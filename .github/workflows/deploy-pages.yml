@@ -52,6 +52,19 @@ jobs:
       - name: Check exported site privacy
         run: npm run check:privacy
 
+      - name: Smoke test production artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f out/index.html
+          test -f out/manifest.webmanifest
+          test -f out/tasks/index.html
+          grep -q "Ariadne" out/index.html
+          if grep -R -n -E --include='*.html' --include='*.js' --include='*.css' --include='*.json' --include='*.webmanifest' '(/Ariadne/|neolorenzo\.github\.io/Ariadne)' out; then
+            echo "Legacy Ariadne GitHub Pages path found in production artifact."
+            exit 1
+          fi
+
       - name: Upload static artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -71,3 +84,16 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Smoke test live Ariadne
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3             https://ariadne.fabbrosystems.com/ --output /tmp/ariadne.html
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3             https://ariadne.fabbrosystems.com/manifest.webmanifest --output /tmp/ariadne-manifest.webmanifest
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3             https://ariadne.fabbrosystems.com/tasks/ --output /tmp/ariadne-tasks.html
+          grep -q "Ariadne" /tmp/ariadne.html
+          if grep -E -q '(/Ariadne/|neolorenzo\.github\.io/Ariadne)' /tmp/ariadne.html /tmp/ariadne-tasks.html; then
+            echo "Legacy Ariadne deployment path found on the live domain."
+            exit 1
+          fi
