@@ -4,17 +4,14 @@ import AppAccessGate from "@/components/AppAccessGate";
 import GitHubTaskReadOnlyGuard from "@/components/GitHubTaskReadOnlyGuard";
 import PwaRegistrar from "@/components/PwaRegistrar";
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-const resolvedBasePath = basePath || "";
-
 export const metadata = {
   title: "Ariadne",
   description: "Personal strategy, projects, tasks, and progress workspace",
-  manifest: `${resolvedBasePath}/manifest.webmanifest`,
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: `${resolvedBasePath}/icons/icon-192.png`,
-    apple: `${resolvedBasePath}/icons/icon-maskable-512.png`,
-    shortcut: `${resolvedBasePath}/icons/icon-192.png`
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-maskable-512.png",
+    shortcut: "/icons/icon-192.png"
   },
   appleWebApp: {
     capable: true,
