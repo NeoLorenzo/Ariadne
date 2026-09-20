@@ -33,7 +33,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci
 
       - name: Run regression tests
         run: npm test
@@ -44,7 +44,6 @@ jobs:
       - name: Build static export
         env:
           STATIC_EXPORT: "true"
-          NEXT_PUBLIC_BASE_PATH: ""
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUBSTACK_ARCHIVE_SYNC_URL: ${{ secrets.NEXT_PUBLIC_SUBSTACK_ARCHIVE_SYNC_URL }}
