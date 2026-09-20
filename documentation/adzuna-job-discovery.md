@@ -1,17 +1,21 @@
 # Adzuna Job Discovery
 
-Ariadne's first automated job-discovery source is Adzuna.
+Ariadne's automated job-discovery source is Adzuna.
 
 This integration is intentionally limited to Adzuna. It does not scrape LinkedIn, employer sites, ATS boards, or other aggregators.
 
 ## Flow
 
 ```text
-Adzuna search API
+24 precise Adzuna searches
+      ↓
+Adzuna API exclusions where useful
       ↓
 normalize results
       ↓
-high-recall deterministic filter
+query-specific relevance scoring
+      ↓
+deduplicate
       ↓
 public.ingest_opportunity_candidate(...)
       ↓
@@ -25,7 +29,7 @@ The discovery function never creates canonical `opportunities` directly.
 ## Server components
 
 - `supabase/functions/adzuna-job-discovery/index.ts` — authenticated discovery entry point.
-- `supabase/functions/adzuna-job-discovery/adzuna.ts` — Adzuna query, normalization, fingerprinting, and filtering helpers.
+- `supabase/functions/adzuna-job-discovery/adzuna.ts` — Adzuna search profiles, URL construction, normalization, fingerprinting, and relevance scoring.
 - `supabase/migrations/20260920122500_add_canonical_opportunity_candidate_ingestion.sql` — canonical candidate ingestion RPC shared by browser ingestion and automated discovery.
 
 The application-side `ingestOpportunityCandidate(...)` also calls the canonical RPC so deduplication is not reimplemented independently for automated discovery.
@@ -57,7 +61,7 @@ It performs an additional owner-email check before any Adzuna request or candida
 
 ## Invocation
 
-The initial implementation is manually invocable. Scheduling should only be added after the manual path has been validated in production.
+The implementation is manually invocable from the Opportunity Candidate Inbox using **Scan Adzuna**. Scheduling should only be enabled after scan precision is validated.
 
 Default run:
 
@@ -73,7 +77,7 @@ Dry run:
 }
 ```
 
-Custom query subset:
+Custom searches:
 
 ```json
 {
@@ -87,17 +91,92 @@ Custom query subset:
 }
 ```
 
-Custom query input is normalized, deduplicated, capped at 25 query families, and does not modify the default configuration.
+Custom query input is normalized, deduplicated, and capped at 24 searches per invocation.
 
-## Filtering
+## Default search set
 
-The pre-filter is deliberately conservative and high-recall. It currently removes:
+The default run uses 24 precise searches rather than broad conceptual phrases. The set covers:
 
-- malformed results without title, external ID, or source URL;
-- explicit senior-title roles such as director/head/VP/principal/chief;
-- descriptions that state a hard requirement of at least five years of experience.
+- research assistant / policy research assistant;
+- research analyst / junior research analyst;
+- policy analyst / research policy analyst;
+- policy and research internships;
+- editorial assistant / assistant editor / content writer;
+- graduate strategy and management consulting;
+- strategy analyst / graduate business analyst;
+- founder's associate / business operations associate;
+- AI policy / AI governance / responsible AI;
+- technology policy;
+- political risk / geopolitics;
+- AI consulting.
 
-Deeper strategic evaluation remains the responsibility of the Opportunity review workflow.
+The 24-search cap deliberately stays below Adzuna's default 25-requests-per-minute allowance for one normal scan.
+
+## Relevance scoring
+
+Every default search has its own profile with:
+
+- target title signals;
+- supporting description signals;
+- supporting Adzuna categories;
+- query-specific wrong-occupation signals;
+- optional API-side `what_exclude` terms.
+
+A result must have a plausible target role signal in its **title**. Description matches alone cannot cause ingestion.
+
+The score currently uses these weights:
+
+```text
++8  exact search phrase in title
++5  target role signal in title
++2  graduate / junior / intern / trainee / assistant signal
++2  supporting Adzuna category
++1  supporting description signal
+
+-8  seniority signal such as manager / lead / partner / principal / director / head / expert
+-8  hard requirement of 5+ years of experience
+-8  clearly incompatible category
+-10 query-specific wrong occupation
+```
+
+The default keep threshold is 6.
+
+This is intentionally a discovery filter rather than a strategic evaluation. The Candidate Inbox remains broad; the Opportunity Review Agent owns the deeper decision about whether a candidate deserves promotion.
+
+## First-scan regression cases
+
+The first production scan inserted 143 candidates and exposed several false-positive classes. These are now regression-tested.
+
+Examples that should be rejected:
+
+- HGV / mixer driver results returned for AI-policy searches;
+- Head Chef / Head Housekeeper returned for technology-policy searches;
+- political-risk underwriter roles;
+- recruitment-consultant results from graduate-consulting searches;
+- clearly senior AI governance roles such as Lead / Manager / Partner / SME.
+
+Examples that should remain eligible:
+
+- Founder's Associate;
+- Strategy Analyst Intern;
+- Policy Consultant;
+- Research Analyst - Emerging Biotechnology;
+- Credit & Political Risk Graduate Programme.
+
+## Run diagnostics
+
+Each invocation returns:
+
+- fetched count;
+- unique relevant count;
+- filtered count;
+- rejection-reason counts;
+- per-query fetched / kept / filtered statistics;
+- sample kept candidates with relevance scores;
+- sample filtered candidates with rejection reasons;
+- create / refresh / deduplication counts for non-dry runs.
+
+Kept candidates persist their discovery profile, family, relevance score, relevance reasons, and matched signals in `source_payload` for later inspection.
 
 ## Deduplication
 
