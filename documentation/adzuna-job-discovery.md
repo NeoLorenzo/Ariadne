@@ -228,3 +228,22 @@ The one-time reconciliation:
 - preserved every record for auditability rather than deleting scan history.
 
 Rejected legacy records are tagged in `source_payload.legacy_v1_reconciliation` with their reconciliation reason. Retained records are tagged as `retained_for_review`.
+
+
+## Description completeness
+
+The standard Adzuna search API returns a description excerpt rather than the complete job advert.
+
+Every Adzuna candidate therefore stores:
+
+```json
+{
+  "description_is_excerpt": true,
+  "description_completeness": "excerpt",
+  "description_excerpt_source": "adzuna_search_api"
+}
+```
+
+The Candidate Inbox labels these fields as **Description excerpt from Adzuna**, warns that omitted requirements/details are unknown rather than absent, and links to the Adzuna listing for the complete advert.
+
+Automated review logic must not infer that a requirement does not exist merely because it is absent from an Adzuna description excerpt.
