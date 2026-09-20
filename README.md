@@ -75,6 +75,17 @@ External discovery / manual candidate
 
 Candidate records retain provenance and review state. Acceptance is explicit; future discovery automation does not get to write directly into the canonical Opportunity Landscape simply because it found something.
 
+### Opportunity subsystem documentation
+
+For Opportunity-system work, especially stateless agent runs, start with:
+
+- [Opportunity System](documentation/opportunity-system.md) — canonical end-to-end architecture, persistence, invariants, and live-state inspection.
+- [Opportunity Review Agent](documentation/opportunity-review-agent.md) — canonical review/promotion operating contract.
+- [Opportunity Requirement Integrity](documentation/opportunity-requirement-integrity.md) — structured requirement schema, extraction coverage, assessment coverage, and promotion integrity.
+- [Adzuna Job Discovery](documentation/adzuna-job-discovery.md) — automated discovery, relevance filtering, detail-page enrichment, caching, and retry/backoff.
+
+These documents are the repository handoff for future agents. Mutable run counts and previous chat history are not architectural sources of truth.
+
 ## Kleos boundary
 
 Personal measurement and benchmarking are fully owned by the separate [`NeoLorenzo/Kleos`](https://github.com/NeoLorenzo/Kleos) application. Ariadne no longer exposes or contains the former GOAT Lab application surface.
