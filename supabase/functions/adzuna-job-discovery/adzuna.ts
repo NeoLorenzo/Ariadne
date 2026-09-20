@@ -43,6 +43,12 @@ export type AdzunaCandidateEvaluation = {
   negativeTitleSignals: string[];
 };
 
+export type AdzunaDescriptionEnrichmentDecision =
+  | { action: "fetch"; attemptCount: number }
+  | { action: "skip_full"; attemptCount: number }
+  | { action: "skip_unavailable"; attemptCount: number }
+  | { action: "skip_backoff"; attemptCount: number; nextRetryAt: string };
+
 const DEFAULT_THRESHOLD = 6;
 const MAX_SEARCHES_PER_RUN = 24;
 
@@ -692,6 +698,84 @@ export function extractMinimumExperienceYears(description: unknown) {
   return maximum;
 }
 
+export function getAdzunaDescriptionEnrichmentDecision(
+  sourcePayloadInput: unknown,
+  now = new Date()
+): AdzunaDescriptionEnrichmentDecision {
+  const payload = asRecord(sourcePayloadInput);
+  const attemptCount = nonNegativeInteger(payload.detail_enrichment_attempt_count);
+
+  if (
+    normalizeWhitespace(payload.description_completeness).toLowerCase() === "full" ||
+    normalizeWhitespace(payload.detail_enrichment_status).toLowerCase() === "full"
+  ) {
+    return { action: "skip_full", attemptCount };
+  }
+
+  const status = normalizeWhitespace(payload.detail_enrichment_status).toLowerCase();
+  if (status === "unavailable") {
+    return { action: "skip_unavailable", attemptCount };
+  }
+
+  if (status === "retry_later") {
+    const nextRetryAt = normalizeTimestamp(payload.detail_enrichment_next_retry_at);
+    if (nextRetryAt && Date.parse(nextRetryAt) > now.getTime()) {
+      return { action: "skip_backoff", attemptCount, nextRetryAt };
+    }
+  }
+
+  return { action: "fetch", attemptCount };
+}
+
+export function calculateAdzunaDescriptionRetryAt({
+  attemptCount = 0,
+  retryAfter = "",
+  now = new Date()
+}: {
+  attemptCount?: number;
+  retryAfter?: string;
+  now?: Date;
+}) {
+  const normalizedRetryAfter = normalizeWhitespace(retryAfter);
+  if (normalizedRetryAfter) {
+    const seconds = Number(normalizedRetryAfter);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      return new Date(now.getTime() + Math.min(seconds, 72 * 60 * 60) * 1000).toISOString();
+    }
+
+    const retryAt = Date.parse(normalizedRetryAfter);
+    if (Number.isFinite(retryAt) && retryAt > now.getTime()) {
+      return new Date(Math.min(retryAt, now.getTime() + 72 * 60 * 60 * 1000)).toISOString();
+    }
+  }
+
+  const normalizedAttemptCount = Math.max(0, Math.trunc(Number(attemptCount) || 0));
+  const backoffHours = Math.min(72, 6 * (2 ** Math.min(normalizedAttemptCount, 4)));
+  return new Date(now.getTime() + backoffHours * 60 * 60 * 1000).toISOString();
+}
+
+export function classifyAdzunaDetailHttpFailure(statusInput: unknown) {
+  const status = Number(statusInput);
+  if (status === 404 || status === 410) {
+    return {
+      status: "unavailable" as const,
+      reason: `http_${status}`
+    };
+  }
+
+  if (status === 408 || status === 425 || status === 429 || status >= 500) {
+    return {
+      status: "retry_later" as const,
+      reason: `http_${status}`
+    };
+  }
+
+  return {
+    status: "unavailable" as const,
+    reason: Number.isFinite(status) ? `http_${status}` : "http_error"
+  };
+}
+
 export function buildAdzunaDetailsUrl(externalIdInput: unknown) {
   const externalId = normalizeWhitespace(externalIdInput);
   if (!externalId) return "";
@@ -929,6 +1013,12 @@ function normalizeTimestamp(value: unknown) {
   const raw = normalizeWhitespace(value);
   if (!raw || Number.isNaN(Date.parse(raw))) return "";
   return new Date(raw).toISOString();
+}
+
+function nonNegativeInteger(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.trunc(parsed));
 }
 
 function finiteNumberOrNull(value: unknown) {
