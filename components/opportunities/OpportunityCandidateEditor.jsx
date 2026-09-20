@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DateInput, GhostButton, ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton, Select, TextArea, TextInput, useModalDialog } from "@/components/ui/AriadneUI";
-import { OPPORTUNITY_CANDIDATE_REVIEW_LABELS, OPPORTUNITY_CANDIDATE_SOURCE_LABELS, validateOpportunityCandidate } from "@/lib/opportunities/opportunityCandidateModel";
+import { OPPORTUNITY_CANDIDATE_REVIEW_LABELS, OPPORTUNITY_CANDIDATE_SOURCE_LABELS, isOpportunityCandidateDescriptionExcerpt, validateOpportunityCandidate } from "@/lib/opportunities/opportunityCandidateModel";
 import { OPPORTUNITY_TYPES, OPPORTUNITY_TYPE_LABELS } from "@/lib/opportunities/opportunityModel";
 import OpportunityRequirementPills from "./OpportunityRequirementPills";
 import OpportunityRequirementsEditor from "./OpportunityRequirementsEditor";
@@ -24,6 +24,7 @@ export default function OpportunityCandidateEditor({ isOpen, candidate, isBusy, 
   const accept = async () => { if (!isExisting || isReviewed || !validate()) return; const accepted = await onAccept(form); if (!accepted) setErrors((current) => ({ ...current, general: "The candidate could not be accepted." })); };
   const review = async (status) => { if (!isExisting || isReviewed) return; const accepted = await onReview(status, form.rejectionReason); if (!accepted) setErrors((current) => ({ ...current, general: "The review state could not be changed." })); };
   const assessmentCandidate = isExisting ? candidate : null;
+  const isDescriptionExcerpt = isOpportunityCandidateDescriptionExcerpt(candidate);
 
   return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="candidate-editor-title">
     <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close candidate editor" />
@@ -41,7 +42,7 @@ export default function OpportunityCandidateEditor({ isOpen, candidate, isBusy, 
           {assessmentCandidate?.standardizedRequirements?.length ? <div className={styles.fieldFull}><OpportunityRequirementPills opportunity={assessmentCandidate} assessments={assessments} editable showOverall onSetAssessment={onSetAssessment} onClearAssessment={onClearAssessment} /></div> : null}
           <OpportunityRequirementsEditor standardizedRequirements={form.standardizedRequirements} miscRequirements={form.miscRequirements} disabled={isReviewed} onChange={({ standardizedRequirements, miscRequirements }) => { setForm((current) => ({ ...current, standardizedRequirements, miscRequirements })); if (errors.standardizedRequirements || errors.general) setErrors((current) => ({ ...current, standardizedRequirements: undefined, general: undefined })); }} />
           {errors.standardizedRequirements ? <div className={styles.fieldFull}><p className={styles.fieldError}>{errors.standardizedRequirements}</p></div> : null}
-          <div className={styles.fieldFull}><label htmlFor="candidate-description">Description / notes</label><TextArea id="candidate-description" size="medium" rows={5} value={form.description} onChange={(event) => setField("description", event.target.value)} disabled={isReviewed} /></div>
+          <div className={styles.fieldFull}><label htmlFor="candidate-description">{isDescriptionExcerpt ? "Description excerpt from Adzuna" : "Description / notes"}</label><TextArea id="candidate-description" size="medium" rows={5} value={form.description} onChange={(event) => setField("description", event.target.value)} disabled={isReviewed} />{isDescriptionExcerpt ? <div className={styles.descriptionExcerptNotice}><span>Adzuna's search API provides a description snippet, not the complete advert. Missing requirements or details should be treated as unknown.</span>{candidate?.sourceUrl ? <a href={candidate.sourceUrl} target="_blank" rel="noreferrer">View full listing ↗</a> : null}</div> : null}</div>
           {isExisting && !isReviewed ? <div className={styles.fieldFull}><label htmlFor="candidate-rejection-reason">Review note (optional)</label><TextArea id="candidate-rejection-reason" size="small" rows={2} value={form.rejectionReason} onChange={(event) => setField("rejectionReason", event.target.value)} placeholder="Why reject or mark as duplicate…" /></div> : null}
         </div>
         {isReviewed && candidate.rejectionReason ? <p className={candidateStyles.reviewReason}><strong>Review note:</strong> {candidate.rejectionReason}</p> : null}{errors.general ? <p className={styles.formError}>{errors.general}</p> : null}
