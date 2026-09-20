@@ -5,8 +5,28 @@ import GitHubTaskReadOnlyGuard from "@/components/GitHubTaskReadOnlyGuard";
 import PwaRegistrar from "@/components/PwaRegistrar";
 
 export const metadata = {
+  metadataBase: new URL("https://ariadne.fabbrosystems.com"),
   title: "Ariadne",
   description: "Personal strategy, projects, tasks, and progress workspace",
+  alternates: {
+    canonical: "/"
+  },
+  robots: {
+    index: false,
+    follow: false
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Ariadne",
+    title: "Ariadne",
+    description: "Personal strategy, projects, tasks, and progress workspace",
+    url: "/"
+  },
+  twitter: {
+    card: "summary",
+    title: "Ariadne",
+    description: "Personal strategy, projects, tasks, and progress workspace"
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/icon-192.png",
