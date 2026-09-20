@@ -98,18 +98,17 @@ export function normalizeAdzunaJob(
   const created = normalizeTimestamp(raw.created);
   const observedAt = now.toISOString();
   const type = inferOpportunityType(title, description);
+  const location = asRecord(raw.location);
+  const locationArea = Array.isArray(location.area) ? location.area : [];
+  const category = asRecord(raw.category);
 
   const sourcePayload = compactObject({
     discovery_query: normalizeWhitespace(query),
     adzuna_id: sourceExternalId,
-    location: cleanText(asRecord(raw.location).display_name),
-    location_area: Array.isArray(asRecord(raw.location).area)
-      ? asRecord(raw.location).area
-          .map((value) => cleanText(value))
-          .filter(Boolean)
-      : [],
-    category: cleanText(asRecord(raw.category).label),
-    category_tag: cleanText(asRecord(raw.category).tag),
+    location: cleanText(location.display_name),
+    location_area: locationArea.map((value) => cleanText(value)).filter(Boolean),
+    category: cleanText(category.label),
+    category_tag: cleanText(category.tag),
     contract_type: cleanText(raw.contract_type),
     contract_time: cleanText(raw.contract_time),
     salary_min: finiteNumberOrNull(raw.salary_min),
