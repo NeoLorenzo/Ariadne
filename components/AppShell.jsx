@@ -12,7 +12,6 @@ import {
 } from "@/fabbro-design/components/application-sidebar/react/sidebar";
 import styles from "./AppShell.module.css";
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const PAGE_LABELS = {
   dashboard: "Dashboard",
   tasks: "Tasks",
@@ -55,7 +54,7 @@ function AppShellContents({
   return (
     <>
       <GitHubAppInstallationLinker />
-      <AriadneSidebar activeNavItem={activeNavItem} basePath={basePath} />
+      <AriadneSidebar activeNavItem={activeNavItem} />
 
       <SidebarInset className={styles.inset}>
         <header className={styles.utilityBar}>
@@ -69,7 +68,7 @@ function AppShellContents({
           <div className={styles.utilities}>
             <img
               className={styles.familyMark}
-              src={`${basePath}/brand/fabbro-mark.svg`}
+              src="/brand/fabbro-mark.svg"
               alt="Fabbro Systems"
             />
             <AuthPanel compact />
