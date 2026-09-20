@@ -96,6 +96,9 @@ describe("Adzuna discovery normalization", () => {
     expect(candidate.sourcePayload).toMatchObject({
       discovery_query: "research assistant",
       discovery_profile: "research-assistant",
+      description_is_excerpt: true,
+      description_completeness: "excerpt",
+      description_excerpt_source: "adzuna_search_api",
       location: "London, UK",
       category: "Scientific & QA Jobs",
       salary_min: 30000,
