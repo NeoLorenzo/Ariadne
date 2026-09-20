@@ -26,20 +26,20 @@ const NAV_ITEMS = [
   { key: "opportunities", href: "/opportunities", label: "Opportunities", icon: BriefcaseBusiness }
 ];
 
-export default function AriadneSidebar({ activeNavItem = "", basePath = "" }) {
+export default function AriadneSidebar({ activeNavItem = "" }) {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const compact = state === "collapsed" && !isMobile;
 
   return (
     <Sidebar collapsible="icon" aria-label="Ariadne primary navigation">
       <SidebarHeader className={styles.header}>
-        <a className={styles.brandLink} href={`${basePath}/`} aria-label="Ariadne home">
+        <a className={styles.brandLink} href="/" aria-label="Ariadne home">
           <img
             className={compact ? styles.brandMark : styles.brandLockup}
             src={
               compact
-                ? `${basePath}/brand/ariadne-mark.svg`
-                : `${basePath}/brand/ariadne-lockup.svg`
+                ? "/brand/ariadne-mark.svg"
+                : "/brand/ariadne-lockup.svg"
             }
             alt="Ariadne"
           />
@@ -54,7 +54,7 @@ export default function AriadneSidebar({ activeNavItem = "", basePath = "" }) {
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton
-                    href={`${basePath}${item.href}`}
+                    href={item.href}
                     icon={item.icon}
                     isActive={activeNavItem === item.key}
                     tooltip={item.label}
