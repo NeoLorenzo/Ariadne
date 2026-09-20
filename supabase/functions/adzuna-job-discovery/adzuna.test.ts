@@ -3,9 +3,12 @@ import {
   DEFAULT_ADZUNA_SEARCH_PROFILES,
   buildAdzunaDetailsUrl,
   buildAdzunaSearchUrl,
+  calculateAdzunaDescriptionRetryAt,
+  classifyAdzunaDetailHttpFailure,
   enrichAdzunaCandidateDescription,
   evaluateAdzunaCandidate,
   extractAdzunaDetailDescription,
+  getAdzunaDescriptionEnrichmentDecision,
   extractMinimumExperienceYears,
   isUsefulAdzunaDetailDescription,
   normalizeAdzunaJob,
@@ -191,6 +194,88 @@ describe("Adzuna detail-page description enrichment", () => {
       description_source: "adzuna_detail_page",
       description_detail_url: "https://www.adzuna.co.uk/jobs/details/12345",
       description_fetched_at: "2026-09-20T15:29:20.000Z"
+    });
+  });
+});
+
+describe("Adzuna detail enrichment state", () => {
+  const now = new Date("2026-09-20T16:00:00.000Z");
+
+  it("skips candidates that are already full or permanently unavailable", () => {
+    expect(getAdzunaDescriptionEnrichmentDecision({
+      description_completeness: "full",
+      detail_enrichment_attempt_count: 1
+    }, now)).toEqual({
+      action: "skip_full",
+      attemptCount: 1
+    });
+
+    expect(getAdzunaDescriptionEnrichmentDecision({
+      detail_enrichment_status: "unavailable",
+      detail_enrichment_attempt_count: 2
+    }, now)).toEqual({
+      action: "skip_unavailable",
+      attemptCount: 2
+    });
+  });
+
+  it("honors retry backoff and releases the candidate after the retry time", () => {
+    const payload = {
+      detail_enrichment_status: "retry_later",
+      detail_enrichment_attempt_count: 2,
+      detail_enrichment_next_retry_at: "2026-09-20T22:00:00.000Z"
+    };
+
+    expect(getAdzunaDescriptionEnrichmentDecision(payload, now)).toEqual({
+      action: "skip_backoff",
+      attemptCount: 2,
+      nextRetryAt: "2026-09-20T22:00:00.000Z"
+    });
+
+    expect(getAdzunaDescriptionEnrichmentDecision(
+      payload,
+      new Date("2026-09-20T22:00:01.000Z")
+    )).toEqual({
+      action: "fetch",
+      attemptCount: 2
+    });
+  });
+
+  it("uses exponential retry backoff capped at 72 hours", () => {
+    expect(calculateAdzunaDescriptionRetryAt({
+      attemptCount: 0,
+      now
+    })).toBe("2026-09-20T22:00:00.000Z");
+
+    expect(calculateAdzunaDescriptionRetryAt({
+      attemptCount: 2,
+      now
+    })).toBe("2026-09-21T16:00:00.000Z");
+
+    expect(calculateAdzunaDescriptionRetryAt({
+      attemptCount: 10,
+      now
+    })).toBe("2026-09-23T16:00:00.000Z");
+  });
+
+  it("respects Retry-After and classifies permanent vs transient HTTP failures", () => {
+    expect(calculateAdzunaDescriptionRetryAt({
+      attemptCount: 0,
+      retryAfter: "3600",
+      now
+    })).toBe("2026-09-20T17:00:00.000Z");
+
+    expect(classifyAdzunaDetailHttpFailure(404)).toEqual({
+      status: "unavailable",
+      reason: "http_404"
+    });
+    expect(classifyAdzunaDetailHttpFailure(429)).toEqual({
+      status: "retry_later",
+      reason: "http_429"
+    });
+    expect(classifyAdzunaDetailHttpFailure(503)).toEqual({
+      status: "retry_later",
+      reason: "http_503"
     });
   });
 });
