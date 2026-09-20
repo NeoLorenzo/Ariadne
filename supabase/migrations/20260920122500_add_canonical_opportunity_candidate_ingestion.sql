@@ -16,6 +16,8 @@ create or replace function public.ingest_opportunity_candidate(
   p_organization text default null,
   p_description text default null,
   p_requirements text default null,
+  p_standardized_requirements jsonb default '[]'::jsonb,
+  p_misc_requirements text default null,
   p_deadline date default null,
   p_start_date date default null,
   p_discovered_at timestamptz default now(),
@@ -36,7 +38,8 @@ declare
   normalized_organization text := nullif(regexp_replace(trim(coalesce(p_organization, '')), '\s+', ' ', 'g'), '');
   normalized_title text := regexp_replace(trim(coalesce(p_title, '')), '\s+', ' ', 'g');
   normalized_source_name text := regexp_replace(trim(coalesce(p_source_name, '')), '\s+', ' ', 'g');
-  normalized_requirements text := nullif(trim(coalesce(p_requirements, '')), '');
+  normalized_structured jsonb := coalesce(p_standardized_requirements, '[]'::jsonb);
+  normalized_requirements text := nullif(trim(coalesce(p_misc_requirements, p_requirements, '')), '');
   observed_at timestamptz := coalesce(p_last_seen_at, now());
   discovered_at_value timestamptz := coalesce(p_discovered_at, observed_at);
 begin
@@ -72,6 +75,10 @@ begin
 
   if length(trim(coalesce(p_content_hash, ''))) = 0 then
     raise exception 'content_hash is required' using errcode = '22023';
+  end if;
+
+  if jsonb_typeof(normalized_structured) <> 'array' then
+    raise exception 'Standardized requirements must be a JSON array' using errcode = '23514';
   end if;
 
   if normalized_source_url is not null and normalized_source_url !~* '^https?://' then
@@ -180,6 +187,8 @@ begin
     organization,
     description,
     requirements,
+    standardized_requirements,
+    misc_requirements,
     deadline,
     start_date,
     discovered_at,
@@ -201,6 +210,8 @@ begin
     normalized_organization,
     nullif(trim(coalesce(p_description, '')), ''),
     normalized_requirements,
+    normalized_structured,
+    normalized_requirements,
     p_deadline,
     p_start_date,
     discovered_at_value,
@@ -219,17 +230,17 @@ end;
 $$;
 
 revoke all on function public.ingest_opportunity_candidate(
-  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, date, date, timestamptz, timestamptz
+  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, jsonb, text, date, date, timestamptz, timestamptz
 ) from public;
 
 revoke all on function public.ingest_opportunity_candidate(
-  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, date, date, timestamptz, timestamptz
+  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, jsonb, text, date, date, timestamptz, timestamptz
 ) from anon;
 
 grant execute on function public.ingest_opportunity_candidate(
-  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, date, date, timestamptz, timestamptz
+  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, jsonb, text, date, date, timestamptz, timestamptz
 ) to authenticated;
 
 grant execute on function public.ingest_opportunity_candidate(
-  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, date, date, timestamptz, timestamptz
+  uuid, text, text, text, text, text, text, text, text, text, jsonb, text, text, text, jsonb, text, date, date, timestamptz, timestamptz
 ) to service_role;
