@@ -19,6 +19,10 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 
+const MAX_DESCRIPTION_ENRICHMENTS_PER_RUN = 8;
+const DESCRIPTION_ENRICHMENT_CONCURRENCY = 1;
+const DESCRIPTION_ENRICHMENT_DELAY_MS = 350;
+
 const FILTER_REASON_SET = new Set([
   "missing_title",
   "missing_external_id",
@@ -214,13 +218,17 @@ Deno.serve(async (request) => {
     }> = [];
     const descriptionEnrichment = {
       enabled: enrichDescriptions,
+      maxAttemptsPerRun: MAX_DESCRIPTION_ENRICHMENTS_PER_RUN,
       attempted: 0,
       enriched: 0,
       cachedFull: 0,
+      unavailable: 0,
       skippedReviewed: 0,
+      deferred: 0,
       failed: 0,
       errors: [] as Array<{ externalId: string; title: string; error: string }>
     };
+    const queuedCandidateIds = new Set<string>();
 
     for (const candidate of candidates) {
       try {
@@ -250,8 +258,13 @@ Deno.serve(async (request) => {
           continue;
         }
 
-        if (candidateId) {
-          enrichmentQueue.push({ candidateId, candidate });
+        if (candidateId && !queuedCandidateIds.has(candidateId)) {
+          queuedCandidateIds.add(candidateId);
+          if (enrichmentQueue.length < MAX_DESCRIPTION_ENRICHMENTS_PER_RUN) {
+            enrichmentQueue.push({ candidateId, candidate });
+          } else {
+            descriptionEnrichment.deferred += 1;
+          }
         }
       } catch (error) {
         ingestErrors.push({
@@ -265,9 +278,12 @@ Deno.serve(async (request) => {
     if (enrichDescriptions && enrichmentQueue.length) {
       const enrichmentResults = await mapWithConcurrency(
         enrichmentQueue,
-        6,
-        async ({ candidateId, candidate }) => {
+        DESCRIPTION_ENRICHMENT_CONCURRENCY,
+        async ({ candidateId, candidate }, index) => {
           descriptionEnrichment.attempted += 1;
+          if (index > 0) {
+            await delay(DESCRIPTION_ENRICHMENT_DELAY_MS);
+          }
           try {
             const detailUrl = buildAdzunaDetailsUrl(candidate.sourceExternalId);
             if (!detailUrl) throw new Error("Missing Adzuna detail URL.");
@@ -292,15 +308,41 @@ Deno.serve(async (request) => {
             );
 
             if (enriched === candidate) {
-              throw new Error("No sufficiently complete Adzuna detail description was found.");
+              return {
+                ok: true as const,
+                status: "unavailable" as const
+              };
             }
 
-            await persistCandidateDescriptionEnrichment(
+            const persisted = await persistCandidateDescriptionEnrichment(
               owner.userId,
               candidateId,
               enriched
             );
-            return { ok: true as const };
+            if (persisted?.updated === true) {
+              return {
+                ok: true as const,
+                status: "enriched" as const
+              };
+            }
+            if (persisted?.reason === "already_full") {
+              return {
+                ok: true as const,
+                status: "cached" as const
+              };
+            }
+            if (persisted?.reason === "reviewed") {
+              return {
+                ok: true as const,
+                status: "reviewed" as const
+              };
+            }
+            return {
+              ok: false as const,
+              externalId: candidate.sourceExternalId,
+              title: candidate.title,
+              error: `Description enrichment was not persisted (${String(persisted?.reason || "unknown")}).`
+            };
           } catch (error) {
             return {
               ok: false as const,
@@ -314,7 +356,10 @@ Deno.serve(async (request) => {
 
       for (const result of enrichmentResults) {
         if (result.ok) {
-          descriptionEnrichment.enriched += 1;
+          if (result.status === "enriched") descriptionEnrichment.enriched += 1;
+          if (result.status === "cached") descriptionEnrichment.cachedFull += 1;
+          if (result.status === "reviewed") descriptionEnrichment.skippedReviewed += 1;
+          if (result.status === "unavailable") descriptionEnrichment.unavailable += 1;
           continue;
         }
         descriptionEnrichment.failed += 1;
@@ -479,6 +524,10 @@ async function fetchWithTimeout(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function delay(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function mapWithConcurrency<T, R>(
