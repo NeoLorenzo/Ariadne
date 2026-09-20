@@ -1,7 +1,10 @@
 import {
   annotateCandidateEvaluation,
+  buildAdzunaDetailsUrl,
   buildAdzunaSearchUrl,
+  enrichAdzunaCandidateDescription,
   evaluateAdzunaCandidate,
+  extractAdzunaDetailDescription,
   normalizeAdzunaJob,
   normalizeRequestedSearchProfiles,
   type AdzunaCandidateEvaluation,
@@ -56,6 +59,9 @@ Deno.serve(async (request) => {
     const searchProfiles = normalizeRequestedSearchProfiles(body?.queries);
     const resultsPerQuery = clampInteger(body?.resultsPerQuery, 1, 25, 10);
     const dryRun = body?.dryRun === true;
+    const enrichDescriptions =
+      body?.enrichDescriptions === true ||
+      (!dryRun && body?.enrichDescriptions !== false);
 
     const appId = requiredEnv("ADZUNA_APP_ID");
     const appKey = requiredEnv("ADZUNA_APP_KEY");
@@ -188,6 +194,12 @@ Deno.serve(async (request) => {
         queryStats,
         queryErrors,
         examples: candidates.slice(0, 30).map(candidateSummary),
+        descriptionEnrichment: {
+          enabled: enrichDescriptions,
+          note: enrichDescriptions
+            ? "Dry-run enrichment is enabled explicitly."
+            : "Dry runs do not fetch detail pages unless enrichDescriptions=true."
+        },
         filteredExamples
       });
     }
@@ -196,6 +208,19 @@ Deno.serve(async (request) => {
     let refreshed = 0;
     const duplicateReasons = new Map<string, number>();
     const ingestErrors: Array<{ externalId: string; title: string; error: string }> = [];
+    const enrichmentQueue: Array<{
+      candidateId: string;
+      candidate: NormalizedAdzunaCandidate;
+    }> = [];
+    const descriptionEnrichment = {
+      enabled: enrichDescriptions,
+      attempted: 0,
+      enriched: 0,
+      cachedFull: 0,
+      skippedReviewed: 0,
+      failed: 0,
+      errors: [] as Array<{ externalId: string; title: string; error: string }>
+    };
 
     for (const candidate of candidates) {
       try {
@@ -207,12 +232,99 @@ Deno.serve(async (request) => {
           const reason = String(result?.duplicate_reason || "unknown");
           duplicateReasons.set(reason, (duplicateReasons.get(reason) || 0) + 1);
         }
+
+        if (!enrichDescriptions) continue;
+
+        const persisted = result?.candidate || {};
+        const persistedPayload = persisted?.source_payload || {};
+        const reviewStatus = String(persisted?.review_status || "");
+        const candidateId = String(persisted?.id || "").trim();
+
+        if (persistedPayload?.description_completeness === "full") {
+          descriptionEnrichment.cachedFull += 1;
+          continue;
+        }
+
+        if (reviewStatus && reviewStatus !== "pending") {
+          descriptionEnrichment.skippedReviewed += 1;
+          continue;
+        }
+
+        if (candidateId) {
+          enrichmentQueue.push({ candidateId, candidate });
+        }
       } catch (error) {
         ingestErrors.push({
           externalId: candidate.sourceExternalId,
           title: candidate.title,
           error: error instanceof Error ? error.message : "Candidate ingestion failed."
         });
+      }
+    }
+
+    if (enrichDescriptions && enrichmentQueue.length) {
+      const enrichmentResults = await mapWithConcurrency(
+        enrichmentQueue,
+        6,
+        async ({ candidateId, candidate }) => {
+          descriptionEnrichment.attempted += 1;
+          try {
+            const detailUrl = buildAdzunaDetailsUrl(candidate.sourceExternalId);
+            if (!detailUrl) throw new Error("Missing Adzuna detail URL.");
+
+            const response = await fetchWithTimeout(detailUrl, {
+              headers: {
+                Accept: "text/html,application/xhtml+xml",
+                "User-Agent": "Ariadne-Adzuna-Discovery/3.0"
+              }
+            }, 10000);
+
+            if (!response.ok) {
+              throw new Error(`Adzuna detail page returned HTTP ${response.status}.`);
+            }
+
+            const html = await response.text();
+            const detailDescription = extractAdzunaDetailDescription(html);
+            const enriched = enrichAdzunaCandidateDescription(
+              candidate,
+              detailDescription,
+              new Date()
+            );
+
+            if (enriched === candidate) {
+              throw new Error("No sufficiently complete Adzuna detail description was found.");
+            }
+
+            await persistCandidateDescriptionEnrichment(
+              owner.userId,
+              candidateId,
+              enriched
+            );
+            return { ok: true as const };
+          } catch (error) {
+            return {
+              ok: false as const,
+              externalId: candidate.sourceExternalId,
+              title: candidate.title,
+              error: error instanceof Error ? error.message : "Description enrichment failed."
+            };
+          }
+        }
+      );
+
+      for (const result of enrichmentResults) {
+        if (result.ok) {
+          descriptionEnrichment.enriched += 1;
+          continue;
+        }
+        descriptionEnrichment.failed += 1;
+        if (descriptionEnrichment.errors.length < 20) {
+          descriptionEnrichment.errors.push({
+            externalId: result.externalId,
+            title: result.title,
+            error: result.error
+          });
+        }
       }
     }
 
@@ -229,6 +341,7 @@ Deno.serve(async (request) => {
       duplicateReasons: Object.fromEntries(duplicateReasons),
       queryErrors,
       ingestErrors,
+      descriptionEnrichment,
       examples: candidates.slice(0, 20).map(candidateSummary),
       filteredExamples: filteredExamples.slice(0, 10)
     });
@@ -302,7 +415,9 @@ function candidateSummary(candidate: NormalizedAdzunaCandidate) {
     profile: candidate.sourcePayload?.discovery_profile || "",
     query: candidate.sourcePayload?.discovery_query || "",
     relevanceScore: Number(candidate.sourcePayload?.relevance_score || 0),
-    relevanceReasons: candidate.sourcePayload?.relevance_reasons || []
+    relevanceReasons: candidate.sourcePayload?.relevance_reasons || [],
+    descriptionCompleteness: candidate.sourcePayload?.description_completeness || "excerpt",
+    descriptionCharacters: candidate.description.length
   };
 }
 
@@ -330,6 +445,63 @@ async function ingestCandidate(userId: string, candidate: NormalizedAdzunaCandid
       p_last_seen_at: candidate.lastSeenAt
     })
   });
+}
+
+async function persistCandidateDescriptionEnrichment(
+  userId: string,
+  candidateId: string,
+  candidate: NormalizedAdzunaCandidate
+) {
+  return await adminJson("/rest/v1/rpc/enrich_opportunity_candidate_description", {
+    method: "POST",
+    body: JSON.stringify({
+      p_user_id: userId,
+      p_candidate_id: candidateId,
+      p_description: candidate.description,
+      p_source_payload_patch: candidate.sourcePayload || {},
+      p_content_hash: candidate.contentHash
+    })
+  });
+}
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  if (!items.length) return [];
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= items.length) return;
+      results[index] = await mapper(items[index], index);
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }
 
 async function getAuthorizedCronOwner(request: Request) {
