@@ -275,6 +275,29 @@ The enrichment mutation only upgrades **pending Adzuna candidates**. Already rev
 
 To avoid hammering Adzuna's public site, a normal scan attempts at most **8** detail-page fetches. They are issued sequentially with a small delay rather than as a large burst. Remaining excerpt candidates are deferred to later scans. This makes enrichment progressive and cached instead of repeatedly scraping the same pages.
 
+Detail-page enrichment is stateful. Ariadne stores these fields in `source_payload`:
+
+```json
+{
+  "detail_enrichment_status": "full | unavailable | retry_later",
+  "detail_enrichment_attempt_count": 1,
+  "detail_enrichment_last_attempted_at": "...",
+  "detail_enrichment_next_retry_at": "...",
+  "detail_enrichment_last_error": "...",
+  "detail_enrichment_unavailable_reason": "..."
+}
+```
+
+The state survives ordinary Adzuna API refreshes.
+
+- `full` candidates are cached and never fetched again.
+- `unavailable` candidates are skipped permanently for the current listing when the public detail page does not contain a materially fuller description, or returns a permanent HTTP response such as 404/410.
+- `retry_later` is used for transient failures such as timeouts, HTTP 429, or 5xx responses.
+- retry backoff starts at 6 hours and doubles with repeated failures up to a 72-hour cap; an Adzuna `Retry-After` header is respected when present.
+- once the retry timestamp has passed, the candidate becomes eligible for another bounded detail-page attempt.
+
+This prevents dead-end listings from repeatedly consuming the eight-request budget and allows the pending excerpt backlog to advance across scheduled scans.
+
 If the details request fails, the page structure changes, or the extracted text is not convincingly fuller than the API snippet, ingestion succeeds normally and the candidate remains marked as an excerpt.
 
 Dry runs do not fetch detail pages by default. Pass `"enrichDescriptions": true` explicitly to exercise detail-page extraction during a dry run.
