@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const isStaticExport = process.env.STATIC_EXPORT === "true";
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -14,7 +13,6 @@ const nextConfig = {
     unoptimized: true
   },
   poweredByHeader: false,
-  ...(basePath ? { basePath } : {}),
   ...(!isStaticExport
     ? {
         async headers() {
