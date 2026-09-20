@@ -19,6 +19,11 @@ deduplicate
       ↓
 public.ingest_opportunity_candidate(...)
       ↓
+if the persisted candidate is still pending and only has an excerpt:
+fetch https://www.adzuna.co.uk/jobs/details/{adzuna_id}
+      ↓
+extract <section class="adp-body"> and upgrade the candidate description
+      ↓
 Opportunity Candidate Inbox
       ↓
 existing review / promotion workflow
@@ -232,9 +237,7 @@ Rejected legacy records are tagged in `source_payload.legacy_v1_reconciliation` 
 
 ## Description completeness
 
-The standard Adzuna search API returns a description excerpt rather than the complete job advert.
-
-Every Adzuna candidate therefore stores:
+The standard Adzuna search API returns a description excerpt rather than the complete job advert. Search results therefore start with:
 
 ```json
 {
@@ -244,6 +247,34 @@ Every Adzuna candidate therefore stores:
 }
 ```
 
-The Candidate Inbox labels these fields as **Description excerpt from Adzuna**, warns that omitted requirements/details are unknown rather than absent, and links to the Adzuna listing for the complete advert.
+For relevant candidates that remain pending after canonical ingestion, the Edge Function performs a second-stage enrichment against the public Adzuna details page:
 
-Automated review logic must not infer that a requirement does not exist merely because it is absent from an Adzuna description excerpt.
+```text
+https://www.adzuna.co.uk/jobs/details/{adzuna_id}
+```
+
+The extractor reads the visible `<section class="adp-body">...</section>` content, removes markup, decodes HTML entities, and only accepts the result when it is materially longer than and consistent with the API excerpt.
+
+Successful enrichment stores:
+
+```json
+{
+  "api_description_excerpt": "original API snippet...",
+  "description_is_excerpt": false,
+  "description_completeness": "full",
+  "description_source": "adzuna_detail_page",
+  "description_detail_url": "https://www.adzuna.co.uk/jobs/details/...",
+  "description_fetched_at": "...",
+  "description_characters": 2048
+}
+```
+
+The original API excerpt is retained for provenance.
+
+The enrichment mutation only upgrades **pending Adzuna candidates**. Already reviewed candidates are not rewritten. Once a pending candidate has a full description, later scheduled API refreshes preserve the full text and provenance rather than downgrading it back to an excerpt, so the detail page is not fetched again on every scan.
+
+If the details request fails, the page structure changes, or the extracted text is not convincingly fuller than the API snippet, ingestion succeeds normally and the candidate remains marked as an excerpt.
+
+Dry runs do not fetch detail pages by default. Pass `"enrichDescriptions": true` explicitly to exercise detail-page extraction during a dry run.
+
+Automated review logic must continue to treat candidates marked `description_completeness = "excerpt"` as incomplete sources; candidates successfully upgraded to `"full"` may use the full Adzuna description as their source text.
