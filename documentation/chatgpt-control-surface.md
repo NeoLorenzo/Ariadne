@@ -78,6 +78,17 @@ Allowed project updates are limited to user-facing Ariadne metadata such as titl
 
 No Outcome Goal CRUD remains. No generic SQL mutation operation is added to Ariadne itself.
 
+### Opportunity Review
+
+The privileged ChatGPT surface also supports stateless Opportunity review through:
+
+- `chatgpt.upsert_opportunity_requirement_assessments(assessments)`
+- `chatgpt.accept_opportunity_candidate(...)`
+
+These mutations are only part of the review workflow. The canonical operating rules, source-completeness semantics, requirement-integrity rules, promotion standard, and reporting contract live in [Opportunity Review Agent](./opportunity-review-agent.md). The end-to-end subsystem architecture lives in [Opportunity System](./opportunity-system.md).
+
+A future agent should read those documents rather than infer review behavior from RPC signatures alone.
+
 ### Opportunity Applications
 
 Applications are stored separately from canonical Opportunities and always reference an existing Landscape Opportunity. The lifecycle is:
