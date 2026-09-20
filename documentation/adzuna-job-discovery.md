@@ -273,6 +273,8 @@ The original API excerpt is retained for provenance.
 
 The enrichment mutation only upgrades **pending Adzuna candidates**. Already reviewed candidates are not rewritten. Once a pending candidate has a full description, later scheduled API refreshes preserve the full text and provenance rather than downgrading it back to an excerpt, so the detail page is not fetched again on every scan.
 
+To avoid hammering Adzuna's public site, a normal scan attempts at most **8** detail-page fetches. They are issued sequentially with a small delay rather than as a large burst. Remaining excerpt candidates are deferred to later scans. This makes enrichment progressive and cached instead of repeatedly scraping the same pages.
+
 If the details request fails, the page structure changes, or the extracted text is not convincingly fuller than the API snippet, ingestion succeeds normally and the candidate remains marked as an excerpt.
 
 Dry runs do not fetch detail pages by default. Pass `"enrichDescriptions": true` explicitly to exercise detail-page extraction during a dry run.
