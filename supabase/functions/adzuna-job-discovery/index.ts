@@ -1,8 +1,11 @@
 import {
+  annotateCandidateEvaluation,
   buildAdzunaSearchUrl,
   evaluateAdzunaCandidate,
   normalizeAdzunaJob,
-  normalizeRequestedQueries,
+  normalizeRequestedSearchProfiles,
+  type AdzunaCandidateEvaluation,
+  type AdzunaSearchProfile,
   type NormalizedAdzunaCandidate
 } from "./adzuna.ts";
 
@@ -12,6 +15,26 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
+
+const FILTER_REASON_SET = new Set([
+  "missing_title",
+  "missing_external_id",
+  "missing_source_url",
+  "no_target_role_in_title",
+  "seniority_penalty",
+  "requires_5_plus_years",
+  "wrong_occupation",
+  "wrong_category",
+  "below_threshold"
+]);
+
+type QueryStats = Record<string, {
+  profileId: string;
+  family: string;
+  fetched: number;
+  kept: number;
+  filtered: number;
+}>;
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -28,7 +51,7 @@ Deno.serve(async (request) => {
     }
 
     const body = await request.json().catch(() => ({}));
-    const queries = normalizeRequestedQueries(body?.queries);
+    const searchProfiles = normalizeRequestedSearchProfiles(body?.queries);
     const resultsPerQuery = clampInteger(body?.resultsPerQuery, 1, 25, 10);
     const dryRun = body?.dryRun === true;
 
@@ -37,23 +60,41 @@ Deno.serve(async (request) => {
     const runStartedAt = new Date();
     const discovered = new Map<string, NormalizedAdzunaCandidate>();
     const filteredReasons = new Map<string, number>();
-    const queryErrors: Array<{ query: string; error: string }> = [];
+    const filteredExamples: Array<{
+      profileId: string;
+      query: string;
+      title: string;
+      organization: string;
+      score: number;
+      reasons: string[];
+    }> = [];
+    const queryErrors: Array<{ profileId: string; query: string; error: string }> = [];
+    const queryStats: QueryStats = {};
     let fetchedCount = 0;
     let filteredCount = 0;
 
-    for (const query of queries) {
+    for (const profile of searchProfiles) {
+      queryStats[profile.query] = {
+        profileId: profile.id,
+        family: profile.family,
+        fetched: 0,
+        kept: 0,
+        filtered: 0
+      };
+
       try {
         const response = await fetch(
           buildAdzunaSearchUrl({
             appId,
             appKey,
-            query,
+            query: profile.query,
+            whatExclude: profile.whatExclude,
             resultsPerPage: resultsPerQuery
           }),
           {
             headers: {
               Accept: "application/json",
-              "User-Agent": "Ariadne-Adzuna-Discovery/1.0"
+              "User-Agent": "Ariadne-Adzuna-Discovery/2.0"
             }
           }
         );
@@ -68,21 +109,36 @@ Deno.serve(async (request) => {
         const payload = await response.json();
         const results = Array.isArray(payload?.results) ? payload.results : [];
         fetchedCount += results.length;
+        queryStats[profile.query].fetched += results.length;
 
         for (const rawJob of results) {
-          const candidate = normalizeAdzunaJob(rawJob, {
-            query,
+          const normalized = normalizeAdzunaJob(rawJob, {
+            query: profile.query,
+            profileId: profile.id,
             now: runStartedAt
           });
-          const evaluation = evaluateAdzunaCandidate(candidate);
+          const evaluation = evaluateAdzunaCandidate(normalized, profile);
+          const candidate = annotateCandidateEvaluation(normalized, evaluation, profile);
+
           if (!evaluation.keep) {
             filteredCount += 1;
-            for (const reason of evaluation.reasons) {
-              filteredReasons.set(reason, (filteredReasons.get(reason) || 0) + 1);
+            queryStats[profile.query].filtered += 1;
+            countFilteredReasons(filteredReasons, evaluation);
+
+            if (filteredExamples.length < 30) {
+              filteredExamples.push({
+                profileId: profile.id,
+                query: profile.query,
+                title: candidate.title,
+                organization: candidate.organization,
+                score: evaluation.score,
+                reasons: rejectionReasons(evaluation)
+              });
             }
             continue;
           }
 
+          queryStats[profile.query].kept += 1;
           const identity = candidate.sourceExternalId || candidate.sourceUrl;
           if (!identity) continue;
 
@@ -92,17 +148,18 @@ Deno.serve(async (request) => {
             continue;
           }
 
-          discovered.set(identity, mergeDiscoveryQueries(existing, candidate));
+          discovered.set(identity, mergeDiscoveryEvidence(existing, candidate));
         }
       } catch (error) {
         queryErrors.push({
-          query,
+          profileId: profile.id,
+          query: profile.query,
           error: error instanceof Error ? error.message : "Unknown Adzuna error."
         });
       }
     }
 
-    if (queryErrors.length === queries.length) {
+    if (queryErrors.length === searchProfiles.length) {
       return jsonResponse(
         {
           error: "All Adzuna searches failed.",
@@ -112,17 +169,24 @@ Deno.serve(async (request) => {
       );
     }
 
-    const candidates = [...discovered.values()];
+    const candidates = [...discovered.values()].sort(
+      (left, right) =>
+        Number(right.sourcePayload?.relevance_score || 0) -
+        Number(left.sourcePayload?.relevance_score || 0)
+    );
+
     if (dryRun) {
       return jsonResponse({
         dryRun: true,
-        queries: queries.length,
+        searches: searchProfiles.length,
         fetched: fetchedCount,
         uniqueRelevant: candidates.length,
         filtered: filteredCount,
         filteredReasons: Object.fromEntries(filteredReasons),
+        queryStats,
         queryErrors,
-        examples: candidates.slice(0, 20).map(candidateSummary)
+        examples: candidates.slice(0, 30).map(candidateSummary),
+        filteredExamples
       });
     }
 
@@ -152,17 +216,19 @@ Deno.serve(async (request) => {
 
     return jsonResponse({
       dryRun: false,
-      queries: queries.length,
+      searches: searchProfiles.length,
       fetched: fetchedCount,
       uniqueRelevant: candidates.length,
       filtered: filteredCount,
       filteredReasons: Object.fromEntries(filteredReasons),
+      queryStats,
       created,
       refreshed,
       duplicateReasons: Object.fromEntries(duplicateReasons),
       queryErrors,
       ingestErrors,
-      examples: candidates.slice(0, 10).map(candidateSummary)
+      examples: candidates.slice(0, 20).map(candidateSummary),
+      filteredExamples: filteredExamples.slice(0, 10)
     });
   } catch (error) {
     console.error("adzuna-job-discovery failed", error);
@@ -175,22 +241,50 @@ Deno.serve(async (request) => {
   }
 });
 
-function mergeDiscoveryQueries(
+function countFilteredReasons(
+  accumulator: Map<string, number>,
+  evaluation: AdzunaCandidateEvaluation
+) {
+  for (const reason of rejectionReasons(evaluation)) {
+    accumulator.set(reason, (accumulator.get(reason) || 0) + 1);
+  }
+}
+
+function rejectionReasons(evaluation: AdzunaCandidateEvaluation) {
+  return evaluation.reasons.filter((reason) => FILTER_REASON_SET.has(reason));
+}
+
+function mergeDiscoveryEvidence(
   existing: NormalizedAdzunaCandidate,
   incoming: NormalizedAdzunaCandidate
 ) {
-  const existingQuery = String(existing.sourcePayload?.discovery_query || "").trim();
-  const incomingQuery = String(incoming.sourcePayload?.discovery_query || "").trim();
-  const previousQueries = Array.isArray(existing.sourcePayload?.discovery_queries)
-    ? existing.sourcePayload.discovery_queries.map(String)
-    : [];
-  const queries = [...new Set([...previousQueries, existingQuery, incomingQuery].filter(Boolean))];
+  const existingScore = Number(existing.sourcePayload?.relevance_score || 0);
+  const incomingScore = Number(incoming.sourcePayload?.relevance_score || 0);
+  const preferred = incomingScore > existingScore ? incoming : existing;
+  const secondary = preferred === incoming ? existing : incoming;
+
+  const queries = uniqueStrings([
+    ...arrayOfStrings(existing.sourcePayload?.discovery_queries),
+    existing.sourcePayload?.discovery_query,
+    ...arrayOfStrings(incoming.sourcePayload?.discovery_queries),
+    incoming.sourcePayload?.discovery_query
+  ]);
+
+  const profiles = uniqueStrings([
+    ...arrayOfStrings(existing.sourcePayload?.discovery_profiles),
+    existing.sourcePayload?.discovery_profile,
+    ...arrayOfStrings(incoming.sourcePayload?.discovery_profiles),
+    incoming.sourcePayload?.discovery_profile
+  ]);
 
   return {
-    ...existing,
+    ...preferred,
     sourcePayload: {
-      ...existing.sourcePayload,
-      discovery_queries: queries
+      ...secondary.sourcePayload,
+      ...preferred.sourcePayload,
+      discovery_queries: queries,
+      discovery_profiles: profiles,
+      relevance_score: Math.max(existingScore, incomingScore)
     }
   };
 }
@@ -202,7 +296,11 @@ function candidateSummary(candidate: NormalizedAdzunaCandidate) {
     organization: candidate.organization,
     type: candidate.type,
     sourceUrl: candidate.sourceUrl,
-    location: candidate.sourcePayload?.location || ""
+    location: candidate.sourcePayload?.location || "",
+    profile: candidate.sourcePayload?.discovery_profile || "",
+    query: candidate.sourcePayload?.discovery_query || "",
+    relevanceScore: Number(candidate.sourcePayload?.relevance_score || 0),
+    relevanceReasons: candidate.sourcePayload?.relevance_reasons || []
   };
 }
 
@@ -281,6 +379,14 @@ async function adminJson(path: string, init: RequestInit = {}) {
   }
   if (response.status === 204) return null;
   return await response.json();
+}
+
+function arrayOfStrings(value: unknown) {
+  return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+}
+
+function uniqueStrings(values: unknown[]) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
 function clampInteger(value: unknown, min: number, max: number, fallback: number) {
