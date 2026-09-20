@@ -84,6 +84,28 @@
   flex: 1;
 }
 
+.discoverButton {
+  min-height: 2.35rem;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  border-radius: 0.65rem;
+  background: rgba(15, 23, 42, 0.58);
+  color: #bae6fd;
+  padding: 0.42rem 0.72rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.discoverButton:hover:not(:disabled) {
+  background: rgba(14, 116, 144, 0.2);
+}
+
+.discoverButton:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+
 .addButton {
   min-width: 2.5rem;
   min-height: 2.35rem;
