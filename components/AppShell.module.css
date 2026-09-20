@@ -1,0 +1,81 @@
+.inset {
+  --ariadne-utility-height: 3.55rem;
+  min-width: 0;
+}
+
+.utilityBar {
+  position: sticky;
+  top: 0;
+  z-index: 130;
+  display: flex;
+  min-height: var(--ariadne-utility-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fs-space-4);
+  padding: 0 var(--fs-space-4);
+  border-bottom: var(--fs-border-width) solid var(--fs-color-border);
+  background: color-mix(in srgb, var(--fs-color-bg) 94%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.context,
+.utilities {
+  display: flex;
+  align-items: center;
+}
+
+.context {
+  min-width: 0;
+  gap: var(--fs-space-3);
+}
+
+.utilities {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: var(--fs-space-3);
+}
+
+.pageLabel {
+  overflow: hidden;
+  color: var(--fs-color-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.familyMark {
+  display: block;
+  width: var(--fs-family-mark-size);
+  height: var(--fs-family-mark-size);
+  object-fit: contain;
+}
+
+.workspace {
+  height: calc(100dvh - var(--ariadne-utility-height));
+  min-height: 0;
+  padding: 2rem;
+  overflow: auto;
+  background: #07090f;
+}
+
+.workspace :global(.page-content) {
+  min-width: 0;
+  min-height: 100%;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .utilityBar {
+    padding-inline: var(--fs-space-3);
+  }
+
+  .pageLabel {
+    max-width: 10rem;
+  }
+}
