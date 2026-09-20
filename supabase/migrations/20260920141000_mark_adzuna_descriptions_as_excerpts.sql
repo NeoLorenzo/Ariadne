@@ -12,6 +12,6 @@ set
 where lower(source_name) = 'adzuna'
   and (
     coalesce(source_payload->>'description_completeness', '') <> 'excerpt'
-    or coalesce((source_payload->>'description_is_excerpt')::boolean, false) is not true
+    or coalesce(source_payload->>'description_is_excerpt', '') <> 'true'
     or coalesce(source_payload->>'description_excerpt_source', '') <> 'adzuna_search_api'
   );
