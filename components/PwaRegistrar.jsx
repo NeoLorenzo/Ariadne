@@ -8,10 +8,7 @@ export default function PwaRegistrar() {
       return;
     }
 
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-    const swPath = `${basePath}/sw.js`;
-
-    navigator.serviceWorker.register(swPath).catch(() => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
       // Ignore service worker registration failures.
     });
   }, []);
