@@ -2,6 +2,8 @@
 
 Ariadne's automated job-discovery source is Adzuna.
 
+For the end-to-end Candidate Inbox → enrichment → requirement assessment → review → Landscape architecture, start with [Opportunity System](./opportunity-system.md).
+
 This integration is intentionally limited to Adzuna. It does not scrape LinkedIn, employer sites, ATS boards, or other aggregators.
 
 ## Flow
