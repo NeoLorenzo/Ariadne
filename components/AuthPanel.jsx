@@ -47,10 +47,9 @@ export default function AuthPanel({ compact = false }) {
     setIsBusy(true);
     setStatus("");
     try {
-      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
       const redirectTo =
         typeof window !== "undefined"
-          ? `${window.location.origin}${basePath || ""}/`
+          ? `${window.location.origin}/`
           : undefined;
 
       const { error } = await supabase.auth.signInWithOAuth({
