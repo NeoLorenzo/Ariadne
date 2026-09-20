@@ -692,6 +692,140 @@ export function extractMinimumExperienceYears(description: unknown) {
   return maximum;
 }
 
+export function buildAdzunaDetailsUrl(externalIdInput: unknown) {
+  const externalId = normalizeWhitespace(externalIdInput);
+  if (!externalId) return "";
+  return `https://www.adzuna.co.uk/jobs/details/${encodeURIComponent(externalId)}`;
+}
+
+export function extractAdzunaDetailDescription(htmlInput: unknown) {
+  const html = String(htmlInput ?? "");
+  if (!html) return "";
+
+  const match = html.match(
+    /<section\b[^>]*class=["'][^"']*\badp-body\b[^"']*["'][^>]*>([\s\S]*?)<\/section>/i
+  );
+  if (!match?.[1]) return "";
+
+  return cleanAdzunaDescriptionHtml(match[1]);
+}
+
+export function isUsefulAdzunaDetailDescription(
+  detailInput: unknown,
+  excerptInput: unknown
+) {
+  const detail = normalizeWhitespace(detailInput);
+  const excerpt = normalizeWhitespace(excerptInput);
+  if (!detail) return false;
+
+  const minimumLength = Math.max(300, excerpt.length + 50);
+  if (detail.length < minimumLength) return false;
+
+  if (excerpt.length >= 80) {
+    const excerptPrefix = normalizeForMatch(excerpt.slice(0, 140));
+    const normalizedDetail = normalizeForMatch(detail);
+    if (excerptPrefix && !normalizedDetail.includes(excerptPrefix)) return false;
+  }
+
+  return true;
+}
+
+export function enrichAdzunaCandidateDescription(
+  candidate: NormalizedAdzunaCandidate,
+  detailDescriptionInput: unknown,
+  fetchedAt = new Date()
+): NormalizedAdzunaCandidate {
+  const detailDescription = cleanMultilineText(detailDescriptionInput);
+  if (!isUsefulAdzunaDetailDescription(detailDescription, candidate.description)) {
+    return candidate;
+  }
+
+  const apiExcerpt = candidate.description;
+  const detailUrl = buildAdzunaDetailsUrl(candidate.sourceExternalId);
+  const enriched = {
+    ...candidate,
+    type: inferOpportunityType(candidate.title, detailDescription),
+    description: detailDescription,
+    sourcePayload: {
+      ...candidate.sourcePayload,
+      api_description_excerpt: apiExcerpt,
+      description_is_excerpt: false,
+      description_completeness: "full",
+      description_source: "adzuna_detail_page",
+      description_detail_url: detailUrl,
+      description_fetched_at: fetchedAt.toISOString(),
+      description_characters: detailDescription.length
+    }
+  };
+
+  return {
+    ...enriched,
+    contentHash: makeCandidateFingerprint(enriched)
+  };
+}
+
+function cleanAdzunaDescriptionHtml(html: string) {
+  return cleanMultilineText(
+    decodeHtmlEntities(
+      html
+        .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<li\b[^>]*>/gi, "\n- ")
+        .replace(/<\/li>/gi, "\n")
+        .replace(/<\/(p|ul|ol|div|h[1-6])>/gi, "\n")
+        .replace(/<[^>]+>/g, " ")
+    )
+  );
+}
+
+function cleanMultilineText(value: unknown) {
+  return String(value ?? "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/[\t ]+/g, " ").trim())
+    .filter((line, index, lines) => line || (index > 0 && lines[index - 1]))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function decodeHtmlEntities(value: string) {
+  const named: Record<string, string> = {
+    amp: "&",
+    apos: "'",
+    quot: '"',
+    lt: "<",
+    gt: ">",
+    nbsp: " ",
+    pound: "£",
+    euro: "€",
+    ndash: "–",
+    mdash: "—",
+    lsquo: "‘",
+    rsquo: "’",
+    ldquo: "“",
+    rdquo: "”",
+    hellip: "…"
+  };
+
+  return value.replace(
+    /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
+    (entity, code: string) => {
+      const normalized = code.toLowerCase();
+      if (normalized.startsWith("#x")) {
+        const parsed = Number.parseInt(normalized.slice(2), 16);
+        return Number.isFinite(parsed) ? String.fromCodePoint(parsed) : entity;
+      }
+      if (normalized.startsWith("#")) {
+        const parsed = Number.parseInt(normalized.slice(1), 10);
+        return Number.isFinite(parsed) ? String.fromCodePoint(parsed) : entity;
+      }
+      return named[normalized] ?? entity;
+    }
+  );
+}
+
 function meaningfulQuerySignals(query: string) {
   const stopWords = new Set([
     "and",
