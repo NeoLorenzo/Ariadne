@@ -49,11 +49,29 @@ export default function OpportunityCandidateInbox({ onViewChange, onEditorOpenCh
   const setAssessment = async (requirementId, status) => { if (!selectedCandidate?.id || !userId) return; try { await setManualAssessment({ entityId: selectedCandidate.id, requirementId, status }); setStatusTone("neutral"); setStatusMessage("Eligibility assessment updated."); } catch { setStatusTone("error"); setStatusMessage("Eligibility assessment could not be saved."); } };
   const clearAssessment = async (requirementId) => { if (!selectedCandidate?.id || !userId) return; try { await clearManualAssessment({ entityId: selectedCandidate.id, requirementId }); setStatusTone("neutral"); setStatusMessage("Manual override cleared; AI assessment will be used when available."); } catch { setStatusTone("error"); setStatusMessage("Manual eligibility override could not be cleared."); } };
   const retryCloud = async () => { if (!userId || isBusy) return; setIsBusy(true); try { const state = await refresh(userId); setStatusTone(state.cloudAvailable ? "neutral" : "error"); setStatusMessage(state.cloudAvailable ? "Candidate inbox refreshed." : "Cloud is still unavailable. Showing cached candidates."); } finally { setIsBusy(false); } };
+  const runAdzunaDiscovery = async () => {
+    if (!supabase || !userId || isBusy) return;
+    setIsBusy(true);
+    setStatusMessage("");
+    try {
+      const { data, error } = await supabase.functions.invoke("adzuna-job-discovery", { body: {} });
+      if (error) throw error;
+      const state = await refresh(userId);
+      setCloudAvailable(state.cloudAvailable);
+      setStatusTone("neutral");
+      setStatusMessage(`Adzuna scan complete: ${Number(data?.created || 0)} new, ${Number(data?.refreshed || 0)} refreshed, ${Number(data?.filtered || 0)} filtered.`);
+    } catch (error) {
+      setStatusTone("error");
+      setStatusMessage(`Adzuna scan failed${error?.message ? `: ${error.message}` : "."}`);
+    } finally {
+      setIsBusy(false);
+    }
+  };
 
   const hasFilters = Boolean(search.trim()) || typeFilter !== "all" || statusFilter !== "pending"; const emptyMessage = candidates.length === 0 ? "No candidates yet. Automated sources will arrive here for review; you can also add a manual candidate." : hasFilters ? "No candidates match these filters." : "No pending candidates.";
   return <>
     <section className={styles.workspace}><section className={styles.panel}>
-      <div className={styles.toolbar}><div className={styles.headingGroup}><h2 className={styles.title}>Opportunity Landscape</h2><span className={styles.count}>{filteredCandidates.length}</span><span className={`${styles.syncBadge}${cloudAvailable ? "" : ` ${styles.syncConflict}`}`}>{cloudAvailable ? `${pendingCount} pending` : "Cached / offline"}</span></div><span className={styles.toolbarSpacer} /><button type="button" className={styles.addButton} onClick={openAdd} aria-label="Add candidate" title="Add candidate">+</button></div>
+      <div className={styles.toolbar}><div className={styles.headingGroup}><h2 className={styles.title}>Opportunity Landscape</h2><span className={styles.count}>{filteredCandidates.length}</span><span className={`${styles.syncBadge}${cloudAvailable ? "" : ` ${styles.syncConflict}`}`}>{cloudAvailable ? `${pendingCount} pending` : "Cached / offline"}</span></div><span className={styles.toolbarSpacer} /><button type="button" className={styles.discoverButton} onClick={runAdzunaDiscovery} disabled={!userId || isBusy || !cloudAvailable} title="Search Adzuna and add new results to the Candidate Inbox">{isBusy ? "Working…" : "Scan Adzuna"}</button><button type="button" className={styles.addButton} onClick={openAdd} aria-label="Add candidate" title="Add candidate">+</button></div>
       <OpportunityLandscapeTabs activeView="inbox" onChange={onViewChange} />
       <div className={styles.filters}><input type="search" className={styles.control} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candidates…" aria-label="Search candidates" /><select className={styles.control} value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} aria-label="Filter candidate type"><option value="all">All types</option>{OPPORTUNITY_TYPES.map((type) => <option key={type} value={type}>{OPPORTUNITY_TYPE_LABELS[type]}</option>)}</select><select className={styles.control} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter review status"><option value="all">All statuses</option>{OPPORTUNITY_CANDIDATE_REVIEW_STATUSES.map((status) => <option key={status} value={status}>{OPPORTUNITY_CANDIDATE_REVIEW_LABELS[status]}</option>)}</select></div>
       {!cloudAvailable || statusMessage || assessmentError ? <div className={`${styles.statusBar}${statusTone === "error" || !cloudAvailable || assessmentError ? ` ${styles.statusBarError}` : ""}`} role="status"><span>{statusMessage || (assessmentError ? "Eligibility assessments could not be loaded." : "Cloud unavailable. Cached candidates are readable; review changes are disabled until reconnection.")}</span>{!cloudAvailable ? <button type="button" className={styles.retryButton} onClick={retryCloud} disabled={isBusy}>Retry</button> : null}</div> : null}
