@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_ADZUNA_SEARCH_PROFILES,
+  buildAdzunaDetailsUrl,
   buildAdzunaSearchUrl,
+  enrichAdzunaCandidateDescription,
   evaluateAdzunaCandidate,
+  extractAdzunaDetailDescription,
   extractMinimumExperienceYears,
+  isUsefulAdzunaDetailDescription,
   normalizeAdzunaJob,
   normalizeRequestedSearchProfiles,
   type AdzunaSearchProfile
@@ -114,6 +118,80 @@ describe("Adzuna discovery normalization", () => {
     });
 
     expect(candidate.type).toBe("internship");
+  });
+});
+
+describe("Adzuna detail-page description enrichment", () => {
+  const detailHtml = `
+    <html>
+      <body>
+        <section class="adp-body mx-4 mb-4 text-sm">
+          <p>Support policy research and quantitative analysis for a growing institute.</p>
+          <p><strong>Responsibilities:</strong></p>
+          <ul>
+            <li><p>Produce research briefings &amp; policy analysis.</p></li>
+            <li><p>Work with senior researchers.</p></li>
+          </ul>
+          <p><strong>Requirements:</strong></p>
+          <ul>
+            <li><p>Excellent written English.</p></li>
+            <li><p>Strong research skills and attention to detail.</p></li>
+          </ul>
+          <p>This is a deliberately longer fixture so the enrichment guard accepts it as a full description rather than a search snippet. It contains enough additional detail to exceed the excerpt by more than fifty characters.</p>
+        </section>
+      </body>
+    </html>
+  `;
+
+  it("builds a stable Adzuna details URL from the external id", () => {
+    expect(buildAdzunaDetailsUrl("5889029805")).toBe(
+      "https://www.adzuna.co.uk/jobs/details/5889029805"
+    );
+  });
+
+  it("extracts and cleans the visible adp-body description", () => {
+    const extracted = extractAdzunaDetailDescription(detailHtml);
+
+    expect(extracted).toContain("Responsibilities:");
+    expect(extracted).toContain("- Produce research briefings & policy analysis.");
+    expect(extracted).toContain("Requirements:");
+    expect(extracted).not.toContain("<p>");
+  });
+
+  it("only accepts detail-page text that is materially fuller than the API excerpt", () => {
+    const excerpt = "Support policy research and quantitative analysis for a growing institute.";
+    const full = extractAdzunaDetailDescription(detailHtml);
+
+    expect(isUsefulAdzunaDetailDescription(full, excerpt)).toBe(true);
+    expect(isUsefulAdzunaDetailDescription(excerpt, excerpt)).toBe(false);
+  });
+
+  it("replaces the excerpt, preserves it as provenance, and recomputes the fingerprint", () => {
+    const candidate = normalizeAdzunaJob(sampleAdzunaJob({
+      description: "Support policy research and quantitative analysis for a growing institute."
+    }), {
+      now: new Date("2026-09-20T12:00:00.000Z"),
+      randomUUID: () => "detail-id"
+    });
+    const originalHash = candidate.contentHash;
+    const full = extractAdzunaDetailDescription(detailHtml);
+
+    const enriched = enrichAdzunaCandidateDescription(
+      candidate,
+      full,
+      new Date("2026-09-20T15:29:20.000Z")
+    );
+
+    expect(enriched.description).toBe(full);
+    expect(enriched.contentHash).not.toBe(originalHash);
+    expect(enriched.sourcePayload).toMatchObject({
+      api_description_excerpt: "Support policy research and quantitative analysis for a growing institute.",
+      description_is_excerpt: false,
+      description_completeness: "full",
+      description_source: "adzuna_detail_page",
+      description_detail_url: "https://www.adzuna.co.uk/jobs/details/12345",
+      description_fetched_at: "2026-09-20T15:29:20.000Z"
+    });
   });
 });
 
