@@ -6,7 +6,7 @@ Ariadne is a Fabbro Systems product. Ariadne owns strategy, priorities, opportun
 
 ## Fabbro Design System adoption
 
-Ariadne adopts **Fabbro Design System 0.2.0** and **Fabbro Application Sidebar 1.0.0**.
+Ariadne adopts **Fabbro Design System 0.3.0**, **Fabbro Public Shell 1.0.0**, and **Fabbro Application Sidebar 1.0.0**.
 
 The vendored upstream snapshot lives in `fabbro-design/`.
 
@@ -28,6 +28,14 @@ Do not independently fork family-level components or visual rules.
 - Accent: `#0088FF`
 - Shared type family: Inter
 - Family endorsement: standalone Fabbro Systems mark
+
+## Public shell
+
+Signed-out Ariadne surfaces must implement Fabbro Public Shell 1.0.0.
+
+Ariadne owns the public navigation labels, product-specific explanatory sections, and synthetic product visuals. Fabbro owns the public frame, header grid, lockup sizes, hero/kicker typography, control geometry, focus treatment, responsive gutters, and footer geometry.
+
+The public surface must not render or initialize private owner data. Authentication opens the existing private application.
 
 ## Application shell
 
