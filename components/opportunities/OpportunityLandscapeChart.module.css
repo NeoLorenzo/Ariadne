@@ -50,62 +50,9 @@
 }
 
 .chart {
-  display: block;
   width: 100%;
-  min-width: 42rem;
-  height: auto;
-  aspect-ratio: 1000 / 560;
-}
-
-.quadrantBackground {
-  fill: rgba(15, 23, 42, 0.25);
-}
-
-.quadrantPrime {
-  fill: rgba(0, 136, 255, 0.075);
-}
-
-.quadrantBuild {
-  fill: rgba(0, 136, 255, 0.028);
-}
-
-.quadrantAccessible {
-  fill: rgba(148, 163, 184, 0.025);
-}
-
-.gridLine {
-  stroke: rgba(100, 116, 139, 0.18);
-  stroke-width: 1;
-}
-
-.midline {
-  stroke: rgba(148, 163, 184, 0.34);
-  stroke-width: 1;
-  stroke-dasharray: 5 6;
-}
-
-.tickLabel {
-  fill: #64748b;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.axisLabel {
-  fill: #94a3b8;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.quadrantLabel,
-.quadrantLabelStrong {
-  fill: rgba(148, 163, 184, 0.46);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-}
-
-.quadrantLabelStrong {
-  fill: rgba(0, 136, 255, 0.58);
+  height: clamp(25rem, 48vh, 34rem);
+  min-width: 0;
 }
 
 .pointGroup {
@@ -143,6 +90,57 @@
   opacity: 0.46;
 }
 
+.tooltip {
+  min-width: 13rem;
+  max-width: 20rem;
+  border: 1px solid rgba(100, 116, 139, 0.48);
+  border-radius: 0.65rem;
+  background: rgba(8, 11, 17, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  padding: 0.7rem 0.78rem;
+}
+
+.tooltipTitle {
+  color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.tooltipOrganization {
+  margin-top: 0.15rem;
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.tooltipScores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-top: 0.68rem;
+  border-top: 1px solid rgba(100, 116, 139, 0.22);
+  padding-top: 0.58rem;
+}
+
+.tooltipScores span {
+  display: grid;
+  gap: 0.08rem;
+  color: #7f8da0;
+  font-size: 0.64rem;
+  line-height: 1.25;
+}
+
+.tooltipScores strong {
+  color: #e0f2fe;
+  font-size: 0.88rem;
+}
+
+.tooltipNote {
+  margin-top: 0.55rem;
+  color: #526173;
+  font-size: 0.6rem;
+}
+
 .footer {
   justify-content: space-between;
   margin-top: 0.6rem;
@@ -168,7 +166,8 @@
   }
 
   .chart {
-    width: 42rem;
+    width: 44rem;
+    height: 27rem;
   }
 
   .footer {
