@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AriadnePublicSite from "@/components/AriadnePublicSite";
 import { isAuthorizedAppUser } from "@/lib/auth/access";
 import { clearLocalPrivateData } from "@/lib/auth/privateLocalData";
 import { supabase } from "@/lib/supabase/client";
@@ -20,9 +21,7 @@ export default function AppAccessGate({ children }) {
     let isMounted = true;
 
     const applyUser = (user) => {
-      if (!isMounted) {
-        return;
-      }
+      if (!isMounted) return;
 
       if (isAuthorizedAppUser(user)) {
         setAccessState("authorized");
@@ -39,18 +38,14 @@ export default function AppAccessGate({ children }) {
       .then(({ data, error }) => {
         if (error) {
           clearLocalPrivateData();
-          if (isMounted) {
-            setAccessState("signed-out");
-          }
+          if (isMounted) setAccessState("signed-out");
           return;
         }
         applyUser(data?.user || null);
       })
       .catch(() => {
         clearLocalPrivateData();
-        if (isMounted) {
-          setAccessState("unavailable");
-        }
+        if (isMounted) setAccessState("unavailable");
       });
 
     const {
@@ -66,18 +61,24 @@ export default function AppAccessGate({ children }) {
   }, []);
 
   const signIn = async () => {
-    if (!supabase || isBusy) {
-      return;
-    }
+    if (!supabase || isBusy) return;
 
     setIsBusy(true);
     setMessage("");
+    clearLocalPrivateData();
+
     try {
+      if (accessState === "denied") {
+        await supabase.auth.signOut();
+        setAccessState("signed-out");
+      }
+
       const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
       const redirectTo =
         typeof window === "undefined"
           ? undefined
           : `${window.location.origin}${basePath || ""}/`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -87,6 +88,7 @@ export default function AppAccessGate({ children }) {
           }
         }
       });
+
       if (error) {
         setMessage("Sign-in could not be started.");
       }
@@ -97,64 +99,27 @@ export default function AppAccessGate({ children }) {
     }
   };
 
-  const signOut = async () => {
-    if (!supabase || isBusy) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-    clearLocalPrivateData();
-    try {
-      await supabase.auth.signOut();
-      setAccessState("signed-out");
-    } catch {
-      setMessage("Sign-out failed. Reload this page before trying again.");
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
   if (accessState === "authorized") {
     return children;
   }
 
-  if (accessState === "checking") {
-    return (
-      <main className="access-gate" aria-busy="true">
-        <p className="access-gate-status">Checking access...</p>
-      </main>
-    );
-  }
-
   const isDenied = accessState === "denied";
   const isUnavailable = accessState === "unavailable";
+  const authMessage =
+    message ||
+    (isDenied
+      ? "This Google account is not authorized to use the private Ariadne workspace. Choose another account to continue."
+      : isUnavailable
+        ? "Secure sign-in is currently unavailable. The public Ariadne surface remains available."
+        : "");
 
   return (
-    <main className="access-gate">
-      <section className="access-gate-panel" aria-labelledby="access-gate-title">
-        <div className="access-gate-mark" aria-hidden="true">A</div>
-        <h1 id="access-gate-title">
-          {isDenied ? "Access denied" : isUnavailable ? "Access unavailable" : "Sign in"}
-        </h1>
-        <p>
-          {isDenied
-            ? "This Google account is not authorized to use this workspace."
-            : isUnavailable
-              ? "Secure sign-in is currently unavailable."
-              : "Authentication is required to continue."}
-        </p>
-        {isDenied ? (
-          <button type="button" className="access-gate-button" onClick={signOut} disabled={isBusy}>
-            {isBusy ? "Signing out..." : "Use another account"}
-          </button>
-        ) : !isUnavailable ? (
-          <button type="button" className="access-gate-button" onClick={signIn} disabled={isBusy}>
-            {isBusy ? "Opening sign-in..." : "Sign in with Google"}
-          </button>
-        ) : null}
-        {message ? <p className="access-gate-message" role="status">{message}</p> : null}
-      </section>
-    </main>
+    <AriadnePublicSite
+      onSignIn={signIn}
+      isSigningIn={isBusy}
+      signInAvailable={!isUnavailable}
+      signInLabel={isDenied ? "Use Another Account" : "Sign In"}
+      authMessage={authMessage}
+    />
   );
 }
