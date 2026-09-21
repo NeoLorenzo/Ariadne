@@ -6,6 +6,7 @@ import OpportunityApplicationEditor from "@/components/opportunities/Opportunity
 import OpportunityApplicationTable from "@/components/opportunities/OpportunityApplicationTable";
 import OpportunityCandidateInbox from "@/components/opportunities/OpportunityCandidateInbox";
 import OpportunityEditor from "@/components/opportunities/OpportunityEditor";
+import OpportunityLandscapeChart from "@/components/opportunities/OpportunityLandscapeChart";
 import OpportunityLandscapeTabs from "@/components/opportunities/OpportunityLandscapeTabs";
 import OpportunityTable from "@/components/opportunities/OpportunityTable";
 import { isApplicationActive, OPPORTUNITY_APPLICATION_STATUSES, OPPORTUNITY_APPLICATION_STATUS_LABELS, sortOpportunityApplications } from "@/lib/opportunities/opportunityApplicationModel";
@@ -218,7 +219,22 @@ export default function OpportunitiesPage() {
         {showingApplications ? <><select className={styles.control} value={applicationLifecycleFilter} onChange={(event) => setApplicationLifecycleFilter(event.target.value)} aria-label="Filter applications by lifecycle"><option value="active">Active</option><option value="closed">Closed</option><option value="all">Active + closed</option></select><select className={styles.control} value={applicationStatusFilter} onChange={(event) => setApplicationStatusFilter(event.target.value)} aria-label="Filter by application status"><option value="all">All statuses</option>{OPPORTUNITY_APPLICATION_STATUSES.map((status) => <option key={status} value={status}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[status]}</option>)}</select></> : <select className={styles.control} value={lifecycleFilter} onChange={(event) => setLifecycleFilter(event.target.value)} aria-label="Filter by lifecycle"><option value="active">Active</option><option value="archived">Archived</option><option value="all">Active + archived</option></select>}
       </div>
       {statusMessage || (!showingApplications && assessmentError) ? <div className={`${styles.statusBar}${statusTone === "error" || (!showingApplications && assessmentError) ? ` ${styles.statusBarError}` : ""}`} role="status"><span>{statusMessage || "Eligibility assessments could not be loaded."}</span>{!showingApplications && syncState.pendingCount > 0 && syncState.conflictCount === 0 ? <button type="button" className={styles.retryButton} onClick={retrySync} disabled={isBusy}>Retry sync</button> : null}</div> : null}
-      <div className={styles.content}>{isLoading && opportunities.length === 0 ? <div className={styles.empty}>Loading opportunities…</div> : visibleCount === 0 ? <div className={styles.empty}>{emptyMessage}</div> : showingApplications ? <OpportunityApplicationTable applications={filteredApplications} opportunityById={opportunityById} onSelect={openApplication} /> : <OpportunityTable opportunities={filteredOpportunities} onSelect={openEdit} assessmentsByEntity={assessmentsByEntity} applicationsByOpportunity={applicationsByOpportunity} />}</div>
+      <div className={styles.content}>
+        {isLoading && opportunities.length === 0
+          ? <div className={styles.empty}>Loading opportunities…</div>
+          : showingApplications
+            ? visibleCount === 0
+              ? <div className={styles.empty}>{emptyMessage}</div>
+              : <OpportunityApplicationTable applications={filteredApplications} opportunityById={opportunityById} onSelect={openApplication} />
+            : opportunities.length === 0
+              ? <div className={styles.empty}>{emptyMessage}</div>
+              : <>
+                  <OpportunityLandscapeChart opportunities={opportunities} onSelect={openEdit} />
+                  {filteredOpportunities.length === 0
+                    ? <div className={styles.empty}>{emptyMessage}</div>
+                    : <OpportunityTable opportunities={filteredOpportunities} onSelect={openEdit} assessmentsByEntity={assessmentsByEntity} applicationsByOpportunity={applicationsByOpportunity} />}
+                </>}
+      </div>
     </section></section>
     <OpportunityEditor isOpen={isEditorOpen} opportunity={selectedOpportunity} application={selectedOpportunity ? applicationsByOpportunity[selectedOpportunity.id] : null} isBusy={isBusy} onClose={closeEditor} onSave={saveOpportunity} onDelete={removeOpportunity} onArchiveToggle={archiveOpportunity} onMarkApplied={markApplied} onOpenApplication={openApplicationFromOpportunity} assessments={selectedOpportunity ? assessmentsByEntity[selectedOpportunity.id] || [] : []} onSetAssessment={setAssessment} onClearAssessment={clearAssessment} />
     <OpportunityApplicationEditor isOpen={isApplicationEditorOpen} application={selectedApplication} opportunity={selectedApplication ? opportunityById[selectedApplication.opportunityId] : null} isBusy={isBusy} onClose={closeApplicationEditor} onSave={saveApplication} onOpenOpportunity={openOpportunityFromApplication} />

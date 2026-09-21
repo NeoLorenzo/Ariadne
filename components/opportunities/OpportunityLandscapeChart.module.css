@@ -1,0 +1,178 @@
+.section {
+  border-bottom: 1px solid rgba(100, 116, 139, 0.24);
+  padding: 1rem 1.05rem 1.1rem;
+}
+
+.header,
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header {
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.title {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 760;
+}
+
+.description {
+  margin: 0.24rem 0 0;
+  color: #78879a;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.prototypeBadge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.32);
+  color: #94a3b8;
+  padding: 0.28rem 0.52rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.chartFrame {
+  overflow: hidden;
+  border: 1px solid rgba(100, 116, 139, 0.34);
+  border-radius: 0.75rem;
+  background: #080b11;
+}
+
+.chart {
+  width: 100%;
+  height: clamp(25rem, 48vh, 34rem);
+  min-width: 0;
+}
+
+.pointGroup {
+  cursor: pointer;
+  outline: none;
+}
+
+.pointHalo {
+  fill: rgba(0, 136, 255, 0);
+  stroke: rgba(0, 136, 255, 0);
+  stroke-width: 1.5;
+  transition: fill 120ms ease, stroke 120ms ease;
+}
+
+.point {
+  fill: #0088ff;
+  stroke: #dbeafe;
+  stroke-width: 1.5;
+  transition: r 120ms ease, fill 120ms ease;
+}
+
+.pointGroup:hover .point,
+.pointGroup:focus .point {
+  r: 8.5px;
+  fill: #38a3ff;
+}
+
+.pointGroup:hover .pointHalo,
+.pointGroup:focus .pointHalo {
+  fill: rgba(0, 136, 255, 0.08);
+  stroke: rgba(0, 136, 255, 0.42);
+}
+
+.pointArchived {
+  opacity: 0.46;
+}
+
+.tooltip {
+  min-width: 13rem;
+  max-width: 20rem;
+  border: 1px solid rgba(100, 116, 139, 0.48);
+  border-radius: 0.65rem;
+  background: rgba(8, 11, 17, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  padding: 0.7rem 0.78rem;
+}
+
+.tooltipTitle {
+  color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.tooltipOrganization {
+  margin-top: 0.15rem;
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.tooltipScores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-top: 0.68rem;
+  border-top: 1px solid rgba(100, 116, 139, 0.22);
+  padding-top: 0.58rem;
+}
+
+.tooltipScores span {
+  display: grid;
+  gap: 0.08rem;
+  color: #7f8da0;
+  font-size: 0.64rem;
+  line-height: 1.25;
+}
+
+.tooltipScores strong {
+  color: #e0f2fe;
+  font-size: 0.88rem;
+}
+
+.tooltipNote {
+  margin-top: 0.55rem;
+  color: #526173;
+  font-size: 0.6rem;
+}
+
+.footer {
+  justify-content: space-between;
+  margin-top: 0.6rem;
+  color: #64748b;
+  font-size: 0.68rem;
+}
+
+@media (max-width: 760px), (max-aspect-ratio: 2/3) {
+  .section {
+    padding: 0.8rem 0.78rem 0.9rem;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .prototypeBadge {
+    display: none;
+  }
+
+  .chartFrame {
+    overflow-x: auto;
+  }
+
+  .chart {
+    width: 44rem;
+    height: 27rem;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+}
