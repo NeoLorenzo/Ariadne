@@ -13,6 +13,7 @@ import { isApplicationActive, OPPORTUNITY_APPLICATION_STATUSES, OPPORTUNITY_APPL
 import { createOpportunityApplication, loadOpportunityApplications, updateOpportunityApplication } from "@/lib/opportunities/opportunityApplicationRepository";
 import { OPPORTUNITY_TYPES, OPPORTUNITY_TYPE_LABELS, sortOpportunitiesByDeadline } from "@/lib/opportunities/opportunityModel";
 import { OPPORTUNITY_SYNC_CONFLICT, OPPORTUNITY_SYNC_PENDING, createOpportunity, deleteOpportunity, flushOpportunityOperations, getOpportunitySyncState, loadOpportunities, setOpportunityArchived, updateOpportunity } from "@/lib/opportunities/opportunityRepository";
+import { useOpportunityLandscapeScores } from "@/lib/opportunities/useOpportunityLandscapeScores";
 import { useOpportunityRequirementAssessments } from "@/lib/opportunities/useOpportunityRequirementAssessments";
 import { supabase } from "@/lib/supabase/client";
 import styles from "@/components/opportunities/OpportunityLandscape.module.css";
@@ -45,6 +46,7 @@ export default function OpportunitiesPage() {
 
   const opportunityIds = useMemo(() => opportunities.map((opportunity) => opportunity.id), [opportunities]);
   const { assessmentsByEntity, error: assessmentError, setManualAssessment, clearManualAssessment } = useOpportunityRequirementAssessments({ userId, entityType: "opportunity", entityIds: opportunityIds });
+  const { scoresByOpportunity, error: scoreError } = useOpportunityLandscapeScores({ userId, opportunityIds });
   const opportunityById = useMemo(() => Object.fromEntries(opportunities.map((opportunity) => [opportunity.id, opportunity])), [opportunities]);
   const applicationsByOpportunity = useMemo(() => Object.fromEntries(applications.map((application) => [application.opportunityId, application])), [applications]);
   const commitLocal = (next) => setOpportunities(sortOpportunitiesByDeadline(next));
@@ -218,7 +220,7 @@ export default function OpportunitiesPage() {
         <select className={styles.control} value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} aria-label="Filter by opportunity type"><option value="all">All types</option>{OPPORTUNITY_TYPES.map((type) => <option key={type} value={type}>{OPPORTUNITY_TYPE_LABELS[type]}</option>)}</select>
         {showingApplications ? <><select className={styles.control} value={applicationLifecycleFilter} onChange={(event) => setApplicationLifecycleFilter(event.target.value)} aria-label="Filter applications by lifecycle"><option value="active">Active</option><option value="closed">Closed</option><option value="all">Active + closed</option></select><select className={styles.control} value={applicationStatusFilter} onChange={(event) => setApplicationStatusFilter(event.target.value)} aria-label="Filter by application status"><option value="all">All statuses</option>{OPPORTUNITY_APPLICATION_STATUSES.map((status) => <option key={status} value={status}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[status]}</option>)}</select></> : <select className={styles.control} value={lifecycleFilter} onChange={(event) => setLifecycleFilter(event.target.value)} aria-label="Filter by lifecycle"><option value="active">Active</option><option value="archived">Archived</option><option value="all">Active + archived</option></select>}
       </div>
-      {statusMessage || (!showingApplications && assessmentError) ? <div className={`${styles.statusBar}${statusTone === "error" || (!showingApplications && assessmentError) ? ` ${styles.statusBarError}` : ""}`} role="status"><span>{statusMessage || "Eligibility assessments could not be loaded."}</span>{!showingApplications && syncState.pendingCount > 0 && syncState.conflictCount === 0 ? <button type="button" className={styles.retryButton} onClick={retrySync} disabled={isBusy}>Retry sync</button> : null}</div> : null}
+      {statusMessage || (!showingApplications && (assessmentError || scoreError)) ? <div className={`${styles.statusBar}${statusTone === "error" || (!showingApplications && (assessmentError || scoreError)) ? ` ${styles.statusBarError}` : ""}`} role="status"><span>{statusMessage || (scoreError ? "Opportunity Landscape scores could not be loaded." : "Eligibility assessments could not be loaded.")}</span>{!showingApplications && syncState.pendingCount > 0 && syncState.conflictCount === 0 ? <button type="button" className={styles.retryButton} onClick={retrySync} disabled={isBusy}>Retry sync</button> : null}</div> : null}
       <div className={styles.content}>
         {isLoading && opportunities.length === 0
           ? <div className={styles.empty}>Loading opportunities…</div>
@@ -229,7 +231,7 @@ export default function OpportunitiesPage() {
             : opportunities.length === 0
               ? <div className={styles.empty}>{emptyMessage}</div>
               : <>
-                  <OpportunityLandscapeChart opportunities={opportunities} onSelect={openEdit} />
+                  <OpportunityLandscapeChart opportunities={opportunities} scoresByOpportunity={scoresByOpportunity} onSelect={openEdit} />
                   {filteredOpportunities.length === 0
                     ? <div className={styles.empty}>{emptyMessage}</div>
                     : <OpportunityTable opportunities={filteredOpportunities} onSelect={openEdit} assessmentsByEntity={assessmentsByEntity} applicationsByOpportunity={applicationsByOpportunity} />}
