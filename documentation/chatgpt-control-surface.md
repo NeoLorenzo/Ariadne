@@ -32,6 +32,7 @@ Strategic Objectives are the lowest-level persistent strategy node. There is no 
 - `chatgpt.get_strategy()`
 - `chatgpt.get_signals()`
 - `chatgpt.get_opportunity_applications(include_closed)`
+- `chatgpt.get_opportunity_landscape_scores(include_archived)`
 
 `chatgpt.get_strategy()` returns Directions and Strategic Objectives. It does not return Outcome Goals.
 
@@ -84,8 +85,11 @@ The privileged ChatGPT surface also supports stateless Opportunity review throug
 
 - `chatgpt.upsert_opportunity_requirement_assessments(assessments)`
 - `chatgpt.accept_opportunity_candidate(...)`
+- `chatgpt.upsert_opportunity_landscape_scores(scores)`
 
-These mutations are only part of the review workflow. The canonical operating rules, source-completeness semantics, requirement-integrity rules, promotion standard, and reporting contract live in [Opportunity Review Agent](./opportunity-review-agent.md). The end-to-end subsystem architecture lives in [Opportunity System](./opportunity-system.md).
+`chatgpt.upsert_opportunity_landscape_scores(scores)` accepts only the eight canonical 0–4 Landscape classifications plus two optional rationale fields. It cannot write final coordinates directly. `public.opportunity_landscape_scores` deterministically generates Strategic Value and Attainability from those classifications.
+
+These mutations are only part of the review workflow. The canonical operating rules, source-completeness semantics, requirement-integrity rules, promotion standard, scoring methodology, and reporting contract live in [Opportunity Review Agent](./opportunity-review-agent.md). The end-to-end subsystem architecture lives in [Opportunity System](./opportunity-system.md).
 
 A future agent should read those documents rather than infer review behavior from RPC signatures alone.
 
@@ -141,6 +145,7 @@ ChatGPT should resolve the Ariadne Supabase project, use the `chatgpt` functions
 - Writes are bounded by operation and field allowlists.
 - Task deletion is soft deletion.
 - Opportunity Application writes are bounded to application-specific state and cannot mutate the linked Opportunity.
+- Opportunity Landscape scoring writes are privileged and bounded to eight integer dimensions from `0` through `4`; browser roles can read canonical scores but cannot mutate them directly.
 - The existing Ariadne storage model remains canonical; there is no second ChatGPT data store.
 
 ## MCP

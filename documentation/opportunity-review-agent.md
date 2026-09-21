@@ -16,14 +16,15 @@ The Opportunity Review Agent maintains the quality of the existing Opportunity L
 - assessing assessable requirements against available user evidence;
 - deciding whether a candidate deserves promotion into the curated Opportunity Landscape;
 - promoting candidates that meet the Landscape-tracking standard;
-- leaving non-promoted candidates safely in the Inbox.
+- leaving non-promoted candidates safely in the Inbox;
+- maintaining canonical Landscape scores for current Landscape opportunities.
 
 The Review Agent is **not**:
 
 - an opportunity-discovery agent;
 - a generic web crawler;
 - a product-development agent;
-- an authority to invent new tables, fields, statuses, scores, workflows, or product concepts.
+- an authority to invent new tables, fields, statuses, scoring methodologies, workflows, or product concepts.
 
 Use the existing Ariadne schema and mutations.
 
@@ -156,7 +157,7 @@ A candidate may deserve Landscape tracking when it has enough combination of:
 - meaningful career/learning/network/external-validation value;
 - non-trivial marginal value relative to opportunities already tracked.
 
-Do not use a rigid new scoring system unless the product explicitly adds one.
+Use the canonical Opportunity Landscape scoring methodology already implemented by Ariadne. Do not invent another scoring system and do not use the canonical scores as a promotion threshold.
 
 Eligibility problems matter, but a candidate can remain pending rather than being rejected when:
 
@@ -190,6 +191,40 @@ After promotion verify:
 - candidate AI requirement assessments were copied to the opportunity;
 - no unrelated candidate was deleted/rejected;
 - historical rejected/duplicate records remain intact.
+
+## 7. Landscape scoring
+
+After promotion, and when maintaining existing Landscape opportunities, score the canonical Opportunity record through:
+
+```text
+chatgpt.upsert_opportunity_landscape_scores(...)
+```
+
+Do not score pending Candidate Inbox records.
+
+Classify exactly these eight dimensions on integer anchors `0` through `4`:
+
+```text
+Strategic Value:
+  strategic_relevance
+  upside
+  option_value
+  opportunity_cost_efficiency
+
+Attainability:
+  eligibility
+  competitiveness
+  career_stage_fit
+  timing_actionability
+```
+
+Use the detailed anchor definitions from the Lorenzo OS Opportunity Review Agent prompt. Do not create intermediate values or directly choose 0–100 coordinates.
+
+Ariadne calculates the final coordinates deterministically from the eight classifications. The agent may provide concise `strategic_value_rationale` and `attainability_rationale`, but cannot override the generated coordinates.
+
+Maintain existing score rows only when evidence or circumstances materially change. Identical classifications should remain unchanged.
+
+Scoring is descriptive. It does not by itself determine promotion, application, removal from the Landscape, or an overall ranking.
 
 ## Extraction coverage vs assessment coverage
 
@@ -227,14 +262,15 @@ The Review Agent may use the existing Opportunity mutations necessary to:
 
 - write AI requirement assessments;
 - promote a pending candidate;
-- inspect/verify existing candidates, opportunities, assessments, and applications.
+- inspect/verify existing candidates, opportunities, assessments, Landscape scores, and applications;
+- maintain canonical Landscape scores through the bounded scoring mutation.
 
 Do not:
 
 - physically delete candidates;
 - create a parallel opportunity schema;
 - invent new review statuses;
-- invent a new score/ranking framework;
+- invent a new score/ranking framework or write final 0–100 coordinates directly;
 - silently mutate user-entered requirement assessments;
 - bypass the Candidate Inbox by inserting discovered opportunities directly into `public.opportunities`;
 - change discovery code simply because a review decision is difficult.
@@ -280,6 +316,7 @@ Requirement-assessment writes: N
 Assessment results: met N / not_met N / uncertain N
 Extraction coverage: complete N / incomplete N / unknown N
 Assessment coverage: N assessable requirements remain without an assessment
+Landscape scoring: scored/rescored N / unchanged N / unscored N
 ```
 
 Then name promoted opportunities and material unresolved eligibility issues for consequential pending candidates.
@@ -291,7 +328,9 @@ Also perform integrity verification where practical:
 - pending/accepted deltas match actual promotions;
 - promoted opportunity exists exactly once;
 - source candidate links correctly;
-- copied assessments exist on the Landscape record.
+- copied assessments exist on the Landscape record;
+- every current Landscape opportunity has a canonical score where evidence permits;
+- stored Strategic Value and Attainability coordinates match Ariadne’s deterministic calculation.
 
 Do not report mutable historical counts as architectural truths. They are run diagnostics.
 

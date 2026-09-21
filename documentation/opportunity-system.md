@@ -38,12 +38,13 @@ Automated discovery must never write directly to the Landscape.
 
 ## Canonical persistence
 
-The four core relations are:
+The five core relations are:
 
 - `public.opportunity_candidates` — discovered/manual candidates plus provenance and review state.
 - `public.opportunities` — canonical Opportunity Landscape records.
 - `public.opportunity_requirement_assessments` — requirement-level AI/user eligibility assessments for both candidates and opportunities.
 - `public.opportunity_applications` — confirmed applications linked to canonical Landscape opportunities.
+- `public.opportunity_landscape_scores` — AI-maintained canonical 0–4 Landscape classifications plus database-generated Strategic Value and Attainability coordinates.
 
 Candidate review statuses are:
 
@@ -67,6 +68,8 @@ Application model / repository:
 - `lib/opportunities/opportunityRequirements.js`
 - `lib/opportunities/opportunityRequirementIntegrity.js`
 - `lib/opportunities/opportunityRequirementAssessmentRepository.js`
+- `lib/opportunities/opportunityLandscapeScore.js`
+- `lib/opportunities/opportunityLandscapeScoreRepository.js`
 
 UI:
 
@@ -275,6 +278,52 @@ Promotion invariants:
 
 Before promotion, check for an existing Landscape opportunity with the same real opportunity identity. Do not create duplicate canonical opportunities.
 
+## Landscape scoring
+
+Canonical Landscape scoring is descriptive and separate from promotion.
+
+Only canonical records in `public.opportunities` receive Landscape scores. Candidate Inbox records are not scored merely for visualization.
+
+The Review Agent supplies eight fixed integer classifications from `0` through `4`:
+
+```text
+Strategic Value:
+  strategic_relevance
+  upside
+  option_value
+  opportunity_cost_efficiency
+
+Attainability:
+  eligibility
+  competitiveness
+  career_stage_fit
+  timing_actionability
+```
+
+The privileged mutation is:
+
+```text
+chatgpt.upsert_opportunity_landscape_scores(scores jsonb)
+```
+
+The database is the coordinate authority. Final coordinates are generated deterministically:
+
+```text
+Strategic Value =
+  (strategic_relevance + upside + option_value + opportunity_cost_efficiency)
+  / 16 × 100
+
+Attainability =
+  (eligibility + competitiveness + career_stage_fit + timing_actionability)
+  / 16 × 100
+```
+
+The browser may read `public.opportunity_landscape_scores` for visualization but cannot insert, update, or delete canonical score rows directly.
+
+An identical reviewer upsert is a no-op and does not churn `updated_at`.
+
+Scoring does not create an overall rank, tier, recommendation, or promotion threshold. A high-value / low-attainability opportunity can legitimately remain in the Landscape.
+
 ## Applications
 
 Applications exist only for canonical Landscape opportunities.
@@ -401,7 +450,7 @@ When changing the Opportunity subsystem:
 6. never infer missing requirements from an incomplete source;
 7. keep requirement IDs stable when merely reassessing;
 8. add or update regression tests for database and client invariants;
-9. document new persistent fields or state-machine transitions here or in the relevant linked subsystem document;
+9. document new persistent fields, scoring methodology changes, or state-machine transitions here or in the relevant linked subsystem document;
 10. query live state rather than hard-coding mutable counts into docs.
 
 If a future implementation contradicts this document, reconcile the implementation and documentation deliberately rather than assuming either one is automatically correct.
