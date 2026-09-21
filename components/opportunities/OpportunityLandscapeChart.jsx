@@ -1,13 +1,17 @@
 "use client";
 
+import {
+  CartesianGrid,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
 import styles from "./OpportunityLandscapeChart.module.css";
-
-const VIEW_WIDTH = 1000;
-const VIEW_HEIGHT = 560;
-const PLOT = { left: 74, right: 30, top: 34, bottom: 70 };
-const PLOT_WIDTH = VIEW_WIDTH - PLOT.left - PLOT.right;
-const PLOT_HEIGHT = VIEW_HEIGHT - PLOT.top - PLOT.bottom;
-const GRID_VALUES = [0, 25, 50, 75, 100];
 
 function hashString(value) {
   let hash = 2166136261;
@@ -24,18 +28,55 @@ function placeholderScore(opportunity, axis) {
   return 10 + (hashString(`${axis}:${identity}`) % 81);
 }
 
-function toX(value) {
-  return PLOT.left + (value / 100) * PLOT_WIDTH;
-}
-
-function toY(value) {
-  return PLOT.top + ((100 - value) / 100) * PLOT_HEIGHT;
-}
-
 function pointLabel(point) {
   const organization = point.opportunity.organization ? ` · ${point.opportunity.organization}` : "";
   return `${point.opportunity.title}${organization} — Strategic value ${point.strategicValue}, attainability ${point.attainability}`;
 }
+
+function OpportunityPoint({ cx, cy, payload, onSelect }) {
+  if (!payload || !Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+  const archivedClass = payload.opportunity.archived ? ` ${styles.pointArchived}` : "";
+
+  return (
+    <g
+      className={`${styles.pointGroup}${archivedClass}`}
+      role="button"
+      tabIndex="0"
+      aria-label={pointLabel(payload)}
+      onClick={() => onSelect?.(payload.opportunity)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect?.(payload.opportunity);
+        }
+      }}
+    >
+      <circle className={styles.pointHalo} cx={cx} cy={cy} r="13" />
+      <circle className={styles.point} cx={cx} cy={cy} r="6.5" />
+      <title>{pointLabel(payload)}</title>
+    </g>
+  );
+}
+
+function OpportunityTooltip({ active, payload }) {
+  const point = payload?.[0]?.payload;
+  if (!active || !point?.opportunity) return null;
+
+  return (
+    <div className={styles.tooltip}>
+      <div className={styles.tooltipTitle}>{point.opportunity.title}</div>
+      {point.opportunity.organization ? <div className={styles.tooltipOrganization}>{point.opportunity.organization}</div> : null}
+      <div className={styles.tooltipScores}>
+        <span><strong>{point.strategicValue}</strong> Strategic value</span>
+        <span><strong>{point.attainability}</strong> Attainability</span>
+      </div>
+      <div className={styles.tooltipNote}>Temporary prototype scores</div>
+    </div>
+  );
+}
+
+const axisTick = { fill: "#64748b", fontSize: 12, fontWeight: 600 };
+const axisLine = { stroke: "rgba(100, 116, 139, 0.4)" };
 
 export default function OpportunityLandscapeChart({ opportunities = [], onSelect }) {
   const points = opportunities.map((opportunity) => ({
@@ -59,69 +100,86 @@ export default function OpportunityLandscapeChart({ opportunities = [], onSelect
       </div>
 
       <div className={styles.chartFrame}>
-        <svg
-          className={styles.chart}
-          viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-          role="img"
-          aria-label="Scatter plot of opportunity strategic value against attainability"
-        >
-          <rect className={styles.quadrantBackground} x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} rx="12" />
-          <rect className={styles.quadrantPrime} x={toX(50)} y={PLOT.top} width={PLOT_WIDTH / 2} height={PLOT_HEIGHT / 2} />
-          <rect className={styles.quadrantBuild} x={toX(50)} y={toY(50)} width={PLOT_WIDTH / 2} height={PLOT_HEIGHT / 2} />
-          <rect className={styles.quadrantAccessible} x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH / 2} height={PLOT_HEIGHT / 2} />
+        <div className={styles.chart}>
+          <ResponsiveContainer width="100%" height="100%">
+            <ScatterChart margin={{ top: 24, right: 28, bottom: 42, left: 18 }}>
+              <CartesianGrid stroke="rgba(100, 116, 139, 0.16)" vertical horizontal />
 
-          {GRID_VALUES.map((value) => (
-            <g key={`grid-${value}`}>
-              <line className={value === 50 ? styles.midline : styles.gridLine} x1={toX(value)} x2={toX(value)} y1={PLOT.top} y2={PLOT.top + PLOT_HEIGHT} />
-              <line className={value === 50 ? styles.midline : styles.gridLine} x1={PLOT.left} x2={PLOT.left + PLOT_WIDTH} y1={toY(value)} y2={toY(value)} />
-              <text className={styles.tickLabel} x={toX(value)} y={PLOT.top + PLOT_HEIGHT + 24} textAnchor="middle">{value}</text>
-              <text className={styles.tickLabel} x={PLOT.left - 16} y={toY(value)} textAnchor="end" dominantBaseline="middle">{value}</text>
-            </g>
-          ))}
+              <ReferenceArea
+                x1={0}
+                x2={50}
+                y1={50}
+                y2={100}
+                fill="rgba(148, 163, 184, 0.02)"
+                stroke="none"
+                label={{ value: "ACCESSIBLE / LOWER VALUE", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
+              />
+              <ReferenceArea
+                x1={50}
+                x2={100}
+                y1={50}
+                y2={100}
+                fill="rgba(0, 136, 255, 0.075)"
+                stroke="none"
+                label={{ value: "PRIME OPPORTUNITIES", position: "insideTopLeft", fill: "rgba(0, 136, 255, 0.64)", fontSize: 11 }}
+              />
+              <ReferenceArea
+                x1={0}
+                x2={50}
+                y1={0}
+                y2={50}
+                fill="rgba(148, 163, 184, 0.01)"
+                stroke="none"
+                label={{ value: "BACKGROUND", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.4)", fontSize: 11 }}
+              />
+              <ReferenceArea
+                x1={50}
+                x2={100}
+                y1={0}
+                y2={50}
+                fill="rgba(0, 136, 255, 0.025)"
+                stroke="none"
+                label={{ value: "BUILD TOWARD", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
+              />
 
-          <text className={styles.quadrantLabel} x={PLOT.left + 18} y={PLOT.top + 26}>ACCESSIBLE / LOWER VALUE</text>
-          <text className={styles.quadrantLabelStrong} x={toX(50) + 18} y={PLOT.top + 26}>PRIME OPPORTUNITIES</text>
-          <text className={styles.quadrantLabel} x={PLOT.left + 18} y={toY(50) + 28}>BACKGROUND</text>
-          <text className={styles.quadrantLabel} x={toX(50) + 18} y={toY(50) + 28}>BUILD TOWARD</text>
+              <ReferenceLine x={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
+              <ReferenceLine y={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
 
-          <text className={styles.axisLabel} x={PLOT.left + PLOT_WIDTH / 2} y={VIEW_HEIGHT - 16} textAnchor="middle">
-            Strategic value
-          </text>
-          <text
-            className={styles.axisLabel}
-            x="18"
-            y={PLOT.top + PLOT_HEIGHT / 2}
-            textAnchor="middle"
-            transform={`rotate(-90 18 ${PLOT.top + PLOT_HEIGHT / 2})`}
-          >
-            Attainability
-          </text>
+              <XAxis
+                type="number"
+                dataKey="strategicValue"
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+                tick={axisTick}
+                tickLine={false}
+                axisLine={axisLine}
+                label={{ value: "Strategic value", position: "insideBottom", offset: -28, fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
+              />
+              <YAxis
+                type="number"
+                dataKey="attainability"
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+                tick={axisTick}
+                tickLine={false}
+                axisLine={axisLine}
+                width={52}
+                label={{ value: "Attainability", angle: -90, position: "insideLeft", fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
+              />
 
-          {points.map((point) => {
-            const x = toX(point.strategicValue);
-            const y = toY(point.attainability);
-            return (
-              <g
-                key={point.opportunity.id}
-                className={point.opportunity.archived ? `${styles.pointGroup} ${styles.pointArchived}` : styles.pointGroup}
-                role="button"
-                tabIndex="0"
-                aria-label={pointLabel(point)}
-                onClick={() => onSelect?.(point.opportunity)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelect?.(point.opportunity);
-                  }
-                }}
-              >
-                <circle className={styles.pointHalo} cx={x} cy={y} r="13" />
-                <circle className={styles.point} cx={x} cy={y} r="6.5" />
-                <title>{pointLabel(point)}</title>
-              </g>
-            );
-          })}
-        </svg>
+              <Tooltip
+                cursor={{ stroke: "rgba(0, 136, 255, 0.26)", strokeDasharray: "3 4" }}
+                content={<OpportunityTooltip />}
+              />
+
+              <Scatter
+                data={points}
+                isAnimationActive={false}
+                shape={(props) => <OpportunityPoint {...props} onSelect={onSelect} />}
+              />
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div className={styles.footer}>
