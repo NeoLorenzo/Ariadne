@@ -13,21 +13,6 @@ import {
 } from "recharts";
 import styles from "./OpportunityLandscapeChart.module.css";
 
-function hashString(value) {
-  let hash = 2166136261;
-  const input = String(value || "");
-  for (let index = 0; index < input.length; index += 1) {
-    hash ^= input.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function placeholderScore(opportunity, axis) {
-  const identity = [opportunity.id, opportunity.title, opportunity.organization].filter(Boolean).join("|");
-  return 10 + (hashString(`${axis}:${identity}`) % 81);
-}
-
 function pointLabel(point) {
   const organization = point.opportunity.organization ? ` · ${point.opportunity.organization}` : "";
   return `${point.opportunity.title}${organization} — Strategic value ${point.strategicValue}, attainability ${point.attainability}`;
@@ -70,7 +55,9 @@ function OpportunityTooltip({ active, payload }) {
         <span><strong>{point.strategicValue}</strong> Strategic value</span>
         <span><strong>{point.attainability}</strong> Attainability</span>
       </div>
-      <div className={styles.tooltipNote}>Temporary prototype scores</div>
+      {point.score.strategicValueRationale ? <div className={styles.tooltipNote}>{point.score.strategicValueRationale}</div> : null}
+      {point.score.attainabilityRationale ? <div className={styles.tooltipNote}>{point.score.attainabilityRationale}</div> : null}
+      <div className={styles.tooltipNote}>Methodology v{point.score.methodologyVersion}</div>
     </div>
   );
 }
@@ -78,14 +65,22 @@ function OpportunityTooltip({ active, payload }) {
 const axisTick = { fill: "#64748b", fontSize: 12, fontWeight: 600 };
 const axisLine = { stroke: "rgba(100, 116, 139, 0.4)" };
 
-export default function OpportunityLandscapeChart({ opportunities = [], onSelect }) {
-  const points = opportunities.map((opportunity) => ({
-    opportunity,
-    strategicValue: placeholderScore(opportunity, "strategic-value"),
-    attainability: placeholderScore(opportunity, "attainability")
-  }));
+export default function OpportunityLandscapeChart({ opportunities = [], scoresByOpportunity = {}, onSelect }) {
+  const points = opportunities
+    .map((opportunity) => {
+      const score = scoresByOpportunity[opportunity.id];
+      if (!score || !Number.isFinite(score.strategicValue) || !Number.isFinite(score.attainability)) return null;
+      return {
+        opportunity,
+        score,
+        strategicValue: score.strategicValue,
+        attainability: score.attainability
+      };
+    })
+    .filter(Boolean);
 
-  if (!points.length) return null;
+  const unscoredCount = opportunities.length - points.length;
+  if (!opportunities.length) return null;
 
   return (
     <section className={styles.section} aria-labelledby="opportunity-map-title">
@@ -93,97 +88,103 @@ export default function OpportunityLandscapeChart({ opportunities = [], onSelect
         <div>
           <h3 id="opportunity-map-title" className={styles.title}>Opportunity map</h3>
           <p className={styles.description}>
-            All Landscape opportunities plotted with temporary placeholder scores.
+            Canonical reviewer scores for Strategic Value and Attainability.
           </p>
         </div>
-        <span className={styles.prototypeBadge}>Prototype positions</span>
+        <span className={styles.prototypeBadge}>{unscoredCount ? `${unscoredCount} unscored` : "Fully scored"}</span>
       </div>
 
-      <div className={styles.chartFrame}>
-        <div className={styles.chart}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart margin={{ top: 24, right: 28, bottom: 42, left: 18 }}>
-              <CartesianGrid stroke="rgba(100, 116, 139, 0.16)" vertical horizontal />
+      {points.length ? (
+        <div className={styles.chartFrame}>
+          <div className={styles.chart}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 24, right: 28, bottom: 42, left: 18 }}>
+                <CartesianGrid stroke="rgba(100, 116, 139, 0.16)" vertical horizontal />
 
-              <ReferenceArea
-                x1={0}
-                x2={50}
-                y1={50}
-                y2={100}
-                fill="rgba(148, 163, 184, 0.02)"
-                stroke="none"
-                label={{ value: "ACCESSIBLE / LOWER VALUE", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
-              />
-              <ReferenceArea
-                x1={50}
-                x2={100}
-                y1={50}
-                y2={100}
-                fill="rgba(0, 136, 255, 0.075)"
-                stroke="none"
-                label={{ value: "PRIME OPPORTUNITIES", position: "insideTopLeft", fill: "rgba(0, 136, 255, 0.64)", fontSize: 11 }}
-              />
-              <ReferenceArea
-                x1={0}
-                x2={50}
-                y1={0}
-                y2={50}
-                fill="rgba(148, 163, 184, 0.01)"
-                stroke="none"
-                label={{ value: "BACKGROUND", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.4)", fontSize: 11 }}
-              />
-              <ReferenceArea
-                x1={50}
-                x2={100}
-                y1={0}
-                y2={50}
-                fill="rgba(0, 136, 255, 0.025)"
-                stroke="none"
-                label={{ value: "BUILD TOWARD", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
-              />
+                <ReferenceArea
+                  x1={0}
+                  x2={50}
+                  y1={50}
+                  y2={100}
+                  fill="rgba(148, 163, 184, 0.02)"
+                  stroke="none"
+                  label={{ value: "ACCESSIBLE / LOWER VALUE", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
+                />
+                <ReferenceArea
+                  x1={50}
+                  x2={100}
+                  y1={50}
+                  y2={100}
+                  fill="rgba(0, 136, 255, 0.075)"
+                  stroke="none"
+                  label={{ value: "PRIME OPPORTUNITIES", position: "insideTopLeft", fill: "rgba(0, 136, 255, 0.64)", fontSize: 11 }}
+                />
+                <ReferenceArea
+                  x1={0}
+                  x2={50}
+                  y1={0}
+                  y2={50}
+                  fill="rgba(148, 163, 184, 0.01)"
+                  stroke="none"
+                  label={{ value: "BACKGROUND", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.4)", fontSize: 11 }}
+                />
+                <ReferenceArea
+                  x1={50}
+                  x2={100}
+                  y1={0}
+                  y2={50}
+                  fill="rgba(0, 136, 255, 0.025)"
+                  stroke="none"
+                  label={{ value: "BUILD TOWARD", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
+                />
 
-              <ReferenceLine x={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
-              <ReferenceLine y={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
+                <ReferenceLine x={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
+                <ReferenceLine y={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
 
-              <XAxis
-                type="number"
-                dataKey="strategicValue"
-                domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
-                tick={axisTick}
-                tickLine={false}
-                axisLine={axisLine}
-                label={{ value: "Strategic value", position: "insideBottom", offset: -28, fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
-              />
-              <YAxis
-                type="number"
-                dataKey="attainability"
-                domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
-                tick={axisTick}
-                tickLine={false}
-                axisLine={axisLine}
-                width={52}
-                label={{ value: "Attainability", angle: -90, position: "insideLeft", fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
-              />
+                <XAxis
+                  type="number"
+                  dataKey="strategicValue"
+                  domain={[0, 100]}
+                  ticks={[0, 25, 50, 75, 100]}
+                  tick={axisTick}
+                  tickLine={false}
+                  axisLine={axisLine}
+                  label={{ value: "Strategic value", position: "insideBottom", offset: -28, fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="attainability"
+                  domain={[0, 100]}
+                  ticks={[0, 25, 50, 75, 100]}
+                  tick={axisTick}
+                  tickLine={false}
+                  axisLine={axisLine}
+                  width={52}
+                  label={{ value: "Attainability", angle: -90, position: "insideLeft", fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
+                />
 
-              <Tooltip
-                cursor={{ stroke: "rgba(0, 136, 255, 0.26)", strokeDasharray: "3 4" }}
-                content={<OpportunityTooltip />}
-              />
+                <Tooltip
+                  cursor={{ stroke: "rgba(0, 136, 255, 0.26)", strokeDasharray: "3 4" }}
+                  content={<OpportunityTooltip />}
+                />
 
-              <Scatter
-                data={points}
-                isAnimationActive={false}
-                shape={(props) => <OpportunityPoint {...props} onSelect={onSelect} />}
-              />
-            </ScatterChart>
-          </ResponsiveContainer>
+                <Scatter
+                  data={points}
+                  isAnimationActive={false}
+                  shape={(props) => <OpportunityPoint {...props} onSelect={onSelect} />}
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className={styles.chartFrame}>
+          <div className={styles.emptyChart}>Run the Opportunity Review Agent to score the current Landscape.</div>
+        </div>
+      )}
 
       <div className={styles.footer}>
-        <span>{points.length} opportunit{points.length === 1 ? "y" : "ies"}</span>
+        <span>{points.length} of {opportunities.length} opportunit{opportunities.length === 1 ? "y" : "ies"} plotted</span>
         <span>Click a point to open its record.</span>
       </div>
     </section>
