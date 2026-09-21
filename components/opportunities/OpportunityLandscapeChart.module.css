@@ -55,6 +55,16 @@
   min-width: 0;
 }
 
+.emptyChart {
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+  padding: 2rem;
+  color: #64748b;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
 .pointGroup {
   cursor: pointer;
   outline: none;
