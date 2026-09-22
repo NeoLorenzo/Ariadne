@@ -102,7 +102,8 @@ begin
   if v_row.legacy_attainability <> 75.00
      or v_row.competitiveness <> 2
      or v_row.career_stage_fit <> 4
-     or v_row.timing_actionability <> 4 then
+     or v_row.timing_actionability <> 4
+     or v_row.legacy_attainability_rationale <> 'Legacy attainability rationale' then
     raise exception 'V2 migration did not preserve legacy v1 audit state';
   end if;
 
