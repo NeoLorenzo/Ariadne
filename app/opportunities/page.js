@@ -9,7 +9,7 @@ import OpportunityEditor from "@/components/opportunities/OpportunityEditor";
 import OpportunityLandscapeChart from "@/components/opportunities/OpportunityLandscapeChart";
 import OpportunityLandscapeTabs from "@/components/opportunities/OpportunityLandscapeTabs";
 import OpportunityTable from "@/components/opportunities/OpportunityTable";
-import { isApplicationActive, OPPORTUNITY_APPLICATION_STATUSES, OPPORTUNITY_APPLICATION_STATUS_LABELS, sortOpportunityApplications } from "@/lib/opportunities/opportunityApplicationModel";
+import { isApplicationActive, OPPORTUNITY_APPLICATION_STATUSES, OPPORTUNITY_APPLICATION_STATUS_LABELS, resolveApplicationOpportunity, sortOpportunityApplications } from "@/lib/opportunities/opportunityApplicationModel";
 import { createOpportunityApplication, loadOpportunityApplications, updateOpportunityApplication } from "@/lib/opportunities/opportunityApplicationRepository";
 import { OPPORTUNITY_TYPES, OPPORTUNITY_TYPE_LABELS, sortOpportunitiesByDeadline } from "@/lib/opportunities/opportunityModel";
 import { OPPORTUNITY_SYNC_CONFLICT, OPPORTUNITY_SYNC_PENDING, createOpportunity, deleteOpportunity, flushOpportunityOperations, getOpportunitySyncState, loadOpportunities, setOpportunityArchived, updateOpportunity } from "@/lib/opportunities/opportunityRepository";
@@ -48,7 +48,7 @@ export default function OpportunitiesPage() {
   const { assessmentsByEntity, error: assessmentError, setManualAssessment, clearManualAssessment } = useOpportunityRequirementAssessments({ userId, entityType: "opportunity", entityIds: opportunityIds });
   const { scoresByOpportunity, error: scoreError } = useOpportunityLandscapeScores({ userId, opportunityIds });
   const opportunityById = useMemo(() => Object.fromEntries(opportunities.map((opportunity) => [opportunity.id, opportunity])), [opportunities]);
-  const applicationsByOpportunity = useMemo(() => Object.fromEntries(applications.map((application) => [application.opportunityId, application])), [applications]);
+  const applicationsByOpportunity = useMemo(() => Object.fromEntries(applications.filter((application) => application.liveOpportunityId).map((application) => [application.liveOpportunityId, application])), [applications]);
   const commitLocal = (next) => setOpportunities(sortOpportunitiesByDeadline(next));
   const commitApplications = (next) => setApplications(sortOpportunityApplications(next));
   const refreshSyncState = (resolvedUserId = userId) => setSyncState(resolvedUserId ? getOpportunitySyncState(resolvedUserId) : EMPTY_SYNC_STATE);
@@ -110,7 +110,7 @@ export default function OpportunitiesPage() {
   const filteredApplications = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
     return applications.filter((application) => {
-      const opportunity = opportunityById[application.opportunityId];
+      const opportunity = resolveApplicationOpportunity(application, opportunityById);
       if (!opportunity) return false;
       if (typeFilter !== "all" && opportunity.type !== typeFilter) return false;
       if (applicationStatusFilter !== "all" && application.status !== applicationStatusFilter) return false;
@@ -196,7 +196,7 @@ export default function OpportunitiesPage() {
   };
 
   const openApplicationFromOpportunity = (application) => { setIsEditorOpen(false); setSelectedOpportunity(null); changeView("applications"); openApplication(application); };
-  const openOpportunityFromApplication = (opportunity) => { setIsApplicationEditorOpen(false); setSelectedApplication(null); changeView("landscape"); openEdit(opportunity); };
+  const openOpportunityFromApplication = (opportunity) => { if (!opportunity?.id || opportunity.historical) return; setIsApplicationEditorOpen(false); setSelectedApplication(null); changeView("landscape"); openEdit(opportunity); };
 
   const setAssessment = async (requirementId, status) => { if (!selectedOpportunity?.id || !userId) return; try { await setManualAssessment({ entityId: selectedOpportunity.id, requirementId, status }); setStatusTone("neutral"); setStatusMessage("Eligibility assessment updated."); } catch { setStatusTone("error"); setStatusMessage("Eligibility assessment could not be saved."); } };
   const clearAssessment = async (requirementId) => { if (!selectedOpportunity?.id || !userId) return; try { await clearManualAssessment({ entityId: selectedOpportunity.id, requirementId }); setStatusTone("neutral"); setStatusMessage("Manual override cleared; AI assessment will be used when available."); } catch { setStatusTone("error"); setStatusMessage("Manual eligibility override could not be cleared."); } };
@@ -204,6 +204,7 @@ export default function OpportunitiesPage() {
 
   if (activeView === "inbox") return <AppShell activeNavItem="opportunities" hideMobileNav={candidateEditorOpen}><OpportunityCandidateInbox onViewChange={changeView} onEditorOpenChange={setCandidateEditorOpen} /></AppShell>;
 
+  const selectedApplicationOpportunity = selectedApplication ? resolveApplicationOpportunity(selectedApplication, opportunityById) : null;
   const showingApplications = activeView === "applications";
   const visibleCount = showingApplications ? filteredApplications.length : filteredOpportunities.length;
   const hasFilters = Boolean(search.trim()) || typeFilter !== "all" || (showingApplications ? applicationLifecycleFilter !== "active" || applicationStatusFilter !== "all" : lifecycleFilter !== "active");
@@ -239,6 +240,6 @@ export default function OpportunitiesPage() {
       </div>
     </section></section>
     <OpportunityEditor isOpen={isEditorOpen} opportunity={selectedOpportunity} application={selectedOpportunity ? applicationsByOpportunity[selectedOpportunity.id] : null} isBusy={isBusy} onClose={closeEditor} onSave={saveOpportunity} onDelete={removeOpportunity} onArchiveToggle={archiveOpportunity} onMarkApplied={markApplied} onOpenApplication={openApplicationFromOpportunity} assessments={selectedOpportunity ? assessmentsByEntity[selectedOpportunity.id] || [] : []} onSetAssessment={setAssessment} onClearAssessment={clearAssessment} />
-    <OpportunityApplicationEditor isOpen={isApplicationEditorOpen} application={selectedApplication} opportunity={selectedApplication ? opportunityById[selectedApplication.opportunityId] : null} isBusy={isBusy} onClose={closeApplicationEditor} onSave={saveApplication} onOpenOpportunity={openOpportunityFromApplication} />
+    <OpportunityApplicationEditor isOpen={isApplicationEditorOpen} application={selectedApplication} opportunity={selectedApplicationOpportunity} isBusy={isBusy} onClose={closeApplicationEditor} onSave={saveApplication} onOpenOpportunity={selectedApplicationOpportunity?.historical ? null : openOpportunityFromApplication} />
   </AppShell>;
 }

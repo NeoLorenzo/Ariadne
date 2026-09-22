@@ -32,7 +32,7 @@ The Candidate Inbox and Opportunity Landscape are deliberately different layers.
 
 The **Candidate Inbox** is the broad discovery universe. A candidate may remain pending even when it is not currently worth promoting.
 
-The **Opportunity Landscape** is the curated subset worth deliberate tracking. Promotion means "this belongs in the curated Landscape", not "the user should necessarily apply".
+The **Opportunity Landscape** is the curated subset of live or future opportunities worth deliberate tracking. Promotion means "this belongs in the curated Landscape", not "the user should necessarily apply". A represented application cycle with a deadline before the current date does not belong in the Landscape.
 
 Automated discovery must never write directly to the Landscape.
 
@@ -274,9 +274,36 @@ Promotion invariants:
   - `application_components`
   - `raw_requirements_text`
 - existing candidate requirement assessments are copied to the promoted opportunity through the assessment-copy trigger;
-- promotion does **not** mean "apply"; it means "track deliberately in the Landscape".
+- promotion does **not** mean "apply"; it means "track deliberately in the Landscape";
+- a candidate whose resolved deadline is already before `current_date` cannot be promoted as that expired cycle.
 
 Before promotion, check for an existing Landscape opportunity with the same real opportunity identity. Do not create duplicate canonical opportunities.
+
+## Landscape lifecycle and automatic expiry
+
+Routine expiry is owned by Ariadne infrastructure, not by the Opportunity Review Agent.
+
+The deterministic rule is:
+
+```text
+opportunity.deadline < current_date
+→ represented application cycle is expired
+→ return the Opportunity to the Candidate Inbox
+```
+
+A daily `pg_cron` job named `opportunity-landscape-expiry` runs:
+
+```text
+ariadne_internal.expire_opportunity_landscape(current_date)
+```
+
+The expiry path always uses the canonical non-destructive return workflow. It preserves candidate data and requirement assessments. If a Landscape row was created without a source Candidate Inbox record, the return operation first creates a durable internal candidate and then returns it to `pending`.
+
+Opportunities with no deadline are not automatically expired. Source-derived closure that is not represented by a past stored deadline remains an ambiguous lifecycle fact for the Review Agent to resolve through the supported return-to-Inbox operation.
+
+Expired candidates remain preserved in the Inbox. The promotion mutation rejects an already-expired deadline, preventing an old cycle from being immediately promoted back into the Landscape. A recurring opportunity can return in a later cycle when the candidate is updated or represented with a future deadline.
+
+Landscape scores are deleted naturally when the live Opportunity row is removed.
 
 ## Landscape scoring
 
@@ -326,16 +353,20 @@ Scoring does not create an overall rank, tier, recommendation, or promotion thre
 
 ## Applications
 
-Applications exist only for canonical Landscape opportunities.
+Applications are created only from canonical Landscape opportunities, but their history survives after the linked Opportunity leaves the live Landscape.
 
 Lifecycle:
 
 ```text
 Candidate Inbox
     ↓
-Landscape
+Live Landscape
     ↓
 Application
+    │
+    └── immutable Opportunity snapshot
+             ↓
+      survives Landscape expiry
 ```
 
 ChatGPT operations:
@@ -344,7 +375,7 @@ ChatGPT operations:
 - `chatgpt.create_opportunity_application(...)`
 - `chatgpt.update_opportunity_application(...)`
 
-A candidate cannot directly own an application.
+A candidate cannot directly own an application. On submission, Ariadne captures an immutable Opportunity identity/snapshot on the Application. The live `opportunity_id` foreign key uses `ON DELETE SET NULL`, while `historical_opportunity_id` and `opportunity_snapshot` remain available for the Applications UI and ChatGPT history.
 
 ## Source payload: provenance vs operational state
 

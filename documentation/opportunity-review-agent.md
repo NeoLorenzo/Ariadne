@@ -17,7 +17,8 @@ The Opportunity Review Agent maintains the quality of the existing Opportunity L
 - deciding whether a candidate deserves promotion into the curated Opportunity Landscape;
 - promoting candidates that meet the Landscape-tracking standard;
 - leaving non-promoted candidates safely in the Inbox;
-- maintaining canonical Landscape scores for current Landscape opportunities.
+- maintaining canonical Landscape scores for current Landscape opportunities;
+- correcting ambiguous closure state when external/source evidence establishes that an Opportunity is closed but no deterministic stored deadline captures that fact.
 
 The Review Agent is **not**:
 
@@ -44,7 +45,7 @@ The Landscape is the curated subset important enough to track deliberately.
 
 Promotion means:
 
-> This opportunity is sufficiently relevant, valuable, plausible, or strategically useful to warrant deliberate tracking.
+> This live or future opportunity is sufficiently relevant, valuable, plausible, or strategically useful to warrant deliberate tracking.
 
 Promotion does **not** mean:
 
@@ -66,6 +67,8 @@ For each pending candidate, reason in this order:
 ```
 
 Do not promote first and repair requirements later.
+
+Routine deadline expiry is not a Review Agent task. Ariadne automatically returns records whose stored `deadline < current_date` to the Candidate Inbox before they should require reviewer judgment.
 
 ## 1. Source completeness
 
@@ -159,7 +162,7 @@ A candidate may deserve Landscape tracking when it has enough combination of:
 
 Use the canonical Opportunity Landscape scoring methodology already implemented by Ariadne. Do not invent another scoring system and do not use the canonical scores as a promotion threshold.
 
-Eligibility problems matter, but a candidate can remain pending rather than being rejected when:
+An already-expired represented cycle must remain in the Inbox; Ariadne's promotion boundary rejects past deadlines. Eligibility problems otherwise matter, but a candidate can remain pending rather than being rejected when:
 
 - timing is not currently actionable;
 - requirements are not yet published;
@@ -263,7 +266,8 @@ The Review Agent may use the existing Opportunity mutations necessary to:
 - write AI requirement assessments;
 - promote a pending candidate;
 - inspect/verify existing candidates, opportunities, assessments, Landscape scores, and applications;
-- maintain canonical Landscape scores through the bounded scoring mutation.
+- maintain canonical Landscape scores through the bounded scoring mutation;
+- use the supported return-to-Inbox mutation when source evidence establishes closure that Ariadne cannot determine from its stored deadline.
 
 Do not:
 
@@ -271,6 +275,7 @@ Do not:
 - create a parallel opportunity schema;
 - invent new review statuses;
 - invent a new score/ranking framework or write final 0–100 coordinates directly;
+- manually duplicate routine past-deadline expiry work already owned by Ariadne;
 - silently mutate user-entered requirement assessments;
 - bypass the Candidate Inbox by inserting discovered opportunities directly into `public.opportunities`;
 - change discovery code simply because a review decision is difficult.
@@ -330,7 +335,8 @@ Also perform integrity verification where practical:
 - source candidate links correctly;
 - copied assessments exist on the Landscape record;
 - every current Landscape opportunity has a canonical score where evidence permits;
-- stored Strategic Value and Attainability coordinates match Ariadne’s deterministic calculation.
+- stored Strategic Value and Attainability coordinates match Ariadne’s deterministic calculation;
+- no known source-confirmed closed Opportunity remains in the Landscape solely because its stored deadline was missing or inaccurate.
 
 Do not report mutable historical counts as architectural truths. They are run diagnostics.
 

@@ -58,7 +58,8 @@ export default function OpportunityApplicationEditor({ isOpen, application, oppo
           <div className={styles.fieldFull}>
             <strong>{opportunity?.title || "Unknown opportunity"}</strong>
             <span className={styles.muted}>{opportunity?.organization || "Unknown organization"} · {OPPORTUNITY_TYPE_LABELS[opportunity?.type] || "Other"}</span>
-            {onOpenOpportunity ? <SecondaryButton type="button" onClick={() => onOpenOpportunity(opportunity)}>Open Landscape record</SecondaryButton> : null}
+            {opportunity?.historical ? <span className={styles.muted}>Historical opportunity · no longer in the live Landscape</span> : null}
+            {onOpenOpportunity && opportunity ? <SecondaryButton type="button" onClick={() => onOpenOpportunity(opportunity)}>Open Landscape record</SecondaryButton> : null}
           </div>
           <div className={styles.field}><label htmlFor="application-submitted">Submitted</label><DateInput id="application-submitted" value={submittedDate} onChange={(event) => { setSubmittedDate(event.target.value); setError(""); }} required /></div>
           <div className={styles.field}><label htmlFor="application-status">Status</label><Select id="application-status" value={status} onChange={(event) => { setStatus(event.target.value); setError(""); }}>{OPPORTUNITY_APPLICATION_STATUSES.map((value) => <option key={value} value={value}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[value]}</option>)}</Select></div>
