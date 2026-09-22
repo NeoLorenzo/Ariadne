@@ -311,45 +311,134 @@ Canonical Landscape scoring is descriptive and separate from promotion.
 
 Only canonical records in `public.opportunities` receive Landscape scores. Candidate Inbox records are not scored merely for visualization.
 
-The Review Agent supplies eight fixed integer classifications from `0` through `4`:
+### Methodology versions
+
+`public.opportunity_landscape_scores.methodology_version` records the coordinate methodology used by a row.
+
+Methodology v1 remains readable for migration and audit. Its Strategic Value model is also retained unchanged while Attainability moves to v2.
+
+#### Strategic Value
+
+Strategic Value currently remains:
 
 ```text
-Strategic Value:
-  strategic_relevance
-  upside
-  option_value
-  opportunity_cost_efficiency
-
-Attainability:
-  eligibility
-  competitiveness
-  career_stage_fit
-  timing_actionability
+strategic_relevance
+upside
+option_value
+opportunity_cost_efficiency
 ```
 
-The privileged mutation is:
+Each classification is an integer from `0` through `4`.
 
-```text
-chatgpt.upsert_opportunity_landscape_scores(scores jsonb)
-```
-
-The database is the coordinate authority. Final coordinates are generated deterministically:
+The database generates:
 
 ```text
 Strategic Value =
   (strategic_relevance + upside + option_value + opportunity_cost_efficiency)
   / 16 × 100
+```
 
-Attainability =
+A later Strategic Value methodology change must be versioned separately rather than silently changing this coordinate.
+
+#### Attainability v1 — legacy
+
+Methodology v1 used:
+
+```text
+eligibility
+competitiveness
+career_stage_fit
+timing_actionability
+```
+
+with an equal average:
+
+```text
+legacy_attainability =
   (eligibility + competitiveness + career_stage_fit + timing_actionability)
   / 16 × 100
 ```
 
+The legacy dimensions and generated `legacy_attainability` remain persisted for audit during the migration. They no longer define Attainability once a row has moved to methodology v2.
+
+#### Attainability v2
+
+Methodology v2 treats formal eligibility as a constraint on competitive strength rather than one equally weighted component among several.
+
+The six competitive-strength dimensions are bounded integers from `0` through `4`:
+
+```text
+capability_match        25%
+relevant_experience     20%
+evidence_strength       20%
+domain_fit              15%
+competitive_bar_fit     15%
+differentiation          5%
+```
+
+The database generates:
+
+```text
+Competitive Strength =
+  (
+    capability_match × 25
+    + relevant_experience × 20
+    + evidence_strength × 20
+    + domain_fit × 15
+    + competitive_bar_fit × 15
+    + differentiation × 5
+  ) / 4
+```
+
+This produces a `0–100` Competitive Strength coordinate.
+
+Eligibility remains an integer `0–4` and maps to a deterministic multiplier:
+
+```text
+4 -> 1.00  clearly eligible
+3 -> 0.90  likely eligible
+2 -> 0.70  material uncertainty
+1 -> 0.40  currently ineligible with a credible path
+0 -> 0.00  no realistic path for the represented cycle
+```
+
+Final Attainability is:
+
+```text
+Attainability = Competitive Strength × Eligibility Multiplier
+```
+
+Timing/actionability is not part of v2 Attainability. Timing remains lifecycle/operational information represented by deadlines, cycle state, source evidence and the automatic expiry system.
+
+Career stage is not a separate v2 Attainability term. A formal stage restriction belongs in eligibility; an experience-level mismatch belongs in relevant experience and/or competitive-bar fit.
+
+### Migration discipline
+
+Existing v1 rows remain v1 until all required v2 classifications for that opportunity have been supplied through the dedicated bounded v2 mutation.
+
+The privileged v2 mutation is:
+
+```text
+chatgpt.upsert_opportunity_landscape_scores_v2(scores jsonb)
+```
+
+A successful v2 write switches only that row to `methodology_version = '2'`. The legacy v1 classifications are retained for audit.
+
+The existing v1 mutation remains available for legacy rows:
+
+```text
+chatgpt.upsert_opportunity_landscape_scores(scores jsonb)
+```
+
+It cannot downgrade a row already migrated to v2; a v1 write against a v2 row is ignored.
+
+The database is the coordinate authority. Neither client code nor a reviewing agent may write Strategic Value, Competitive Strength, Legacy Attainability, or canonical Attainability directly.
+
 The browser may read `public.opportunity_landscape_scores` for visualization but cannot insert, update, or delete canonical score rows directly.
 
-An identical reviewer upsert is a no-op and does not churn `updated_at`.
-
 Scoring does not create an overall rank, tier, recommendation, or promotion threshold. A high-value / low-attainability opportunity can legitimately remain in the Landscape.
+
+The chart continues to support mixed v1/v2 rows during migration and labels the methodology used by each score. Quadrant boundaries are not recalibrated merely to fit the current score distribution; any boundary change should follow a completed v2 population and distribution audit.
 
 ## Applications
 
