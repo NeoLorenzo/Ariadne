@@ -6,29 +6,12 @@ import PwaRegistrar from "@/components/PwaRegistrar";
 
 export const metadata = {
   metadataBase: new URL("https://ariadne.fabbrosystems.com"),
-  title: "Ariadne | Strategy and execution",
+  title: "Ariadne",
   description:
-    "Ariadne connects long-term direction to strategic objectives, opportunities, projects and tasks so execution stays tied to what matters.",
-  alternates: {
-    canonical: "/"
-  },
+    "Ariadne is a personal strategy and execution system connecting long-term direction to objectives, opportunities, projects and tasks.",
   robots: {
-    index: true,
-    follow: true
-  },
-  openGraph: {
-    type: "website",
-    siteName: "Ariadne",
-    title: "Ariadne · Turn direction into action",
-    description:
-      "Ariadne connects long-term direction to strategic objectives, opportunities, projects and tasks so execution stays tied to what matters.",
-    url: "/"
-  },
-  twitter: {
-    card: "summary",
-    title: "Ariadne · Turn direction into action",
-    description:
-      "Strategy and execution connected from long-term direction to the work in front of you."
+    index: false,
+    follow: false
   },
   manifest: "/manifest.webmanifest",
   icons: {
