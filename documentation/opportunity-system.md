@@ -438,7 +438,18 @@ The browser may read `public.opportunity_landscape_scores` for visualization but
 
 Scoring does not create an overall rank, tier, recommendation, or promotion threshold. A high-value / low-attainability opportunity can legitimately remain in the Landscape.
 
-The chart continues to support mixed v1/v2 rows during migration and labels the methodology used by each score. Quadrant boundaries are not recalibrated merely to fit the current score distribution; any boundary change should follow a completed v2 population and distribution audit.
+The chart supports mixed v1/v2 rows for compatibility and labels the methodology used by each score.
+
+The canonical high/low boundary on both Landscape axes is `75`. This is semantic rather than distribution-fitting: on Strategic Value it corresponds to an average classification of `3/4`, while on Attainability v2 it marks genuinely strong eligibility-constrained competitive strength. Therefore the quadrants are:
+
+```text
+Strategic Value >= 75 and Attainability >= 75 -> PRIME OPPORTUNITIES
+Strategic Value >= 75 and Attainability < 75  -> BUILD TOWARD
+Strategic Value < 75 and Attainability >= 75  -> ACCESSIBLE / LOWER VALUE
+Strategic Value < 75 and Attainability < 75   -> BACKGROUND
+```
+
+This boundary is a visualization convention, not an overall ranking, recommendation, promotion rule, or application threshold.
 
 ## Applications
 
