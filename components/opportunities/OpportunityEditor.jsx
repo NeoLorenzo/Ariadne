@@ -14,7 +14,31 @@ function toForm(opportunity) {
   return { title: opportunity.title || "", type: opportunity.type || "other", organization: opportunity.organization || "", url: opportunity.url || "", description: opportunity.description || "", standardizedRequirements: opportunity.standardizedRequirements || [], miscRequirements: opportunity.miscRequirements || opportunity.requirements || "", deadline: opportunity.deadline || "", startDate: opportunity.startDate || "" };
 }
 
-export default function OpportunityEditor({ isOpen, opportunity, application, isBusy, onClose, onSave, onDelete, onArchiveToggle, onMarkApplied, onOpenApplication, assessments = [], onSetAssessment, onClearAssessment }) {
+const V2_SCORE_ROWS = [
+  ["capabilityMatch", "Capability match"],
+  ["relevantExperience", "Relevant experience"],
+  ["evidenceStrength", "Evidence strength"],
+  ["domainFit", "Domain fit"],
+  ["competitiveBarFit", "Competitive-bar fit"],
+  ["differentiation", "Differentiation"]
+];
+
+function OpportunityScoreSummary({ score }) {
+  if (!score) return null;
+  const isV2 = score.methodologyVersion === "2";
+
+  return <div className={styles.fieldFull}>
+    <strong>Landscape scoring</strong>
+    <div className={styles.muted}>Strategic Value {score.strategicValue ?? "—"} · Attainability {score.attainability ?? "—"} · Methodology v{score.methodologyVersion}</div>
+    {isV2 ? <>
+      <div className={styles.muted}>Eligibility {score.eligibility}/4 · Competitive Strength {score.competitiveStrength ?? "—"}/100 · Eligibility multiplier {score.eligibilityMultiplier ?? "—"}</div>
+      <div className={styles.muted}>{V2_SCORE_ROWS.map(([key, label]) => `${label} ${score[key]}/4`).join(" · ")}</div>
+      {score.attainabilityRationale ? <div className={styles.muted}>{score.attainabilityRationale}</div> : null}
+    </> : <div className={styles.muted}>Legacy Attainability v1 uses eligibility, competitiveness, career-stage fit and timing/actionability equally.</div>}
+  </div>;
+}
+
+export default function OpportunityEditor({ isOpen, opportunity, application, score, isBusy, onClose, onSave, onDelete, onArchiveToggle, onMarkApplied, onOpenApplication, assessments = [], onSetAssessment, onClearAssessment }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const dialogRef = useModalDialog(isOpen, onClose);
@@ -39,6 +63,7 @@ export default function OpportunityEditor({ isOpen, opportunity, application, is
           <div className={styles.field}><label htmlFor="opportunity-deadline">Application deadline</label><DateInput id="opportunity-deadline" value={form.deadline} onChange={(event) => setField("deadline", event.target.value)} />{errors.deadline ? <p className={styles.fieldError}>{errors.deadline}</p> : null}</div>
           <div className={styles.field}><label htmlFor="opportunity-start-date">Start date</label><DateInput id="opportunity-start-date" value={form.startDate} onChange={(event) => setField("startDate", event.target.value)} />{errors.startDate ? <p className={styles.fieldError}>{errors.startDate}</p> : null}</div>
           {application ? <div className={styles.fieldFull}><strong>Application: {OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</strong><SecondaryButton type="button" onClick={() => onOpenApplication?.(application)}>Open application</SecondaryButton></div> : null}
+          {isEditing ? <OpportunityScoreSummary score={score} /> : null}
           {assessmentOpportunity?.standardizedRequirements?.length ? <div className={styles.fieldFull}><OpportunityRequirementPills opportunity={assessmentOpportunity} assessments={assessments} editable showOverall onSetAssessment={onSetAssessment} onClearAssessment={onClearAssessment} /></div> : null}
           <OpportunityRequirementsEditor standardizedRequirements={form.standardizedRequirements} miscRequirements={form.miscRequirements} onChange={({ standardizedRequirements, miscRequirements }) => { setForm((current) => ({ ...current, standardizedRequirements, miscRequirements })); if (errors.standardizedRequirements || errors.general) setErrors((current) => ({ ...current, standardizedRequirements: undefined, general: undefined })); }} />
           {errors.standardizedRequirements ? <div className={styles.fieldFull}><p className={styles.fieldError}>{errors.standardizedRequirements}</p></div> : null}
