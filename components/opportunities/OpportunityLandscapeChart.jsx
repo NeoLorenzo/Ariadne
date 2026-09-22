@@ -43,9 +43,19 @@ function OpportunityPoint({ cx, cy, payload, onSelect }) {
   );
 }
 
+const V2_DIMENSION_LABELS = [
+  ["capabilityMatch", "Capability"],
+  ["relevantExperience", "Experience"],
+  ["evidenceStrength", "Evidence"],
+  ["domainFit", "Domain"],
+  ["competitiveBarFit", "Competitive bar"],
+  ["differentiation", "Differentiation"]
+];
+
 function OpportunityTooltip({ active, payload }) {
   const point = payload?.[0]?.payload;
   if (!active || !point?.opportunity) return null;
+  const isV2 = point.score.methodologyVersion === "2";
 
   return (
     <div className={styles.tooltip}>
@@ -54,10 +64,17 @@ function OpportunityTooltip({ active, payload }) {
       <div className={styles.tooltipScores}>
         <span><strong>{point.strategicValue}</strong> Strategic value</span>
         <span><strong>{point.attainability}</strong> Attainability</span>
+        {isV2 && Number.isFinite(point.score.competitiveStrength) ? <span><strong>{point.score.competitiveStrength}</strong> Competitive strength</span> : null}
       </div>
+      {isV2 ? <div className={styles.tooltipNote}>
+        Eligibility {point.score.eligibility}/4 × {point.score.eligibilityMultiplier} multiplier
+      </div> : null}
+      {isV2 ? <div className={styles.tooltipNote}>
+        {V2_DIMENSION_LABELS.map(([key, label]) => `${label} ${point.score[key]}/4`).join(" · ")}
+      </div> : null}
       {point.score.strategicValueRationale ? <div className={styles.tooltipNote}>{point.score.strategicValueRationale}</div> : null}
       {point.score.attainabilityRationale ? <div className={styles.tooltipNote}>{point.score.attainabilityRationale}</div> : null}
-      <div className={styles.tooltipNote}>Methodology v{point.score.methodologyVersion}</div>
+      <div className={styles.tooltipNote}>{isV2 ? "Attainability v2 · eligibility-constrained competitive strength" : "Legacy Attainability v1"} · Methodology v{point.score.methodologyVersion}</div>
     </div>
   );
 }
@@ -88,7 +105,7 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
         <div>
           <h3 id="opportunity-map-title" className={styles.title}>Opportunity map</h3>
           <p className={styles.description}>
-            Canonical reviewer scores for Strategic Value and Attainability.
+            Canonical Strategic Value and Attainability scores. Methodology v2 constrains competitive strength by formal eligibility.
           </p>
         </div>
         <span className={styles.prototypeBadge}>{unscoredCount ? `${unscoredCount} unscored` : "Fully scored"}</span>
