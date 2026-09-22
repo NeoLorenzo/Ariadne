@@ -112,6 +112,19 @@ begin
     raise exception 'V2 dimension rationales were not persisted';
   end if;
 
+  update public.opportunity_landscape_scores
+  set strategic_value_rationale = null
+  where opportunity_id = v_opportunity_id
+    and user_id = v_owner;
+
+  select * into v_row
+  from public.opportunity_landscape_scores
+  where opportunity_id = v_opportunity_id and user_id = v_owner;
+
+  if v_row.strategic_value_rationale <> 'V2 strategic rationale' then
+    raise exception 'Existing Strategic Value rationale was erased by an omitted/null update';
+  end if;
+
   -- Identical v2 writes are no-ops.
   v_result := chatgpt.upsert_opportunity_landscape_scores_v2(
     jsonb_build_array(jsonb_build_object(

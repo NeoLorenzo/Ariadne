@@ -1,5 +1,6 @@
 "use client";
 
+import { OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD } from "@/lib/opportunities/opportunityLandscapeScore";
 import {
   CartesianGrid,
   ReferenceArea,
@@ -105,7 +106,7 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
         <div>
           <h3 id="opportunity-map-title" className={styles.title}>Opportunity map</h3>
           <p className={styles.description}>
-            Canonical Strategic Value and Attainability scores. Methodology v2 constrains competitive strength by formal eligibility.
+            Canonical Strategic Value and Attainability scores. High-value/high-attainability begins at {OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}; Attainability v2 constrains competitive strength by formal eligibility.
           </p>
         </div>
         <span className={styles.prototypeBadge}>{unscoredCount ? `${unscoredCount} unscored` : "Fully scored"}</span>
@@ -120,17 +121,17 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
 
                 <ReferenceArea
                   x1={0}
-                  x2={50}
-                  y1={50}
+                  x2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
+                  y1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y2={100}
                   fill="rgba(148, 163, 184, 0.02)"
                   stroke="none"
                   label={{ value: "ACCESSIBLE / LOWER VALUE", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
                 />
                 <ReferenceArea
-                  x1={50}
+                  x1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   x2={100}
-                  y1={50}
+                  y1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y2={100}
                   fill="rgba(0, 136, 255, 0.075)"
                   stroke="none"
@@ -138,25 +139,25 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
                 />
                 <ReferenceArea
                   x1={0}
-                  x2={50}
+                  x2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y1={0}
-                  y2={50}
+                  y2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   fill="rgba(148, 163, 184, 0.01)"
                   stroke="none"
                   label={{ value: "BACKGROUND", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.4)", fontSize: 11 }}
                 />
                 <ReferenceArea
-                  x1={50}
+                  x1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   x2={100}
                   y1={0}
-                  y2={50}
+                  y2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   fill="rgba(0, 136, 255, 0.025)"
                   stroke="none"
                   label={{ value: "BUILD TOWARD", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
                 />
 
-                <ReferenceLine x={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
-                <ReferenceLine y={50} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
+                <ReferenceLine x={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
+                <ReferenceLine y={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
 
                 <XAxis
                   type="number"
