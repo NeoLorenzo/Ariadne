@@ -1,7 +1,7 @@
 "use client";
 
 import { OPPORTUNITY_TYPE_LABELS } from "@/lib/opportunities/opportunityModel";
-import { OPPORTUNITY_APPLICATION_STATUS_LABELS } from "@/lib/opportunities/opportunityApplicationModel";
+import { OPPORTUNITY_APPLICATION_STATUS_LABELS, resolveApplicationOpportunity } from "@/lib/opportunities/opportunityApplicationModel";
 import styles from "./OpportunityLandscape.module.css";
 
 function formatDate(value) {
@@ -18,7 +18,7 @@ export default function OpportunityApplicationTable({ applications, opportunityB
       <table className={styles.table}>
         <thead><tr><th className={styles.opportunityCell}>Opportunity</th><th>Organization</th><th>Type</th><th>Applied</th><th>Status</th><th>Last updated</th></tr></thead>
         <tbody>{applications.map((application) => {
-          const opportunity = opportunityById[application.opportunityId];
+          const opportunity = resolveApplicationOpportunity(application, opportunityById);
           return <tr key={application.id} className={styles.row} onClick={() => onSelect(application)}>
             <td className={styles.opportunityCell}><span className={styles.opportunityTitle}>{opportunity?.title || "Unknown opportunity"}</span></td>
             <td>{opportunity?.organization || <span className={styles.muted}>—</span>}</td>
@@ -31,7 +31,7 @@ export default function OpportunityApplicationTable({ applications, opportunityB
       </table>
     </div>
     <div className={styles.mobileList}>{applications.map((application) => {
-      const opportunity = opportunityById[application.opportunityId];
+      const opportunity = resolveApplicationOpportunity(application, opportunityById);
       return <button key={application.id} type="button" className={styles.mobileCard} onClick={() => onSelect(application)}>
         <div className={styles.mobileCardHeader}><span className={styles.mobileCardTitle}>{opportunity?.title || "Unknown opportunity"}</span><span className={styles.lifecycleBadge}>{OPPORTUNITY_APPLICATION_STATUS_LABELS[application.status] || application.status}</span></div>
         <div className={styles.mobileCardMeta}>{opportunity?.organization ? <span>{opportunity.organization}</span> : null}<span>{OPPORTUNITY_TYPE_LABELS[opportunity?.type] || "Other"}</span><span>·</span><span>Applied {formatDate(application.submittedAt)}</span></div>
