@@ -53,38 +53,41 @@ as $$
 declare
   opportunity_row public.opportunities%rowtype;
 begin
-  if tg_op = 'UPDATE' and new.opportunity_id is null then
+  if tg_op = 'UPDATE' then
+    if new.opportunity_id is distinct from old.opportunity_id
+       and new.opportunity_id is not null then
+      raise exception 'Application Opportunity links cannot be reassigned' using errcode = '23514';
+    end if;
+
     new.historical_opportunity_id := old.historical_opportunity_id;
     new.opportunity_snapshot := old.opportunity_snapshot;
     return new;
   end if;
 
-  if new.opportunity_id is not null
-     and (tg_op = 'INSERT' or new.opportunity_id is distinct from old.opportunity_id) then
-    select *
-    into opportunity_row
-    from public.opportunities
-    where id = new.opportunity_id
-      and user_id = new.user_id;
-
-    if not found then
-      raise exception 'Opportunity not found for application snapshot' using errcode = 'P0002';
-    end if;
-
-    new.historical_opportunity_id := opportunity_row.id;
-    new.opportunity_snapshot := jsonb_build_object(
-      'id', opportunity_row.id,
-      'title', opportunity_row.title,
-      'type', opportunity_row.type,
-      'organization', opportunity_row.organization,
-      'url', opportunity_row.url,
-      'deadline', opportunity_row.deadline,
-      'start_date', opportunity_row.start_date
-    );
-  elsif tg_op = 'UPDATE' then
-    new.historical_opportunity_id := old.historical_opportunity_id;
-    new.opportunity_snapshot := old.opportunity_snapshot;
+  if new.opportunity_id is null then
+    raise exception 'A live Opportunity is required when creating an application' using errcode = '23514';
   end if;
+
+  select *
+  into opportunity_row
+  from public.opportunities
+  where id = new.opportunity_id
+    and user_id = new.user_id;
+
+  if not found then
+    raise exception 'Opportunity not found for application snapshot' using errcode = 'P0002';
+  end if;
+
+  new.historical_opportunity_id := opportunity_row.id;
+  new.opportunity_snapshot := jsonb_build_object(
+    'id', opportunity_row.id,
+    'title', opportunity_row.title,
+    'type', opportunity_row.type,
+    'organization', opportunity_row.organization,
+    'url', opportunity_row.url,
+    'deadline', opportunity_row.deadline,
+    'start_date', opportunity_row.start_date
+  );
 
   return new;
 end;
@@ -98,7 +101,7 @@ drop trigger if exists capture_opportunity_application_snapshot_trigger
   on public.opportunity_applications;
 
 create trigger capture_opportunity_application_snapshot_trigger
-before insert or update of opportunity_id
+before insert or update
 on public.opportunity_applications
 for each row
 execute function public.capture_opportunity_application_snapshot();
