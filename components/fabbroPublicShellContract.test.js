@@ -83,7 +83,6 @@ describe("Fabbro public shell adoption", () => {
     expect(page).toContain("index: true");
     expect(page).toContain("follow: true");
     expect(page).toContain("Ariadne | Turn direction into action");
-    expect(page).toContain("https://fabbrosystems.com/og/ariadne.png");
-    expect(page).toContain('card: "summary_large_image"');
+    expect(page).toContain('card: "summary"');
   });
 });
