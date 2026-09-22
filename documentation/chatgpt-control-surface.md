@@ -105,7 +105,7 @@ Opportunity Candidate Inbox -> Opportunity Landscape -> Application
 - `chatgpt.create_opportunity_application(opportunity_id, submitted_at, notes)`
 - `chatgpt.update_opportunity_application(application_id, patch)`
 
-The create operation records a confirmed submission with status `submitted`. The update operation accepts only `status`, `submitted_at`, and `notes`; status changes update `status_updated_at`. Application records cannot target Opportunity candidates directly, and the linked canonical Opportunity cannot be deleted while application history exists.
+The create operation records a confirmed submission with status `submitted` and captures an immutable snapshot of the linked Opportunity. The update operation accepts only `status`, `submitted_at`, and `notes`; status changes update `status_updated_at`. Application records cannot target Opportunity candidates directly. When the linked Opportunity later leaves the live Landscape, its live foreign key becomes null while `historical_opportunity_id` and the Opportunity snapshot preserve application history.
 
 Direction content edits preserve the existing revision/history behavior. Strategic Objectives are persisted directly beneath Directions and concrete deliverables, deadlines, and next actions belong in Tasks.
 
@@ -144,7 +144,7 @@ ChatGPT should resolve the Ariadne Supabase project, use the `chatgpt` functions
 - The control surface assumes Ariadne remains a single-owner workspace and refuses to resolve an owner if multiple distinct owners appear in core tables.
 - Writes are bounded by operation and field allowlists.
 - Task deletion is soft deletion.
-- Opportunity Application writes are bounded to application-specific state and cannot mutate the linked Opportunity.
+- Opportunity Application writes are bounded to application-specific state and cannot mutate the linked Opportunity or rewrite its captured historical snapshot.
 - Opportunity Landscape scoring writes are privileged and bounded to eight integer dimensions from `0` through `4`; browser roles can read canonical scores but cannot mutate them directly.
 - The existing Ariadne storage model remains canonical; there is no second ChatGPT data store.
 
