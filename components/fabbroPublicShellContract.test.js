@@ -71,12 +71,19 @@ describe("Fabbro public shell adoption", () => {
     expect(css).toContain("var(--fs-public-footer-family-mark)");
   });
 
-  it("publishes indexable product metadata while keeping private content behind auth", () => {
+  it("indexes only the public root and publishes social preview metadata", () => {
     const layout = read("app/layout.js");
-    expect(layout).toContain('title: "Ariadne | Strategy and execution"');
-    expect(layout).toContain("index: true");
-    expect(layout).toContain("follow: true");
-    expect(layout).toContain("Ariadne · Turn direction into action");
+    const page = read("app/page.js");
+
+    expect(layout).toContain("index: false");
+    expect(layout).toContain("follow: false");
     expect(layout).toContain('data-fabbro-product="ariadne"');
+
+    expect(page).toContain('title: "Ariadne | Personal strategy and execution"');
+    expect(page).toContain("index: true");
+    expect(page).toContain("follow: true");
+    expect(page).toContain("Ariadne | Turn direction into action");
+    expect(page).toContain("https://fabbrosystems.com/og/ariadne.png");
+    expect(page).toContain('card: "summary_large_image"');
   });
 });
