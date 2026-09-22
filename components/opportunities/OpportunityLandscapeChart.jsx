@@ -1,6 +1,6 @@
-import { OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD } from "@/lib/opportunities/opportunityLandscapeScore";
 "use client";
 
+import { OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD } from "@/lib/opportunities/opportunityLandscapeScore";
 import {
   CartesianGrid,
   ReferenceArea,
@@ -106,7 +106,7 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
         <div>
           <h3 id="opportunity-map-title" className={styles.title}>Opportunity map</h3>
           <p className={styles.description}>
-            Canonical Strategic Value and Attainability scores. High-value/high-attainability begins at ${OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}; Attainability v2 constrains competitive strength by formal eligibility.
+            Canonical Strategic Value and Attainability scores. High-value/high-attainability begins at {OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}; Attainability v2 constrains competitive strength by formal eligibility.
           </p>
         </div>
         <span className={styles.prototypeBadge}>{unscoredCount ? `${unscoredCount} unscored` : "Fully scored"}</span>
