@@ -25,22 +25,13 @@ export const metadata = {
     siteName: "Ariadne",
     title: "Ariadne | Turn direction into action",
     description,
-    url: "/",
-    images: [
-      {
-        url: "https://fabbrosystems.com/og/ariadne.png",
-        width: 1200,
-        height: 627,
-        alt: "Ariadne — Turn direction into action"
-      }
-    ]
+    url: "/"
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Ariadne | Turn direction into action",
     description:
-      "Personal strategy and execution connecting long-term direction to priorities, opportunities, projects and tasks.",
-    images: ["https://fabbrosystems.com/og/ariadne.png"]
+      "Personal strategy and execution connecting long-term direction to priorities, opportunities, projects and tasks."
   }
 };
 
