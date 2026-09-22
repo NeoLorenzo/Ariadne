@@ -239,7 +239,7 @@ export default function OpportunitiesPage() {
                 </>}
       </div>
     </section></section>
-    <OpportunityEditor isOpen={isEditorOpen} opportunity={selectedOpportunity} application={selectedOpportunity ? applicationsByOpportunity[selectedOpportunity.id] : null} isBusy={isBusy} onClose={closeEditor} onSave={saveOpportunity} onDelete={removeOpportunity} onArchiveToggle={archiveOpportunity} onMarkApplied={markApplied} onOpenApplication={openApplicationFromOpportunity} assessments={selectedOpportunity ? assessmentsByEntity[selectedOpportunity.id] || [] : []} onSetAssessment={setAssessment} onClearAssessment={clearAssessment} />
+    <OpportunityEditor isOpen={isEditorOpen} opportunity={selectedOpportunity} application={selectedOpportunity ? applicationsByOpportunity[selectedOpportunity.id] : null} score={selectedOpportunity ? scoresByOpportunity[selectedOpportunity.id] : null} isBusy={isBusy} onClose={closeEditor} onSave={saveOpportunity} onDelete={removeOpportunity} onArchiveToggle={archiveOpportunity} onMarkApplied={markApplied} onOpenApplication={openApplicationFromOpportunity} assessments={selectedOpportunity ? assessmentsByEntity[selectedOpportunity.id] || [] : []} onSetAssessment={setAssessment} onClearAssessment={clearAssessment} />
     <OpportunityApplicationEditor isOpen={isApplicationEditorOpen} application={selectedApplication} opportunity={selectedApplicationOpportunity} isBusy={isBusy} onClose={closeApplicationEditor} onSave={saveApplication} onOpenOpportunity={selectedApplicationOpportunity?.historical ? null : openOpportunityFromApplication} />
   </AppShell>;
 }

@@ -85,9 +85,14 @@ The privileged ChatGPT surface also supports stateless Opportunity review throug
 
 - `chatgpt.upsert_opportunity_requirement_assessments(assessments)`
 - `chatgpt.accept_opportunity_candidate(...)`
-- `chatgpt.upsert_opportunity_landscape_scores(scores)`
+- `chatgpt.upsert_opportunity_landscape_scores(scores)` — legacy methodology v1 score maintenance
+- `chatgpt.upsert_opportunity_landscape_scores_v2(scores)` — methodology v2 Attainability maintenance
 
-`chatgpt.upsert_opportunity_landscape_scores(scores)` accepts only the eight canonical 0–4 Landscape classifications plus two optional rationale fields. It cannot write final coordinates directly. `public.opportunity_landscape_scores` deterministically generates Strategic Value and Attainability from those classifications.
+The v1 mutation accepts the legacy eight 0–4 classifications and remains available only for rows that have not migrated. It will not downgrade an existing methodology v2 row.
+
+The v2 mutation accepts the four existing Strategic Value classifications, Eligibility, and the six v2 competitive-strength classifications: `capability_match`, `relevant_experience`, `evidence_strength`, `domain_fit`, `competitive_bar_fit`, and `differentiation`. Optional summary and per-dimension rationale fields may also be persisted.
+
+Neither mutation can write final coordinates directly. Postgres deterministically generates Strategic Value, Competitive Strength, legacy v1 Attainability, and canonical Attainability. For methodology v2, canonical Attainability equals Competitive Strength multiplied by the deterministic Eligibility multiplier.
 
 These mutations are only part of the review workflow. The canonical operating rules, source-completeness semantics, requirement-integrity rules, promotion standard, scoring methodology, and reporting contract live in [Opportunity Review Agent](./opportunity-review-agent.md). The end-to-end subsystem architecture lives in [Opportunity System](./opportunity-system.md).
 
@@ -145,7 +150,8 @@ ChatGPT should resolve the Ariadne Supabase project, use the `chatgpt` functions
 - Writes are bounded by operation and field allowlists.
 - Task deletion is soft deletion.
 - Opportunity Application writes are bounded to application-specific state and cannot mutate the linked Opportunity or rewrite its captured historical snapshot.
-- Opportunity Landscape scoring writes are privileged and bounded to eight integer dimensions from `0` through `4`; browser roles can read canonical scores but cannot mutate them directly.
+- Opportunity Landscape scoring writes are privileged and bounded to canonical integer dimensions from `0` through `4`; browser roles can read canonical scores but cannot mutate them directly.
+- Legacy v1 scoring cannot overwrite or downgrade a methodology v2 row.
 - The existing Ariadne storage model remains canonical; there is no second ChatGPT data store.
 
 ## MCP
