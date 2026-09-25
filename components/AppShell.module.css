@@ -6,7 +6,7 @@
 .utilityBar {
   position: sticky;
   top: 0;
-  z-index: 130;
+  z-index: 70;
   display: flex;
   min-height: var(--ariadne-utility-height);
   align-items: center;
@@ -62,6 +62,7 @@
 .workspace :global(.page-content) {
   min-width: 0;
   min-height: 100%;
+  z-index: auto;
 }
 
 @media (max-width: 900px) {

@@ -64,4 +64,13 @@ describe("Fabbro application shell adoption", () => {
     expect(layout).toContain('data-fabbro-product="ariadne"');
     expect(layout).toContain('import "@/fabbro-design/fabbro-tokens.css"');
   });
+
+  it("keeps Ariadne shell layers below the canonical mobile drawer while allowing page overlays to escape", () => {
+    const shellStyles = read("components/AppShell.module.css");
+
+    expect(shellStyles).toMatch(/\.utilityBar\s*\{[\s\S]*?z-index:\s*70;/);
+    expect(shellStyles).toMatch(
+      /\.workspace :global\(\.page-content\)\s*\{[\s\S]*?z-index:\s*auto;/
+    );
+  });
 });
