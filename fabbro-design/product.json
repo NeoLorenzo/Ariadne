@@ -1,9 +1,10 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "product": "Ariadne",
   "symbol": "Thread",
   "coreIdea": "Direction",
   "accent": "#0088FF",
   "asset": "Ariadne Logo.svg",
-  "headerLockupAsset": "Ariadne Logo Colored With Text Beside.svg"
+  "headerLockupAsset": "Ariadne Logo Colored With Text Beside.svg",
+  "accentContrast": "#000000"
 }

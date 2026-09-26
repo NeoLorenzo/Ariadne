@@ -1,0 +1,348 @@
+/*
+ * Fabbro Application UI 1.0.0
+ * Requires Fabbro Design System 0.4.0 tokens.
+ */
+
+.fs-app-workspace {
+  min-width: 0;
+  min-height: 0;
+  padding:
+    var(--fs-app-workspace-padding-block-start)
+    var(--fs-app-workspace-padding-inline)
+    var(--fs-app-workspace-padding-block-end);
+  background: var(--fs-app-bg);
+}
+
+.fs-app-page {
+  width: 100%;
+  max-width: var(--fs-app-content-max);
+  margin: 0 auto;
+  display: grid;
+  gap: 28px;
+}
+
+.fs-app-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--fs-space-4);
+  flex-wrap: wrap;
+}
+
+.fs-app-heading {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.fs-app-kicker {
+  color: var(--fs-app-text-muted);
+  font-size: var(--fs-app-type-kicker-size);
+  font-weight: var(--fs-app-type-kicker-weight);
+  letter-spacing: var(--fs-app-type-kicker-tracking);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.fs-app-title {
+  margin: 0;
+  color: var(--fs-app-text);
+  font-size: var(--fs-app-type-page-title-size);
+  font-weight: var(--fs-app-type-page-title-weight);
+  letter-spacing: var(--fs-app-type-page-title-tracking);
+  line-height: var(--fs-app-type-page-title-line-height);
+}
+
+.fs-app-subtitle {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--fs-app-text-muted);
+  font-size: var(--fs-app-type-supporting-size);
+  line-height: var(--fs-app-type-supporting-line-height);
+}
+
+.fs-app-card {
+  min-width: 0;
+  border: var(--fs-border-width) solid var(--fs-app-border);
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-app-surface);
+}
+
+.fs-app-card-header {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fs-space-3);
+  padding: var(--fs-space-3) var(--fs-space-4);
+  border-bottom: var(--fs-border-width) solid var(--fs-app-border);
+}
+
+.fs-app-card-title {
+  margin: 0;
+  color: var(--fs-app-text);
+  font-size: var(--fs-app-type-section-title-size);
+  font-weight: var(--fs-app-type-section-title-weight);
+  letter-spacing: var(--fs-app-type-section-title-tracking);
+  line-height: var(--fs-app-type-section-title-line-height);
+}
+
+.fs-app-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--fs-app-surface-strong);
+  color: var(--fs-app-text-muted);
+  font-size: var(--fs-app-type-metadata-size);
+  font-weight: var(--fs-app-type-metadata-weight);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.fs-app-modal {
+  position: relative;
+  width: min(var(--fs-app-modal-max-width), calc(100vw - 32px));
+  max-height: var(--fs-app-modal-max-height);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: var(--fs-border-width) solid var(--fs-app-border-raised);
+  border-radius: var(--fs-app-modal-radius);
+  background: var(--fs-app-overlay);
+  color: var(--fs-app-text);
+  box-shadow: var(--fs-app-overlay-shadow);
+  animation: fs-app-dialog-in var(--fs-motion-normal) var(--fs-app-motion-ease);
+}
+
+.fs-app-modal-header {
+  flex: 0 0 auto;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fs-space-3);
+  padding: 14px 20px;
+  border-bottom: var(--fs-border-width) solid var(--fs-app-border);
+}
+
+.fs-app-modal-header h1,
+.fs-app-modal-header h2,
+.fs-app-modal-header h3 {
+  margin: 0;
+  color: var(--fs-app-text);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.fs-app-modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.fs-app-modal-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--fs-space-2);
+  padding: var(--fs-space-3) 20px;
+  border-top: var(--fs-border-width) solid var(--fs-app-border);
+  background: var(--fs-app-overlay);
+}
+
+.fs-app-control {
+  width: 100%;
+  min-height: var(--fs-app-field-min-height);
+  padding: 7px 11px;
+  border: var(--fs-border-width) solid var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
+  outline: 0;
+  background: var(--fs-app-surface-raised);
+  color: var(--fs-app-text);
+  font-family: var(--fs-font-primary);
+  font-size: var(--fs-app-type-body-size);
+  line-height: var(--fs-app-type-body-line-height);
+  color-scheme: dark;
+  transition:
+    border-color var(--fs-motion-fast) var(--fs-motion-ease),
+    box-shadow var(--fs-motion-fast) var(--fs-motion-ease),
+    background var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.fs-app-control::placeholder {
+  color: var(--fs-app-text-quiet);
+}
+
+.fs-app-control:hover:not(:disabled) {
+  border-color: var(--fs-app-border-strong);
+}
+
+.fs-app-control:focus,
+.fs-app-control:focus-visible {
+  border-color: var(--fs-app-accent-line);
+  box-shadow: 0 0 0 3px var(--fs-app-accent-soft);
+}
+
+.fs-app-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.fs-app-textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.fs-app-button {
+  min-height: var(--fs-app-button-min-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: var(--fs-border-width) solid transparent;
+  border-radius: var(--fs-radius-control);
+  font-family: var(--fs-font-primary);
+  font-size: var(--fs-app-type-body-size);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background var(--fs-motion-fast) var(--fs-motion-ease),
+    border-color var(--fs-motion-fast) var(--fs-motion-ease),
+    color var(--fs-motion-fast) var(--fs-motion-ease),
+    opacity var(--fs-motion-fast) var(--fs-motion-ease);
+}
+
+.fs-app-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.fs-app-button:focus-visible {
+  outline: 2px solid var(--fs-app-accent);
+  outline-offset: 2px;
+}
+
+.fs-app-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.fs-app-button.is-primary {
+  border-color: var(--fs-app-accent);
+  background: var(--fs-app-accent);
+  color: var(--fs-accent-contrast);
+}
+
+.fs-app-button.is-primary:hover:not(:disabled) {
+  border-color: var(--fs-app-accent-hover);
+  background: var(--fs-app-accent-hover);
+}
+
+.fs-app-button.is-secondary {
+  border-color: var(--fs-app-border-raised);
+  background: var(--fs-app-surface-raised);
+  color: var(--fs-app-text);
+}
+
+.fs-app-button.is-secondary:hover:not(:disabled) {
+  border-color: var(--fs-app-border-strong);
+  background: var(--fs-app-surface-strong);
+}
+
+.fs-app-button.is-ghost {
+  background: transparent;
+  color: var(--fs-app-text-secondary);
+  font-weight: 550;
+}
+
+.fs-app-button.is-ghost:hover:not(:disabled) {
+  background: var(--fs-app-hover-strong);
+  color: var(--fs-app-text);
+}
+
+.fs-app-button.is-icon {
+  width: var(--fs-app-icon-button-size);
+  min-width: var(--fs-app-icon-button-size);
+  min-height: var(--fs-app-icon-button-size);
+  padding: 0;
+  background: transparent;
+  color: var(--fs-app-text-muted);
+}
+
+.fs-app-button.is-icon:hover:not(:disabled) {
+  background: var(--fs-app-hover-strong);
+  color: var(--fs-app-text);
+}
+
+.fs-app-divider {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--fs-app-border);
+}
+
+.fs-app-progress {
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--fs-app-surface-strong);
+}
+
+.fs-app-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--fs-app-accent);
+}
+
+.fs-app-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fs-app-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fs-app-status::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--fs-app-text-quiet);
+  content: "";
+}
+
+.fs-app-status.is-active::before { background: var(--fs-app-accent); }
+.fs-app-status.is-success::before { background: var(--fs-app-success); }
+.fs-app-status.is-warning::before { background: var(--fs-app-warning); }
+.fs-app-status.is-danger::before { background: var(--fs-app-danger); }
+
+@keyframes fs-app-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-app-modal {
+    animation: none;
+  }
+
+  .fs-app-button,
+  .fs-app-control {
+    transition: none;
+  }
+}

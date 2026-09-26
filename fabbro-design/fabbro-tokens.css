@@ -1,5 +1,5 @@
 /*
- * Fabbro Systems Design System v0.3.0
+ * Fabbro Systems Design System v0.4.0
  * Canonical framework-agnostic implementation tokens.
  */
 
@@ -79,14 +79,88 @@
   --fs-app-nav-item-min-height: 2.55rem;
   --fs-app-nav-icon-size: 1.15rem;
   --fs-app-nav-active-indicator-width: 2px;
+
+  /* Authenticated application UI 1.0.0 */
+  --fs-app-bg: var(--fs-color-bg);
+  --fs-app-surface: #0a0a0b;
+  --fs-app-surface-raised: #111113;
+  --fs-app-surface-strong: #18181b;
+  --fs-app-overlay: #0e0e10;
+  --fs-app-hover: rgba(255, 255, 255, 0.035);
+  --fs-app-hover-strong: rgba(255, 255, 255, 0.06);
+  --fs-app-border: #1c1c1f;
+  --fs-app-border-raised: #27272a;
+  --fs-app-border-strong: #3f3f46;
+  --fs-app-text: #f4f4f5;
+  --fs-app-text-secondary: var(--fs-color-text-secondary);
+  --fs-app-text-muted: var(--fs-color-text-muted);
+  --fs-app-text-quiet: #6b6b72;
+  --fs-app-accent: var(--fs-accent);
+  --fs-app-accent-hover: color-mix(in srgb, var(--fs-accent) 86%, white);
+  --fs-app-accent-text: color-mix(in srgb, var(--fs-accent) 70%, white);
+  --fs-app-accent-soft: color-mix(in srgb, var(--fs-accent) 12%, transparent);
+  --fs-app-accent-line: color-mix(in srgb, var(--fs-accent) 40%, transparent);
+  --fs-app-danger: #f26d6d;
+  --fs-app-danger-soft: rgba(242, 109, 109, 0.1);
+  --fs-app-warning: #f0a53a;
+  --fs-app-warning-soft: rgba(240, 165, 58, 0.1);
+  --fs-app-caution: #e2c044;
+  --fs-app-caution-soft: rgba(226, 192, 68, 0.1);
+  --fs-app-success: #3ecf8e;
+  --fs-app-success-soft: rgba(62, 207, 142, 0.1);
+
+  --fs-app-type-page-title-size: 24px;
+  --fs-app-type-page-title-weight: 650;
+  --fs-app-type-page-title-line-height: 1.15;
+  --fs-app-type-page-title-tracking: -0.02em;
+  --fs-app-type-section-title-size: 14px;
+  --fs-app-type-section-title-weight: 600;
+  --fs-app-type-section-title-line-height: 1.3;
+  --fs-app-type-section-title-tracking: -0.005em;
+  --fs-app-type-body-size: 13px;
+  --fs-app-type-body-line-height: 1.5;
+  --fs-app-type-supporting-size: 14px;
+  --fs-app-type-supporting-line-height: 1.5;
+  --fs-app-type-metadata-size: 11px;
+  --fs-app-type-metadata-weight: 600;
+  --fs-app-type-kicker-size: 11px;
+  --fs-app-type-kicker-weight: 600;
+  --fs-app-type-kicker-tracking: 0.14em;
+
+  --fs-app-content-max: 1240px;
+  --fs-app-reading-max: 880px;
+  --fs-app-utility-height: 3.5rem;
+  --fs-app-workspace-padding-block-start: 36px;
+  --fs-app-workspace-padding-inline: 40px;
+  --fs-app-workspace-padding-block-end: 64px;
+
+  --fs-app-field-min-height: 36px;
+  --fs-app-button-min-height: 34px;
+  --fs-app-icon-button-size: 32px;
+  --fs-app-modal-max-width: 640px;
+  --fs-app-modal-max-height: min(86vh, 860px);
+  --fs-app-modal-radius: 14px;
+  --fs-app-overlay-shadow: 0 24px 64px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --fs-app-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+
   --fs-motion-fast: 120ms;
   --fs-motion-normal: 180ms;
   --fs-motion-ease: ease;
   --fs-accent: #ffffff;
+  --fs-accent-contrast: #000000;
 }
-[data-fabbro-product="ariadne"] { --fs-accent: #0088ff; }
-[data-fabbro-product="kleos"] { --fs-accent: #cb30e0; }
-[data-fabbro-product="heracles"] { --fs-accent: #ff383c; }
+[data-fabbro-product="ariadne"] { --fs-accent: #0088ff; --fs-accent-contrast: #000000; }
+[data-fabbro-product="kleos"] { --fs-accent: #cb30e0; --fs-accent-contrast: #000000; }
+[data-fabbro-product="heracles"] { --fs-accent: #ff383c; --fs-accent-contrast: #000000; }
+
+[data-fabbro-product] {
+  --fs-app-accent: var(--fs-accent);
+  --fs-app-accent-hover: color-mix(in srgb, var(--fs-accent) 86%, white);
+  --fs-app-accent-text: color-mix(in srgb, var(--fs-accent) 70%, white);
+  --fs-app-accent-soft: color-mix(in srgb, var(--fs-accent) 12%, transparent);
+  --fs-app-accent-line: color-mix(in srgb, var(--fs-accent) 40%, transparent);
+}
+
 @media (max-width: 1024px) {
   :root { --fs-page-gutter: 40px; }
 }
@@ -99,5 +173,20 @@
     --fs-type-product-header-size: 24px;
     --fs-type-hero-size: clamp(38px, 11vw, 52px);
     --fs-type-hero-sub-size: 21px;
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --fs-app-workspace-padding-block-start: 28px;
+    --fs-app-workspace-padding-inline: 28px;
+    --fs-app-workspace-padding-block-end: 56px;
+  }
+}
+@media (max-width: 900px) {
+  :root {
+    --fs-app-workspace-padding-block-start: 20px;
+    --fs-app-workspace-padding-inline: 16px;
+    --fs-app-workspace-padding-block-end: 48px;
   }
 }

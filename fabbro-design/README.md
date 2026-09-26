@@ -2,9 +2,10 @@
 
 Ariadne consumes a local snapshot of the canonical Fabbro Design System.
 
-**Adopted design-system version:** 0.3.0  
+**Adopted design-system version:** 0.4.0  
 **Adopted Public Shell:** 1.0.0  
 **Adopted Application Sidebar:** 1.0.0  
+**Adopted Application UI:** 1.0.0  
 **Upstream:** `NeoLorenzo/Fabbro-Systems/design-system`
 
 ## Rules
@@ -15,6 +16,7 @@ Ariadne consumes a local snapshot of the canonical Fabbro Design System.
 - Ariadne may define product-specific route maps, workflow UI, data views, public explanatory sections, and domain interactions.
 - The canonical React sidebar source under `components/application-sidebar/react/` must remain unchanged from upstream.
 - Signed-out surfaces must consume the canonical Public Shell contract and `--fs-public-*` tokens rather than re-hardcoding shared shell geometry.
+- Authenticated surfaces must consume `--fs-app-*` semantic tokens and Application UI 1.0.0 primitives rather than maintaining local equivalents.
 
 ## Snapshot contents
 
@@ -25,3 +27,4 @@ Ariadne consumes a local snapshot of the canonical Fabbro Design System.
 - `assets/`
 - `components/application-sidebar/`
 - `components/public-shell/`
+- `components/application-ui/`

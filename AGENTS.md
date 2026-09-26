@@ -6,7 +6,7 @@ Ariadne is a Fabbro Systems product. Ariadne owns strategy, priorities, opportun
 
 ## Fabbro Design System adoption
 
-Ariadne adopts **Fabbro Design System 0.3.0**, **Fabbro Public Shell 1.0.0**, and **Fabbro Application Sidebar 1.0.0**.
+Ariadne adopts **Fabbro Design System 0.4.0**, **Fabbro Public Shell 1.0.0**, **Fabbro Application Sidebar 1.0.0**, and **Fabbro Application UI 1.0.0**.
 
 The vendored upstream snapshot lives in `fabbro-design/`.
 
@@ -16,9 +16,10 @@ For shared visual decisions, precedence is:
 2. machine-readable values in `fabbro-design/core.json` and `fabbro-design/product.json`;
 3. canonical component source in `fabbro-design/components/`;
 4. `fabbro-design/fabbro-tokens.css`;
-5. Ariadne product wrappers and domain UI.
+5. canonical Application UI source in `fabbro-design/components/application-ui/`;
+6. Ariadne product wrappers and domain UI.
 
-Do not independently fork family-level components or visual rules.
+Do not independently fork family-level components or visual rules. Authenticated product UI must consume the canonical `--fs-app-*` semantic tokens and Application UI primitives instead of defining a parallel local surface/control system.
 
 ## Canonical Ariadne identity
 

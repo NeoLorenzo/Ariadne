@@ -13,7 +13,7 @@
 .headerSubtitle,
 .sectionDescription {
   margin: 0;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -29,9 +29,9 @@
   display: grid;
   gap: 16px;
   padding: 20px;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  background: var(--ui-surface);
+  border: 1px solid var(--fs-app-border);
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-app-surface);
 }
 
 .strategyHeader {
@@ -49,7 +49,7 @@
 .strategyHeading h3,
 .directionsHeader h3 {
   margin: 0;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -68,8 +68,8 @@
   height: 18px;
   padding: 0 6px;
   border-radius: 4px;
-  background: var(--ui-warning-soft);
-  color: var(--ui-warning);
+  background: var(--fs-app-warning-soft);
+  color: var(--fs-app-warning);
   font-size: 11px;
   font-weight: 600;
 }
@@ -78,10 +78,10 @@
   flex: 0 0 auto;
   min-height: 32px;
   padding: 0 12px;
-  border: 1px solid var(--ui-border-2);
-  border-radius: var(--ui-radius);
+  border: 1px solid var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
   background: transparent;
-  color: var(--ui-text-2);
+  color: var(--fs-app-text-secondary);
   font-size: 12px;
   font-weight: 600;
   transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
@@ -89,19 +89,19 @@
 
 .manageButton:hover,
 .manageButton[aria-expanded="true"] {
-  border-color: var(--ui-border-strong);
-  background: var(--ui-hover);
-  color: var(--ui-text);
+  border-color: var(--fs-app-border-strong);
+  background: var(--fs-app-hover);
+  color: var(--fs-app-text);
 }
 
 .vectorGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   overflow: hidden;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
+  border: 1px solid var(--fs-app-border);
+  border-radius: var(--fs-radius-control);
   gap: 1px;
-  background: var(--ui-border);
+  background: var(--fs-app-border);
 }
 
 .vectorCard {
@@ -109,7 +109,7 @@
   display: grid;
   gap: 10px;
   padding: 14px 16px;
-  background: var(--ui-surface);
+  background: var(--fs-app-surface);
 }
 
 .vectorCardTop,
@@ -123,7 +123,7 @@
 .vectorCardTop strong {
   min-width: 0;
   overflow: hidden;
-  color: var(--ui-text-2);
+  color: var(--fs-app-text-secondary);
   font-size: 13px;
   font-weight: 550;
   text-overflow: ellipsis;
@@ -131,7 +131,7 @@
 }
 
 .vectorScore {
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 20px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
@@ -140,7 +140,7 @@
 }
 
 .vectorScoreEmpty {
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
   font-size: 13px;
   font-weight: 550;
   letter-spacing: 0;
@@ -150,7 +150,7 @@
   height: 3px;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--ui-surface-3);
+  background: var(--fs-app-surface-strong);
 }
 
 .vectorBar span {
@@ -158,17 +158,17 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, color-mix(in srgb, var(--fs-accent) 55%, transparent), var(--fs-accent));
-  transition: width 400ms var(--ui-ease);
+  transition: width 400ms var(--fs-app-motion-ease);
 }
 
 .vectorMeta {
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
   font-size: 11px;
   font-weight: 500;
 }
 
 .vectorCovered {
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
 }
 
 /* Directions */
@@ -193,13 +193,13 @@
   align-content: start;
   gap: 8px;
   padding: 16px;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
-  background: var(--ui-surface-2);
+  border: 1px solid var(--fs-app-border);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-surface-raised);
 }
 
 .directionIndex {
-  color: var(--ui-accent-text);
+  color: var(--fs-app-accent-text);
   font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -208,7 +208,7 @@
 
 .directionCard h4 {
   margin: 0;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.35;
@@ -218,7 +218,7 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 13px;
   line-height: 1.55;
   -webkit-box-orient: vertical;
@@ -238,17 +238,17 @@
   height: 20px;
   padding: 0 7px;
   border-radius: 4px;
-  background: var(--ui-surface-3);
-  color: var(--ui-text-3);
+  background: var(--fs-app-surface-strong);
+  color: var(--fs-app-text-muted);
   font-size: 11px;
   font-weight: 500;
 }
 
 .emptyStrategy {
   padding: 20px;
-  border: 1px dashed var(--ui-border-2);
-  border-radius: var(--ui-radius);
-  color: var(--ui-text-3);
+  border: 1px dashed var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
+  color: var(--fs-app-text-muted);
   font-size: 13px;
   text-align: center;
 }
@@ -256,7 +256,7 @@
 .strategyManager {
   margin-top: 4px;
   padding-top: 20px;
-  border-top: 1px solid var(--ui-border);
+  border-top: 1px solid var(--fs-app-border);
 }
 
 /* Operational row */

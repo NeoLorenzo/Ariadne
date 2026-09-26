@@ -211,7 +211,7 @@ export default function DashboardPage() {
         <div className="dashboard-container">
           <header className={`dashboard-header ${styles.pageHeader}`}>
             <div className={styles.headerIntro}>
-              <span className="ui-kicker">{todayLabel}</span>
+              <span className="fs-app-kicker">{todayLabel}</span>
               <h2 className="dashboard-title">Dashboard</h2>
               <p className={styles.headerSubtitle}>Current position, active direction, and the signals that need attention.</p>
             </div>

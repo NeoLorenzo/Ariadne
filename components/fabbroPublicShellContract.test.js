@@ -5,13 +5,13 @@ const read = (relativePath) =>
   readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 describe("Fabbro public shell adoption", () => {
-  it("adopts Fabbro Design System 0.3.0 and Public Shell 1.0.0", () => {
-    expect(read("fabbro-design/VERSION").trim()).toBe("0.3.0");
+  it("adopts Fabbro Design System 0.4.0 and Public Shell 1.0.0", () => {
+    expect(read("fabbro-design/VERSION").trim()).toBe("0.4.0");
     expect(read("fabbro-design/components/public-shell/VERSION").trim()).toBe("1.0.0");
 
     const product = JSON.parse(read("fabbro-design/product.json"));
     expect(product).toMatchObject({
-      version: "0.3.0",
+      version: "0.4.0",
       product: "Ariadne",
       symbol: "Thread",
       coreIdea: "Direction",

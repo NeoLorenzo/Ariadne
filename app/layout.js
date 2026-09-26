@@ -1,4 +1,5 @@
 import "@/fabbro-design/fabbro-tokens.css";
+import "@/fabbro-design/components/application-ui/application-ui.css";
 import "./globals.css";
 import AppAccessGate from "@/components/AppAccessGate";
 import GitHubTaskReadOnlyGuard from "@/components/GitHubTaskReadOnlyGuard";

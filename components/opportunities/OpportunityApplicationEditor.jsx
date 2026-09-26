@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { DateInput, ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton, Select, TextArea, useModalDialog } from "@/components/ui/AriadneUI";
 import { OPPORTUNITY_TYPE_LABELS } from "@/lib/opportunities/opportunityModel";
 import { OPPORTUNITY_APPLICATION_STATUSES, OPPORTUNITY_APPLICATION_STATUS_LABELS } from "@/lib/opportunities/opportunityApplicationModel";
@@ -52,7 +53,7 @@ export default function OpportunityApplicationEditor({ isOpen, application, oppo
   return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="application-editor-title">
     <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close application editor" />
     <ModalShell ref={dialogRef} as="form" className={styles.editor} onSubmit={submit}>
-      <header className={`ff-modal-header ${styles.editorHeader}`}><h3 id="application-editor-title">Application</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button></header>
+      <header className={`fs-app-modal-header ${styles.editorHeader}`}><h3 id="application-editor-title">Application</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close"><X aria-hidden="true" /></button></header>
       <ModalBody className={styles.editorBody}>
         <div className={styles.editorGrid}>
           <div className={styles.fieldFull}>

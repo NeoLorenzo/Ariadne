@@ -27,7 +27,7 @@ import { createTaskWriteCoordinator } from "@/lib/tasks/writeCoordinator";
 const TASK_STORAGE_KEY = "fabbro_tasks_v1";
 const TASKS_SYNC_CACHE_NAMESPACE = "tasks.resolved_cloud";
 const TASK_TOMBSTONE_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
-const TARGET_DATE_COLOR = "var(--ui-accent-text)";
+const TARGET_DATE_COLOR = "var(--fs-app-accent-text)";
 
 const EMPTY_FORM = {
   completed: false,
@@ -1541,7 +1541,7 @@ export default function TasksPage() {
                 onClick={closeTaskModal}
               />
               <ModalShell as="form" className="task-editor-modal task-editor-floating-form" onSubmit={onSubmit}>
-                  <header className="task-editor-content-header ff-modal-header">
+                  <header className="task-editor-content-header fs-app-modal-header">
                     <button
                       type="button"
                       className={`task-editor-completion${form.completed ? " is-complete" : ""}`}

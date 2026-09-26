@@ -208,7 +208,7 @@ export default function GitHubReposModule({ onProjectsChange }) {
         <header className="coding-board-header">
           <div className="notice-board-title-group">
             <h2 className="coding-board-title">Repositories</h2>
-            <span className="ui-count">{visibleRepos.length}</span>
+            <span className="fs-app-count">{visibleRepos.length}</span>
           </div>
         </header>
 
