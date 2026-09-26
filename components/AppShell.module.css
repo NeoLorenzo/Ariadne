@@ -63,8 +63,8 @@
 
 .familyMark {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: var(--fs-family-mark-size);
+  height: var(--fs-family-mark-size);
   object-fit: contain;
   opacity: 0.9;
 }
