@@ -125,7 +125,7 @@ export default function DashboardStrategyOverview({ userId }) {
 
       <div className={styles.directionsHeader}>
         <h3>Active directions</h3>
-        <span className="ui-count">{activeDirections.length}</span>
+        <span className="fs-app-count">{activeDirections.length}</span>
       </div>
 
       {activeDirections.length ? (

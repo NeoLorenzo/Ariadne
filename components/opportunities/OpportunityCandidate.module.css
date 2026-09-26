@@ -1,7 +1,7 @@
 .surfaceTabs {
   display: flex;
   gap: 20px;
-  border-bottom: 1px solid var(--ui-border);
+  border-bottom: 1px solid var(--fs-app-border);
 }
 
 .surfaceTab {
@@ -12,7 +12,7 @@
   padding: 0 0 2px;
   border: 0;
   background: transparent;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 13px;
   font-weight: 550;
   text-decoration: none;
@@ -32,15 +32,15 @@
 }
 
 .surfaceTab:hover {
-  color: var(--ui-text);
+  color: var(--fs-app-text);
 }
 
 .surfaceTabActive {
-  color: var(--ui-text);
+  color: var(--fs-app-text);
 }
 
 .surfaceTabActive::after {
-  background: var(--ui-accent);
+  background: var(--fs-app-accent);
 }
 
 .candidateOpportunityCell { width: 24%; }
@@ -64,27 +64,27 @@
 
 .reviewBadgePending {
   border-color: rgba(240, 165, 58, 0.3) !important;
-  color: var(--ui-warning) !important;
+  color: var(--fs-app-warning) !important;
 }
 
 .reviewBadgeAccepted {
   border-color: rgba(62, 207, 142, 0.3) !important;
-  color: var(--ui-success) !important;
+  color: var(--fs-app-success) !important;
 }
 
 .reviewBadgeRejected {
   border-color: rgba(242, 109, 109, 0.3) !important;
-  color: var(--ui-danger) !important;
+  color: var(--fs-app-danger) !important;
 }
 
 .reviewBadgeDuplicate {
   border-color: rgba(167, 139, 250, 0.3) !important;
-  color: var(--ui-violet) !important;
+  color: var(--ariadne-violet) !important;
 }
 
 .editorSubtitle {
   margin: 2px 0 0;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   font-weight: 500;
 }
@@ -92,9 +92,9 @@
 .provenancePanel {
   margin-bottom: 20px;
   padding: 14px 16px;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
-  background: var(--ui-surface-2);
+  border: 1px solid var(--fs-app-border);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-surface-raised);
 }
 
 .provenanceHeader {
@@ -103,7 +103,7 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -128,7 +128,7 @@
 }
 
 .provenanceItem > span {
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
   font-size: 11px;
   font-weight: 500;
 }
@@ -137,7 +137,7 @@
 .provenanceItem a {
   min-width: 0;
   overflow: hidden;
-  color: var(--ui-text-2);
+  color: var(--fs-app-text-secondary);
   font-size: 12px;
   font-weight: 500;
   text-overflow: ellipsis;
@@ -145,7 +145,7 @@
 }
 
 .provenanceItem a {
-  color: var(--ui-accent-text);
+  color: var(--fs-app-accent-text);
   text-decoration: none;
 }
 
@@ -155,8 +155,8 @@
 .reviewReason {
   margin: 16px 0 0;
   padding-left: 12px;
-  border-left: 2px solid var(--ui-border-strong);
-  color: var(--ui-text-3);
+  border-left: 2px solid var(--fs-app-border-strong);
+  color: var(--fs-app-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }

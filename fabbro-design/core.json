@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "status": "implementation-baseline",
   "referenceFrame": {
     "desktopWidth": "1440px",
@@ -210,6 +210,110 @@
       "iconSize": "1.15rem",
       "activeIndicatorWidth": "2px",
       "iconGrammar": "Lucide"
+    },
+    "utilityBar": {
+      "height": "3.5rem",
+      "role": "page-context-session-family-utilities",
+      "breadcrumb": "optional",
+      "familyMarkSeparator": "optional-neutral-divider"
+    },
+    "workspace": {
+      "contentMaxWidth": "1240px",
+      "desktopPadding": "36px 40px 64px",
+      "mediumPadding": "28px 28px 56px",
+      "narrowPadding": "20px 16px 48px"
+    }
+  },
+  "applicationUI": {
+    "version": "1.0.0",
+    "principles": {
+      "functionalCasing": "sentence-case",
+      "accentUsage": "semantic-emphasis-only",
+      "iconGrammar": "Lucide",
+      "brandTypographyBoundary": "Display identity typography is distinct from dense application typography."
+    },
+    "color": {
+      "background": "#000000",
+      "surface": "#0A0A0B",
+      "surfaceRaised": "#111113",
+      "surfaceStrong": "#18181B",
+      "overlay": "#0E0E10",
+      "hover": "rgba(255, 255, 255, 0.035)",
+      "hoverStrong": "rgba(255, 255, 255, 0.06)",
+      "border": "#1C1C1F",
+      "borderRaised": "#27272A",
+      "borderStrong": "#3F3F46",
+      "textPrimary": "#F4F4F5",
+      "textSecondary": "#D0D0D0",
+      "textMuted": "#A0A0A0",
+      "textQuiet": "#6B6B72",
+      "danger": "#F26D6D",
+      "warning": "#F0A53A",
+      "caution": "#E2C044",
+      "success": "#3ECF8E"
+    },
+    "typography": {
+      "pageTitle": {
+        "fontSize": "24px",
+        "fontWeight": 650,
+        "lineHeight": 1.15,
+        "letterSpacing": "-0.02em"
+      },
+      "sectionTitle": {
+        "fontSize": "14px",
+        "fontWeight": 600,
+        "lineHeight": 1.3,
+        "letterSpacing": "-0.005em"
+      },
+      "body": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "lineHeight": 1.5,
+        "letterSpacing": "0"
+      },
+      "supporting": {
+        "fontSize": "14px",
+        "fontWeight": 400,
+        "lineHeight": 1.5,
+        "letterSpacing": "0"
+      },
+      "metadata": {
+        "fontSize": "11px",
+        "fontWeight": 600,
+        "lineHeight": 1.2,
+        "letterSpacing": "0"
+      },
+      "kicker": {
+        "fontSize": "11px",
+        "fontWeight": 600,
+        "lineHeight": 1.2,
+        "letterSpacing": "0.14em",
+        "textTransform": "uppercase"
+      }
+    },
+    "layout": {
+      "contentMaxWidth": "1240px",
+      "readingMaxWidth": "880px",
+      "utilityBarHeight": "3.5rem",
+      "workspacePaddingDesktop": "36px 40px 64px",
+      "workspacePaddingMedium": "28px 28px 56px",
+      "workspacePaddingNarrow": "20px 16px 48px",
+      "mediumBreakpoint": "1100px",
+      "narrowBreakpoint": "900px"
+    },
+    "controls": {
+      "fieldMinHeight": "36px",
+      "buttonMinHeight": "34px",
+      "iconButtonSize": "32px",
+      "modalMaxWidth": "640px",
+      "modalMaxHeight": "min(86vh, 860px)",
+      "modalRadius": "14px",
+      "overlayShadow": "0 24px 64px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(255, 255, 255, 0.02)"
+    },
+    "motion": {
+      "interaction": "120ms",
+      "dialog": "180ms",
+      "easing": "cubic-bezier(0.2, 0, 0, 1)"
     }
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { DateInput, GhostButton, ModalBody, ModalFooter, ModalShell, PrimaryButton, SecondaryButton, Select, TextArea, TextInput, useModalDialog } from "@/components/ui/AriadneUI";
 import { OPPORTUNITY_TYPES, OPPORTUNITY_TYPE_LABELS, validateOpportunity } from "@/lib/opportunities/opportunityModel";
 import { OPPORTUNITY_APPLICATION_STATUS_LABELS } from "@/lib/opportunities/opportunityApplicationModel";
@@ -78,7 +79,7 @@ export default function OpportunityEditor({ isOpen, opportunity, application, sc
   return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="opportunity-editor-title">
     <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close opportunity editor" />
     <ModalShell ref={dialogRef} as="form" className={styles.editor} onSubmit={submit}>
-      <header className={`ff-modal-header ${styles.editorHeader}`}><h3 id="opportunity-editor-title">{isEditing ? "Edit opportunity" : "Add opportunity"}</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button></header>
+      <header className={`fs-app-modal-header ${styles.editorHeader}`}><h3 id="opportunity-editor-title">{isEditing ? "Edit opportunity" : "Add opportunity"}</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close"><X aria-hidden="true" /></button></header>
       <ModalBody className={styles.editorBody}>
         <div className={styles.editorGrid}>
           <div className={styles.fieldFull}><label htmlFor="opportunity-title">Title</label><TextInput id="opportunity-title" value={form.title} onChange={(event) => setField("title", event.target.value)} placeholder="e.g. Policy Research Fellowship" autoFocus required />{errors.title ? <p className={styles.fieldError}>{errors.title}</p> : null}</div>

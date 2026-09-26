@@ -32,7 +32,7 @@
 
 .title {
   margin: 0;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 24px;
   font-weight: 650;
   letter-spacing: -0.02em;
@@ -58,18 +58,18 @@
 .count {
   min-width: 24px;
   margin-left: -4px;
-  background: var(--ui-surface-3);
-  color: var(--ui-text-3);
+  background: var(--fs-app-surface-strong);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
 .syncBadge {
-  --sync-tone: var(--ui-success);
+  --sync-tone: var(--fs-app-success);
   gap: 6px;
   padding: 0;
   background: transparent;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   font-weight: 550;
 }
@@ -83,13 +83,13 @@
 }
 
 .syncPending {
-  --sync-tone: var(--ui-warning);
-  color: var(--ui-warning);
+  --sync-tone: var(--fs-app-warning);
+  color: var(--fs-app-warning);
 }
 
 .syncConflict {
-  --sync-tone: var(--ui-danger);
-  color: var(--ui-danger);
+  --sync-tone: var(--fs-app-danger);
+  color: var(--fs-app-danger);
 }
 
 .toolbarSpacer {
@@ -102,10 +102,10 @@
   align-items: center;
   gap: 6px;
   padding: 0 12px;
-  border: 1px solid var(--ui-border-2);
-  border-radius: var(--ui-radius);
-  background: var(--ui-surface-2);
-  color: var(--ui-text);
+  border: 1px solid var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-surface-raised);
+  color: var(--fs-app-text);
   font-size: 13px;
   font-weight: 600;
   transition: border-color 120ms ease, background 120ms ease;
@@ -118,8 +118,8 @@
 }
 
 .discoverButton:hover:not(:disabled) {
-  border-color: var(--ui-border-strong);
-  background: var(--ui-surface-3);
+  border-color: var(--fs-app-border-strong);
+  background: var(--fs-app-surface-strong);
 }
 
 .discoverButton:disabled {
@@ -132,9 +132,9 @@
   align-items: center;
   gap: 6px;
   padding: 0 14px 0 11px;
-  border: 1px solid var(--ui-accent);
-  border-radius: var(--ui-radius);
-  background: var(--ui-accent);
+  border: 1px solid var(--fs-app-accent);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-accent);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -142,8 +142,8 @@
 }
 
 .addButton:hover {
-  border-color: var(--ui-accent-hover);
-  background: var(--ui-accent-hover);
+  border-color: var(--fs-app-accent-hover);
+  background: var(--fs-app-accent-hover);
 }
 
 .filters {
@@ -160,11 +160,11 @@
 .control {
   width: 100%;
   min-height: 34px;
-  border: 1px solid var(--ui-border-2);
-  border-radius: var(--ui-radius);
+  border: 1px solid var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
   outline: none;
-  background: var(--ui-surface);
-  color: var(--ui-text);
+  background: var(--fs-app-surface);
+  color: var(--fs-app-text);
   padding: 0 11px;
   font-size: 13px;
   color-scheme: dark;
@@ -173,27 +173,27 @@
 
 input.control {
   padding-left: 32px;
-  background: var(--ui-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b6b72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center / 14px;
+  background: var(--fs-app-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b6b72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center / 14px;
 }
 
 select.control {
   appearance: none;
   padding-right: 30px;
-  background: var(--ui-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a0a0a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px;
+  background: var(--fs-app-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a0a0a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px;
   cursor: pointer;
 }
 
 .control::placeholder {
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
 }
 
 .control:hover {
-  border-color: var(--ui-border-strong);
+  border-color: var(--fs-app-border-strong);
 }
 
 .control:focus {
-  border-color: var(--ui-accent-line);
-  box-shadow: 0 0 0 3px var(--ui-accent-soft);
+  border-color: var(--fs-app-accent-line);
+  box-shadow: 0 0 0 3px var(--fs-app-accent-soft);
 }
 
 .statusBar {
@@ -202,16 +202,16 @@ select.control {
   gap: 12px;
   margin-bottom: 16px;
   padding: 10px 14px;
-  border: 1px solid var(--ui-border-2);
-  border-radius: var(--ui-radius);
-  background: var(--ui-surface-2);
-  color: var(--ui-text-2);
+  border: 1px solid var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-surface-raised);
+  color: var(--fs-app-text-secondary);
   font-size: 13px;
 }
 
 .statusBarError {
   border-color: rgba(242, 109, 109, 0.24);
-  background: var(--ui-danger-soft);
+  background: var(--fs-app-danger-soft);
   color: #f7b4b4;
 }
 
@@ -219,15 +219,15 @@ select.control {
   margin-left: auto;
   padding: 4px 8px;
   border: 0;
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--fs-radius-sm);
   background: transparent;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 12px;
   font-weight: 600;
 }
 
 .retryButton:hover:not(:disabled) {
-  background: var(--ui-hover-strong);
+  background: var(--fs-app-hover-strong);
 }
 
 .content {
@@ -244,9 +244,9 @@ select.control {
   display: grid;
   place-items: center;
   padding: 32px;
-  border: 1px dashed var(--ui-border-2);
-  border-radius: var(--ui-radius-lg);
-  color: var(--ui-text-3);
+  border: 1px dashed var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-lg);
+  color: var(--fs-app-text-muted);
   font-size: 14px;
   text-align: center;
 }
@@ -255,9 +255,9 @@ select.control {
   width: 100%;
   min-width: 0;
   overflow: auto;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  background: var(--ui-surface);
+  border: 1px solid var(--fs-app-border);
+  border-radius: var(--fs-radius-lg);
+  background: var(--fs-app-surface);
 }
 
 .table {
@@ -271,9 +271,9 @@ select.control {
   top: 0;
   z-index: 2;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--ui-border);
-  background: var(--ui-surface);
-  color: var(--ui-text-4);
+  border-bottom: 1px solid var(--fs-app-border);
+  background: var(--fs-app-surface);
+  color: var(--fs-app-text-quiet);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -283,8 +283,8 @@ select.control {
 
 .table td {
   padding: 14px;
-  border-bottom: 1px solid var(--ui-border);
-  color: var(--ui-text-2);
+  border-bottom: 1px solid var(--fs-app-border);
+  color: var(--fs-app-text-secondary);
   font-size: 13px;
   line-height: 1.45;
   vertical-align: top;
@@ -301,7 +301,7 @@ select.control {
 
 .row:hover,
 .row:focus-within {
-  background: var(--ui-hover);
+  background: var(--fs-app-hover);
 }
 
 .rowArchived {
@@ -339,7 +339,7 @@ select.control {
 .opportunityTitle {
   min-width: 0;
   max-width: 100%;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -350,34 +350,34 @@ select.control {
   width: 22px;
   height: 22px;
   place-items: center;
-  border-radius: var(--ui-radius-sm);
-  color: var(--ui-text-4);
+  border-radius: var(--fs-radius-sm);
+  color: var(--fs-app-text-quiet);
   font-size: 12px;
   text-decoration: none;
   transition: background 120ms ease, color 120ms ease;
 }
 
 .externalLink:hover {
-  background: var(--ui-hover-strong);
-  color: var(--ui-accent-text);
+  background: var(--fs-app-hover-strong);
+  color: var(--fs-app-accent-text);
 }
 
 .typeBadge {
   border-radius: 4px;
-  background: var(--ui-surface-3);
-  color: var(--ui-text-2);
+  background: var(--fs-app-surface-strong);
+  color: var(--fs-app-text-secondary);
   font-weight: 550;
 }
 
 .lifecycleBadge {
-  border: 1px solid var(--ui-border-2);
+  border: 1px solid var(--fs-app-border-raised);
   background: transparent;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
 }
 
 .expiredBadge {
   border-color: rgba(242, 109, 109, 0.28);
-  color: var(--ui-danger);
+  color: var(--fs-app-danger);
 }
 
 .deadline {
@@ -389,13 +389,13 @@ select.control {
 }
 
 .muted {
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
 }
 
 .clamp {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -437,7 +437,7 @@ select.control {
 
 .editorHeader h3 {
   margin: 0;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 16px;
   font-weight: 600;
 }
@@ -453,17 +453,17 @@ select.control {
   place-items: center;
   margin-right: -6px;
   border: 0;
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--fs-radius-sm);
   background: transparent;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 20px;
   line-height: 1;
   transition: background 120ms ease, color 120ms ease;
 }
 
 .closeButton:hover {
-  background: var(--ui-hover-strong);
-  color: var(--ui-text);
+  background: var(--fs-app-hover-strong);
+  color: var(--fs-app-text);
 }
 
 .editorBody {
@@ -490,13 +490,13 @@ select.control {
 
 .field label,
 .fieldFull label {
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   font-weight: 550;
 }
 
 .fieldFull > strong {
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -513,9 +513,9 @@ select.control {
 .scoreSummary {
   gap: 14px;
   padding: 16px;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
-  background: var(--ui-surface-2);
+  border: 1px solid var(--fs-app-border);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-surface-raised);
 }
 
 .scoreSummaryHeader {
@@ -526,7 +526,7 @@ select.control {
 }
 
 .scoreSummaryHeader strong {
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -547,13 +547,13 @@ select.control {
 }
 
 .scoreMetric span {
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
   font-size: 11px;
   font-weight: 550;
 }
 
 .scoreMetric strong {
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 20px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
@@ -563,7 +563,7 @@ select.control {
 
 .scoreMetric small {
   margin-left: 2px;
-  color: var(--ui-text-4);
+  color: var(--fs-app-text-quiet);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
@@ -574,7 +574,7 @@ select.control {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 24px;
   padding-top: 12px;
-  border-top: 1px solid var(--ui-border);
+  border-top: 1px solid var(--fs-app-border);
 }
 
 .scoreDimension {
@@ -582,7 +582,7 @@ select.control {
   grid-template-columns: minmax(0, 1fr) 4.5rem auto;
   align-items: center;
   gap: 10px;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
 }
 
@@ -593,7 +593,7 @@ select.control {
 }
 
 .scoreDimension strong {
-  color: var(--ui-text-2);
+  color: var(--fs-app-text-secondary);
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -603,19 +603,19 @@ select.control {
   height: 3px;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--ui-surface-3);
+  background: var(--fs-app-surface-strong);
 }
 
 .scoreDimensionBar span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--ui-accent);
+  background: var(--fs-app-accent);
 }
 
 .scoreRationale {
   margin: 0;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -626,17 +626,17 @@ select.control {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  border: 1px solid var(--ui-border-2);
-  border-radius: var(--ui-radius);
-  background: var(--ui-surface-2);
-  color: var(--ui-text-3);
+  border: 1px solid var(--fs-app-border-raised);
+  border-radius: var(--fs-radius-control);
+  background: var(--fs-app-surface-raised);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .descriptionExcerptNotice a {
   flex: 0 0 auto;
-  color: var(--ui-accent-text);
+  color: var(--fs-app-accent-text);
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
@@ -648,13 +648,13 @@ select.control {
 
 .fieldError {
   margin: 0;
-  color: var(--ui-danger);
+  color: var(--fs-app-danger);
   font-size: 12px;
 }
 
 .formError {
   margin: 16px 0 0;
-  color: var(--ui-danger);
+  color: var(--fs-app-danger);
   font-size: 13px;
 }
 
@@ -669,11 +669,11 @@ select.control {
 }
 
 .dangerButton {
-  color: var(--ui-danger) !important;
+  color: var(--fs-app-danger) !important;
 }
 
 .dangerButton:hover:not(:disabled) {
-  background: var(--ui-danger-soft) !important;
+  background: var(--fs-app-danger-soft) !important;
 }
 
 /* Mobile list */
@@ -688,7 +688,7 @@ select.control {
   width: 100%;
   padding: 14px 16px;
   border: 0;
-  border-bottom: 1px solid var(--ui-border);
+  border-bottom: 1px solid var(--fs-app-border);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -699,7 +699,7 @@ select.control {
 }
 
 .mobileCard:active {
-  background: var(--ui-hover);
+  background: var(--fs-app-hover);
 }
 
 .mobileCardArchived {
@@ -717,21 +717,21 @@ select.control {
 .mobileCardTitle {
   flex: 1;
   min-width: 0;
-  color: var(--ui-text);
+  color: var(--fs-app-text);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
 }
 
 .mobileCardMeta {
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   flex-wrap: wrap;
 }
 
 .mobileRequirements {
   margin: 0;
-  color: var(--ui-text-3);
+  color: var(--fs-app-text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -743,9 +743,9 @@ select.control {
 
   .mobileList {
     display: block;
-    border: 1px solid var(--ui-border);
-    border-radius: var(--ui-radius-lg);
-    background: var(--ui-surface);
+    border: 1px solid var(--fs-app-border);
+    border-radius: var(--fs-radius-lg);
+    background: var(--fs-app-surface);
     overflow: hidden;
   }
 }

@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "designSystemVersion": "0.4.0",
+  "name": "Fabbro Application UI",
+  "scope": "authenticated-product-application-primitives",
+  "dependencies": {
+    "tokens": "Fabbro Design System 0.4.0 --fs-app-*",
+    "icons": "Lucide visual grammar"
+  },
+  "typography": {
+    "pageTitle": "--fs-app-type-page-title-*",
+    "sectionTitle": "--fs-app-type-section-title-*",
+    "body": "--fs-app-type-body-*",
+    "supporting": "--fs-app-type-supporting-*",
+    "metadata": "--fs-app-type-metadata-*",
+    "kicker": "--fs-app-type-kicker-*"
+  },
+  "primitives": [
+    "workspace",
+    "page",
+    "page-header",
+    "heading",
+    "kicker",
+    "title",
+    "subtitle",
+    "card",
+    "card-header",
+    "card-title",
+    "count",
+    "modal",
+    "modal-header",
+    "modal-body",
+    "modal-footer",
+    "control",
+    "textarea",
+    "button",
+    "divider",
+    "progress",
+    "status"
+  ],
+  "buttonVariants": [
+    "primary",
+    "secondary",
+    "ghost",
+    "icon"
+  ],
+  "geometry": {
+    "fieldMinHeight": "36px",
+    "buttonMinHeight": "34px",
+    "iconButtonSize": "32px",
+    "modalMaxWidth": "640px",
+    "modalMaxHeight": "min(86vh, 860px)",
+    "modalRadius": "14px"
+  },
+  "ownership": {
+    "canonical": [
+      "semantic application surfaces",
+      "application typography roles",
+      "accent discipline",
+      "functional icon grammar",
+      "shared primitive geometry",
+      "focus and interaction treatment",
+      "workspace spacing principles"
+    ],
+    "productOwned": [
+      "domain workflows",
+      "information architecture",
+      "data visualization",
+      "domain status models",
+      "dashboard composition",
+      "product-specific responsive interactions"
+    ]
+  }
+}
