@@ -23,19 +23,44 @@ const V2_SCORE_ROWS = [
   ["differentiation", "Differentiation"]
 ];
 
+function ScoreMetric({ label, value, suffix = "" }) {
+  const hasValue = value !== null && value !== undefined && value !== "";
+  return <div className={styles.scoreMetric}>
+    <span>{label}</span>
+    <strong>{hasValue ? value : "—"}{hasValue && suffix ? <small>{suffix}</small> : null}</strong>
+  </div>;
+}
+
 function OpportunityScoreSummary({ score }) {
   if (!score) return null;
   const isV2 = score.methodologyVersion === "2";
 
-  return <div className={styles.fieldFull}>
-    <strong>Landscape scoring</strong>
-    <div className={styles.muted}>Strategic Value {score.strategicValue ?? "—"} · Attainability {score.attainability ?? "—"} · Methodology v{score.methodologyVersion}</div>
+  return <section className={`${styles.fieldFull} ${styles.scoreSummary}`} aria-label="Landscape scoring">
+    <div className={styles.scoreSummaryHeader}>
+      <strong>Landscape scoring</strong>
+      <span className={styles.muted}>Methodology v{score.methodologyVersion}</span>
+    </div>
+    <div className={styles.scoreMetrics}>
+      <ScoreMetric label="Strategic value" value={score.strategicValue} />
+      <ScoreMetric label="Attainability" value={score.attainability} />
+      {isV2 ? <ScoreMetric label="Competitive strength" value={score.competitiveStrength} suffix="/100" /> : null}
+      {isV2 ? <ScoreMetric label="Eligibility" value={score.eligibility} suffix={`/4 · ×${score.eligibilityMultiplier ?? "—"}`} /> : null}
+    </div>
     {isV2 ? <>
-      <div className={styles.muted}>Eligibility {score.eligibility}/4 · Competitive Strength {score.competitiveStrength ?? "—"}/100 · Eligibility multiplier {score.eligibilityMultiplier ?? "—"}</div>
-      <div className={styles.muted}>{V2_SCORE_ROWS.map(([key, label]) => `${label} ${score[key]}/4`).join(" · ")}</div>
-      {score.attainabilityRationale ? <div className={styles.muted}>{score.attainabilityRationale}</div> : null}
-    </> : <div className={styles.muted}>Legacy Attainability v1 uses eligibility, competitiveness, career-stage fit and timing/actionability equally.</div>}
-  </div>;
+      <div className={styles.scoreDimensions}>
+        {V2_SCORE_ROWS.map(([key, label]) => {
+          const value = Number(score[key]);
+          const width = Number.isFinite(value) ? Math.min(Math.max(value / 4, 0), 1) * 100 : 0;
+          return <div className={styles.scoreDimension} key={key}>
+            <span>{label}</span>
+            <span className={styles.scoreDimensionBar} aria-hidden="true"><span style={{ width: `${width}%` }} /></span>
+            <strong>{Number.isFinite(value) ? value : "—"}/4</strong>
+          </div>;
+        })}
+      </div>
+      {score.attainabilityRationale ? <p className={styles.scoreRationale}>{score.attainabilityRationale}</p> : null}
+    </> : <p className={styles.scoreRationale}>Legacy Attainability v1 uses eligibility, competitiveness, career-stage fit and timing/actionability equally.</p>}
+  </section>;
 }
 
 export default function OpportunityEditor({ isOpen, opportunity, application, score, isBusy, onClose, onSave, onDelete, onArchiveToggle, onMarkApplied, onOpenApplication, assessments = [], onSetAssessment, onClearAssessment }) {
@@ -53,7 +78,7 @@ export default function OpportunityEditor({ isOpen, opportunity, application, sc
   return <div className={styles.editorLayer} role="dialog" aria-modal="true" aria-labelledby="opportunity-editor-title">
     <button type="button" className={styles.editorBackdrop} onClick={onClose} aria-label="Close opportunity editor" />
     <ModalShell ref={dialogRef} as="form" className={styles.editor} onSubmit={submit}>
-      <header className={`ff-modal-header ${styles.editorHeader}`}><h3 id="opportunity-editor-title">{isEditing ? "Edit Opportunity" : "Add Opportunity"}</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button></header>
+      <header className={`ff-modal-header ${styles.editorHeader}`}><h3 id="opportunity-editor-title">{isEditing ? "Edit opportunity" : "Add opportunity"}</h3><span className={styles.editorHeaderSpacer} /><button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">×</button></header>
       <ModalBody className={styles.editorBody}>
         <div className={styles.editorGrid}>
           <div className={styles.fieldFull}><label htmlFor="opportunity-title">Title</label><TextInput id="opportunity-title" value={form.title} onChange={(event) => setField("title", event.target.value)} placeholder="e.g. Policy Research Fellowship" autoFocus required />{errors.title ? <p className={styles.fieldError}>{errors.title}</p> : null}</div>

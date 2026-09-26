@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
 import DashboardStrategyOverview from "@/components/DashboardStrategyOverview";
@@ -196,15 +195,15 @@ export default function DashboardPage() {
     substackLatestPostTimestamp
   ]);
 
+  const todayLabel = useMemo(
+    () => new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long" }).format(new Date()),
+    []
+  );
+
   const visibleNoticeItems = useMemo(() => {
     if (isNoticeBoardExpanded) return noticeBoardItems;
     return noticeBoardItems.slice(0, INITIAL_NOTICE_LIMIT);
   }, [noticeBoardItems, isNoticeBoardExpanded]);
-
-  const attentionItems = useMemo(() => {
-    const actionable = noticeBoardItems.filter((noticeItem) => noticeItem.severity !== "success");
-    return (actionable.length ? actionable : noticeBoardItems).slice(0, 3);
-  }, [noticeBoardItems]);
 
   return (
     <AppShell currentPageLabel="Dashboard" activeNavItem="dashboard">
@@ -212,53 +211,13 @@ export default function DashboardPage() {
         <div className="dashboard-container">
           <header className={`dashboard-header ${styles.pageHeader}`}>
             <div className={styles.headerIntro}>
-              <span className={styles.eyebrow}>Operating overview</span>
+              <span className="ui-kicker">{todayLabel}</span>
               <h2 className="dashboard-title">Dashboard</h2>
-              <p className={styles.headerSubtitle}>What needs attention now, followed by the current strategic state.</p>
+              <p className={styles.headerSubtitle}>Current position, active direction, and the signals that need attention.</p>
             </div>
           </header>
 
           <div className={`dashboard-body ${styles.dashboardBody}`}>
-            <section className={styles.nowSection} aria-labelledby="dashboard-now-title">
-              <header className={styles.nowHeader}>
-                <div>
-                  <span className={styles.eyebrow}>Attention</span>
-                  <div className={styles.titleRow}>
-                    <h3 id="dashboard-now-title">Now</h3>
-                    <span className={styles.countPill}>{noticeBoardItems.length} active signal{noticeBoardItems.length === 1 ? "" : "s"}</span>
-                  </div>
-                </div>
-              </header>
-
-              {attentionItems.length ? (
-                <div className={styles.nowGrid}>
-                  {attentionItems.map((noticeItem) => (
-                    <article
-                      className={styles.attentionCard}
-                      data-severity={noticeItem.severity || "info"}
-                      key={noticeItem.id}
-                    >
-                      <span className={styles.attentionLabel}>{noticeItem.title}</span>
-                      <p>{noticeItem.text}</p>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className={styles.emptyStrategy}>No active operational notices.</div>
-              )}
-
-              <div className={styles.navLinks} aria-label="Primary execution surfaces">
-                <Link className={styles.navCard} href="/tasks">
-                  <strong>Tasks</strong>
-                  <p>Open the execution list and work from current priorities.</p>
-                </Link>
-                <Link className={styles.navCard} href="/opportunities">
-                  <strong>Opportunities</strong>
-                  <p>Review the Landscape and pending opportunity candidates.</p>
-                </Link>
-              </div>
-            </section>
-
             <DashboardStrategyOverview userId={authUserId} />
 
             <div className={styles.operationalGrid}>

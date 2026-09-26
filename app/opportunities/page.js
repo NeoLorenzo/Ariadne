@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import OpportunityApplicationEditor from "@/components/opportunities/OpportunityApplicationEditor";
 import OpportunityApplicationTable from "@/components/opportunities/OpportunityApplicationTable";
@@ -214,7 +215,7 @@ export default function OpportunitiesPage() {
 
   return <AppShell activeNavItem="opportunities" hideMobileNav={isEditorOpen || isApplicationEditorOpen}>
     <section className={styles.workspace}><section className={styles.panel}>
-      <div className={styles.toolbar}><div className={styles.headingGroup}><h2 className={styles.title}>{showingApplications ? "Applications" : "Opportunity Landscape"}</h2><span className={styles.count}>{visibleCount}</span>{!showingApplications ? <span className={syncBadge.className}>{syncBadge.label}</span> : null}</div><span className={styles.toolbarSpacer} />{!showingApplications ? <button type="button" className={styles.addButton} onClick={openAdd} aria-label="Add opportunity" title="Add opportunity">+</button> : null}</div>
+      <div className={styles.toolbar}><div className={styles.headingGroup}><h2 className={styles.title}>{showingApplications ? "Applications" : "Opportunity Landscape"}</h2><span className={styles.count}>{visibleCount}</span>{!showingApplications ? <span className={syncBadge.className}>{syncBadge.label}</span> : null}</div><span className={styles.toolbarSpacer} />{!showingApplications ? <button type="button" className={styles.addButton} onClick={openAdd} aria-label="Add opportunity" title="Add opportunity"><Plus aria-hidden="true" /><span>Add opportunity</span></button> : null}</div>
       <OpportunityLandscapeTabs activeView={activeView} onChange={changeView} />
       <div className={styles.filters}>
         <input type="search" className={styles.control} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={showingApplications ? "Search applications…" : "Search opportunities…"} aria-label="Search opportunities" />

@@ -76,14 +76,12 @@ export default function DashboardStrategyOverview({ userId }) {
   return (
     <section className={styles.strategyOverview} aria-labelledby="dashboard-strategy-title">
       <header className={styles.strategyHeader}>
-        <div>
-          <span className={styles.eyebrow}>Strategy overview</span>
-          <div className={styles.titleRow}>
-            <h3 id="dashboard-strategy-title">Current position and direction</h3>
-            <span className={styles.countPill}>{activeDirections.length} active direction{activeDirections.length === 1 ? "" : "s"}</span>
-          </div>
+        <div className={styles.strategyHeading}>
+          <h3 id="dashboard-strategy-title">Current position</h3>
           <p className={styles.sectionDescription}>
-            Kleos state and Ariadne direction coverage in one compact view.
+            {snapshot ? (
+              <>Kleos assessment · {formatDate(snapshot.evaluatedAt)}{staleSnapshot ? <span className={styles.staleFlag}>Stale</span> : null}</>
+            ) : snapshotState.status === "loading" ? "Loading Kleos assessment…" : "Kleos assessment unavailable"}
           </p>
         </div>
         <button
@@ -92,7 +90,7 @@ export default function DashboardStrategyOverview({ userId }) {
           aria-expanded={showStrategyManager}
           onClick={toggleStrategyManager}
         >
-          {showStrategyManager ? "Close strategy controls" : "Manage strategy"}
+          {showStrategyManager ? "Done" : "Manage strategy"}
         </button>
       </header>
 
@@ -100,41 +98,41 @@ export default function DashboardStrategyOverview({ userId }) {
         {VECTOR_DEFINITIONS.map((vector) => {
           const current = snapshot ? getKleosVectorState(snapshot, vector.id) : null;
           const vectorDirections = directionsByVectorId[vector.id] || [];
+          const score = getNumericScore(current);
           return (
-            <article className={styles.vectorCard} key={vector.id}>
+            <article
+              className={styles.vectorCard}
+              key={vector.id}
+              title={vectorDirections.length ? vectorDirections.map((direction) => direction.title).join(" · ") : "No active desired movement"}
+            >
               <div className={styles.vectorCardTop}>
                 <strong>{vector.label}</strong>
-                <span className={styles.vectorScore}>{formatState(current, snapshotState.status)}</span>
+                <span className={`${styles.vectorScore}${score === null ? ` ${styles.vectorScoreEmpty}` : ""}`}>{formatState(current, snapshotState.status)}</span>
+              </div>
+              <div className={styles.vectorBar} aria-hidden="true">
+                <span style={{ width: `${score ?? 0}%` }} />
               </div>
               <div className={styles.vectorMeta}>
                 <span>{formatConfidence(current)}</span>
-                <span>{vectorDirections.length} direction{vectorDirections.length === 1 ? "" : "s"}</span>
+                <span className={vectorDirections.length ? styles.vectorCovered : undefined}>
+                  {vectorDirections.length} direction{vectorDirections.length === 1 ? "" : "s"}
+                </span>
               </div>
-              {vectorDirections.length ? (
-                <p className={styles.vectorDirectionNames}>{vectorDirections.map((direction) => direction.title).join(" · ")}</p>
-              ) : (
-                <p className={styles.vectorDirectionNames}>No active desired movement</p>
-              )}
             </article>
           );
         })}
       </div>
 
-      <div className={styles.snapshotMeta}>
-        {snapshot ? (
-          <span>
-            Kleos assessment {formatDate(snapshot.evaluatedAt)}{staleSnapshot ? " · stale" : ""}
-          </span>
-        ) : (
-          <span>{snapshotState.status === "loading" ? "Loading Kleos assessment…" : "Kleos assessment unavailable"}</span>
-        )}
+      <div className={styles.directionsHeader}>
+        <h3>Active directions</h3>
+        <span className="ui-count">{activeDirections.length}</span>
       </div>
 
       {activeDirections.length ? (
         <div className={styles.directionGrid} aria-label="Active directions">
           {activeDirections.map((direction, index) => (
             <article className={styles.directionCard} key={direction.id}>
-              <div className={styles.directionIndex}>Direction {index + 1}</div>
+              <div className={styles.directionIndex}>{String(index + 1).padStart(2, "0")}</div>
               <h4>{direction.title}</h4>
               <p className={styles.directionStatement}>{direction.statement}</p>
               <div className={styles.vectorPills} aria-label={`Vectors influenced by ${direction.title}`}>
@@ -163,20 +161,25 @@ function compareDirections(left, right) {
     || String(left?.title || "").localeCompare(String(right?.title || ""));
 }
 
+function getNumericScore(result) {
+  if (!result || result.status === "unknown") return null;
+  const score = Number(result.score);
+  return Number.isFinite(score) ? Math.min(Math.max(score, 0), 100) : null;
+}
+
 function formatState(result, status) {
   if (status === "loading") return "…";
   if (!result) return "—";
   if (result.status === "unknown") return "Unknown";
-  const score = Number(result.score);
-  if (!Number.isFinite(score)) return "—";
-  const formatted = Number.isInteger(score) ? String(score) : score.toFixed(1);
-  return `${formatted}/100`;
+  const score = getNumericScore(result);
+  if (score === null) return "—";
+  return Number.isInteger(score) ? String(score) : score.toFixed(1);
 }
 
 function formatConfidence(result) {
-  if (!result || result.status === "unknown") return "No confidence";
+  if (!result || result.status === "unknown") return "No assessment";
   const confidence = String(result.confidence || "");
-  return confidence ? `${confidence[0].toUpperCase()}${confidence.slice(1)} confidence` : "No confidence";
+  return confidence ? `${confidence[0].toUpperCase()}${confidence.slice(1)} confidence` : "No assessment";
 }
 
 function formatDate(value) {

@@ -1,9 +1,3 @@
-:global(html),
-:global(body) {
-  background: var(--fs-color-bg);
-  font-family: var(--fs-font-primary);
-}
-
 .site {
   width: 100%;
   max-width: var(--fs-page-max);
@@ -167,6 +161,10 @@
   border-radius: var(--fs-radius-lg);
   background: var(--fs-color-surface);
 }
+.threadVisual {
+  position: relative;
+  box-shadow: 0 0 120px -40px color-mix(in srgb, var(--fs-accent) 45%, transparent);
+}
 .threadHeader,
 .previewHeader {
   display: flex;
@@ -194,8 +192,7 @@
   bottom: 20px;
   left: 58px;
   width: 2px;
-  background: var(--fs-accent);
-  opacity: .65;
+  background: linear-gradient(180deg, var(--fs-accent), color-mix(in srgb, var(--fs-accent) 25%, transparent));
 }
 .threadNode {
   position: relative;
@@ -221,6 +218,10 @@
   border: 2px solid var(--fs-accent);
   border-radius: 50%;
   background: var(--fs-color-bg);
+}
+.threadNode:first-child .threadDot {
+  background: var(--fs-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fs-accent) 22%, transparent);
 }
 .threadNode strong { font-size: 15px; }
 .threadNode p,
@@ -249,14 +250,23 @@
 }
 .sectionHeading h2,
 .strategyGrid h2,
-.priorityGrid h2,
+.priorityGrid h2 {
+  max-width: 22ch;
+  margin: 0;
+  color: var(--fs-color-text);
+  font-size: clamp(30px, 3.2vw, 46px);
+  font-weight: 650;
+  letter-spacing: -.025em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
 .closingSection h2 {
   margin: 0;
   color: var(--fs-color-text);
-  font-size: clamp(34px, 4vw, 52px);
-  font-weight: 900;
-  letter-spacing: .08em;
-  line-height: 1.08;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: var(--fs-type-hero-weight);
+  letter-spacing: .14em;
+  line-height: var(--fs-type-hero-line-height);
   text-transform: uppercase;
 }
 .sectionHeading > p:last-child,
@@ -296,18 +306,18 @@
 }
 .problemInputs strong,
 .connectedModel strong {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: .04em;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.015em;
   line-height: 1.25;
-  text-transform: uppercase;
 }
 .flowArrow { color: var(--fs-accent); font-size: 24px; text-align: center; }
 .connectedModel {
   display: flex;
   gap: var(--fs-space-5);
   align-items: center;
-  border-color: #164c7c;
+  border-color: color-mix(in srgb, var(--fs-accent) 40%, var(--fs-color-border));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fs-accent) 8%, transparent), transparent 60%);
 }
 .connectedModel img { width: 52px; height: 52px; }
 .connectedModel div { display: grid; gap: var(--fs-space-2); }
@@ -317,7 +327,8 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border-block: var(--fs-border-width) solid var(--fs-color-border);
 }
-.stageCard { min-height: 260px; padding: var(--fs-space-6); }
+.stageCard { min-height: 240px; padding: var(--fs-space-6); transition: background var(--fs-motion-normal) var(--fs-motion-ease); }
+.stageCard:hover { background: #050505; }
 .stageCard + .stageCard { border-left: var(--fs-border-width) solid var(--fs-color-border); }
 .stageCard > span,
 .opportunityStep article > span {
@@ -328,12 +339,11 @@
 }
 .stageCard h3,
 .opportunityStep h3 {
-  margin: var(--fs-space-8) 0 0;
+  margin: var(--fs-space-7) 0 0;
   font-size: 18px;
-  font-weight: 900;
-  letter-spacing: .06em;
-  line-height: 1.25;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.3;
 }
 .stageCard p,
 .opportunityStep p {
@@ -368,7 +378,7 @@
 }
 .modelRow strong { font-size: 15px; }
 .modelRow span { color: var(--fs-color-text-muted); font-size: 12px; }
-.modelRowAccent { border-color: #164c7c; }
+.modelRowAccent { border-color: color-mix(in srgb, var(--fs-accent) 40%, var(--fs-color-border)); }
 .modelRowAccent strong { color: var(--fs-accent); }
 .modelConnector {
   width: 2px;
@@ -496,19 +506,20 @@
 .familyFlow > a > strong {
   margin-top: auto;
   padding-top: var(--fs-space-8);
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: .08em;
+  font-size: 22px;
+  font-weight: var(--fs-type-product-header-weight);
+  letter-spacing: .3em;
   line-height: 1;
   text-transform: uppercase;
 }
 .familyFlow > a > p {
+  min-height: 4.65em;
   margin: var(--fs-space-3) 0 0;
   color: var(--fs-color-text-secondary);
   font-size: 14px;
   line-height: 1.55;
 }
-.currentFamilyStage { border-color: #164c7c !important; }
+.currentFamilyStage { border-color: color-mix(in srgb, var(--fs-accent) 40%, var(--fs-color-border)) !important; }
 .currentFamilyStage > span,
 .currentFamilyStage > strong { color: var(--fs-accent) !important; }
 .familyArrow {
@@ -592,7 +603,6 @@
   .priorityGrid,
   .closingSection { grid-template-columns: 1fr; }
   .threadVisual { max-width: 680px; }
-  .problemInputs,
   .stageGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stageCard + .stageCard { border-left: 0; }
   .stageCard:nth-child(even) { border-left: var(--fs-border-width) solid var(--fs-color-border); }
@@ -619,6 +629,7 @@
     padding-bottom: var(--fs-space-9);
   }
   .hero h1 { letter-spacing: .12em; }
+  .closingSection h2 { letter-spacing: .1em; }
   .heroActions {
     flex-direction: column;
     align-items: stretch;

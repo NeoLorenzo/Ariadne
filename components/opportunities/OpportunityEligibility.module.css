@@ -1,26 +1,197 @@
-.eligibilityBlock { display: grid; gap: 0.55rem; }
-.eligibilityHeader { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; color: #aebdce; font-size: 0.76rem; font-weight: 700; }
-.eligibilityBadge, .requirementPill { display: inline-flex; align-items: center; min-height: 1.65rem; border-radius: 999px; border: 1px solid rgba(148,163,184,.32); padding: .18rem .56rem; font-size: .72rem; font-weight: 720; line-height: 1.15; }
-.eligibilityBadge_met, .requirementPill_met { color: #bbf7d0; border-color: rgba(74,222,128,.42); background: rgba(22,101,52,.28); }
-.eligibilityBadge_not_met, .requirementPill_not_met { color: #fecaca; border-color: rgba(248,113,113,.44); background: rgba(127,29,29,.28); }
-.eligibilityBadge_uncertain, .requirementPill_uncertain { color: #fde68a; border-color: rgba(250,204,21,.42); background: rgba(133,77,14,.28); }
-.eligibilityBadge_unassessed, .requirementPill_unassessed { color: #cbd5e1; border-color: rgba(148,163,184,.28); background: rgba(51,65,85,.36); }
-.requirementPills { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-.requirementPill { white-space: normal; text-align: left; }
-.requirementPillButton { cursor: pointer; font: inherit; }
-.requirementPillButton:hover, .requirementPillSelected { filter: brightness(1.16); box-shadow: 0 0 0 2px rgba(148,163,184,.12); }
-.requirementGroup { display: inline-flex; align-items: center; gap: .3rem; flex-wrap: wrap; padding: .25rem .32rem; border: 1px dashed rgba(148,163,184,.3); border-radius: .72rem; }
-.requirementGroup_met { border-color: rgba(74,222,128,.4); }
-.requirementGroup_not_met { border-color: rgba(248,113,113,.42); }
-.requirementGroup_uncertain { border-color: rgba(250,204,21,.4); }
-.requirementGroupLabel { color: #94a3b8; font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 0 .18rem; }
-.requirementGroupChildren { display: inline-flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
-.assessmentPanel { display: grid; gap: .52rem; padding: .72rem; border: 1px solid rgba(100,116,139,.38); border-radius: .7rem; background: rgba(15,23,42,.5); }
-.assessmentPanelHeader { display: flex; justify-content: space-between; gap: .75rem; align-items: baseline; flex-wrap: wrap; color: #f8fafc; font-size: .78rem; }
-.assessmentPanelHeader span { color: #94a3b8; }
-.assessmentPanel p { margin: 0; color: #aebdce; font-size: .75rem; line-height: 1.45; }
-.assessmentActions { display: flex; flex-wrap: wrap; gap: .4rem; }
-.assessmentAction { border: 1px solid rgba(148,163,184,.3); border-radius: .5rem; background: rgba(51,65,85,.36); color: #dbe4ef; padding: .38rem .58rem; font-size: .72rem; font-weight: 700; cursor: pointer; }
-.assessmentActionMet { color: #bbf7d0; border-color: rgba(74,222,128,.38); }
-.assessmentActionNotMet { color: #fecaca; border-color: rgba(248,113,113,.4); }
-.assessmentActionUncertain { color: #fde68a; border-color: rgba(250,204,21,.38); }
+.eligibilityBlock {
+  display: grid;
+  gap: 10px;
+}
+
+.eligibilityHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--ui-text-3);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.eligibilityBadge,
+.requirementPill {
+  --pill-tone: var(--ui-text-4);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 2px 8px 2px 7px;
+  border: 1px solid var(--ui-border-2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ui-text-2);
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.3;
+}
+
+.eligibilityBadge::before,
+.requirementPill::before {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pill-tone);
+  content: "";
+}
+
+.eligibilityBadge_met,
+.requirementPill_met { --pill-tone: var(--ui-success); }
+
+.eligibilityBadge_not_met,
+.requirementPill_not_met {
+  --pill-tone: var(--ui-danger);
+  border-color: rgba(242, 109, 109, 0.24);
+}
+
+.eligibilityBadge_uncertain,
+.requirementPill_uncertain { --pill-tone: var(--ui-caution); }
+
+.eligibilityBadge_unassessed,
+.requirementPill_unassessed { --pill-tone: var(--ui-text-4); }
+
+.requirementPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.requirementPill {
+  white-space: normal;
+  text-align: left;
+}
+
+.requirementPillButton {
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.requirementPillButton:hover {
+  border-color: var(--ui-border-strong);
+  background: var(--ui-hover);
+}
+
+.requirementPillSelected {
+  border-color: var(--ui-accent-line);
+  background: var(--ui-accent-soft);
+}
+
+.requirementGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 3px 4px 3px 6px;
+  border: 1px dashed var(--ui-border-2);
+  border-radius: 12px;
+}
+
+.requirementGroup_met { border-color: rgba(62, 207, 142, 0.32); }
+.requirementGroup_not_met { border-color: rgba(242, 109, 109, 0.32); }
+.requirementGroup_uncertain { border-color: rgba(226, 192, 68, 0.32); }
+
+.requirementGroupLabel {
+  padding: 0 2px;
+  color: var(--ui-text-4);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.requirementGroupChildren {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.assessmentPanel {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--ui-border-2);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface-2);
+}
+
+.assessmentPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  color: var(--ui-text);
+  font-size: 13px;
+}
+
+.assessmentPanelHeader span {
+  color: var(--ui-text-3);
+  font-size: 12px;
+}
+
+.assessmentPanel p {
+  margin: 0;
+  color: var(--ui-text-2);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.assessmentPanel p strong {
+  color: var(--ui-text-3);
+  font-weight: 600;
+}
+
+.assessmentActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.assessmentAction {
+  --action-tone: var(--ui-text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ui-border-2);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-surface);
+  color: var(--ui-text-2);
+  font-size: 12px;
+  font-weight: 550;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.assessmentAction:hover {
+  border-color: var(--ui-border-strong);
+  background: var(--ui-surface-3);
+}
+
+.assessmentActionMet,
+.assessmentActionNotMet,
+.assessmentActionUncertain {
+  color: var(--ui-text);
+}
+
+.assessmentActionMet::before,
+.assessmentActionNotMet::before,
+.assessmentActionUncertain::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--action-tone);
+  content: "";
+}
+
+.assessmentActionMet { --action-tone: var(--ui-success); }
+.assessmentActionNotMet { --action-tone: var(--ui-danger); }
+.assessmentActionUncertain { --action-tone: var(--ui-caution); }

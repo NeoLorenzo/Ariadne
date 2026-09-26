@@ -1,5 +1,5 @@
 .inset {
-  --ariadne-utility-height: 3.55rem;
+  --ariadne-utility-height: 3.5rem;
   min-width: 0;
 }
 
@@ -12,10 +12,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--fs-space-4);
-  padding: 0 var(--fs-space-4);
-  border-bottom: var(--fs-border-width) solid var(--fs-color-border);
-  background: color-mix(in srgb, var(--fs-color-bg) 94%, transparent);
-  backdrop-filter: blur(14px);
+  padding: 0 var(--fs-space-5) 0 var(--fs-space-4);
+  border-bottom: var(--fs-border-width) solid var(--ui-border);
+  background: color-mix(in srgb, var(--fs-color-bg) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
 }
 
 .context,
@@ -32,16 +32,33 @@
 .utilities {
   flex: 0 0 auto;
   justify-content: flex-end;
-  gap: var(--fs-space-3);
+  gap: var(--fs-space-4);
+}
+
+.breadcrumb {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--fs-space-2);
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.breadcrumbRoot {
+  color: var(--ui-text-4);
+  font-weight: 500;
+}
+
+.breadcrumbSeparator {
+  color: var(--ui-border-strong);
 }
 
 .pageLabel {
   overflow: hidden;
-  color: var(--fs-color-text-secondary);
-  font-size: 0.76rem;
-  font-weight: 650;
+  color: var(--ui-text);
+  font-weight: 550;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .familyMark {
@@ -49,14 +66,22 @@
   width: var(--fs-family-mark-size);
   height: var(--fs-family-mark-size);
   object-fit: contain;
+  opacity: 0.9;
+}
+
+.utilityDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--ui-border-2);
 }
 
 .workspace {
   height: calc(100dvh - var(--ariadne-utility-height));
   min-height: 0;
-  padding: 2rem;
+  padding: 36px 40px 64px;
   overflow: auto;
-  background: #07090f;
+  background: var(--fs-color-bg);
+  scroll-padding-top: 24px;
 }
 
 .workspace :global(.page-content) {
@@ -65,15 +90,30 @@
   z-index: auto;
 }
 
+@media (max-width: 1100px) {
+  .workspace {
+    padding: 28px 28px 56px;
+  }
+}
+
 @media (max-width: 900px) {
   .workspace {
-    padding: 1rem;
+    padding: 20px 16px 48px;
+  }
+
+  .breadcrumbRoot,
+  .breadcrumbSeparator {
+    display: none;
   }
 }
 
 @media (max-width: 560px) {
   .utilityBar {
     padding-inline: var(--fs-space-3);
+  }
+
+  .utilities {
+    gap: var(--fs-space-3);
   }
 
   .pageLabel {

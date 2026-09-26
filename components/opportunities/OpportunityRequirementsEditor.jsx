@@ -93,7 +93,7 @@ function removeNode(nodes, id) { return nodes.filter((node) => node.id !== id).m
 function RequirementNodeEditor({ node, depth = 0, disabled, onReplace, onRemove }) {
   if (node.kind === "group") {
     const patch = (next) => onReplace({ ...node, ...next });
-    return <section style={{ border: "1px dashed rgba(148,163,184,.35)", borderRadius: 10, padding: ".75rem", marginLeft: depth ? ".7rem" : 0, display: "grid", gap: ".6rem" }}>
+    return <section style={{ border: "1px dashed var(--ui-border-2)", borderRadius: 10, padding: ".75rem", marginLeft: depth ? ".7rem" : 0, display: "grid", gap: ".6rem" }}>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(110px,.7fr) minmax(130px,1fr) minmax(130px,1fr) auto", gap: ".5rem", alignItems: "center" }}>
         <Select value={node.operator} onChange={(event) => patch({ operator: event.target.value })} disabled={disabled}>{options(REQUIREMENT_GROUP_OPERATORS)}</Select>
         {node.operator === "AT_LEAST_N" ? <TextInput type="number" min="1" max={Math.max(1, node.children.length)} value={node.minimumCount || 1} onChange={(event) => patch({ minimumCount: event.target.value })} disabled={disabled} /> : <span />}
@@ -108,7 +108,7 @@ function RequirementNodeEditor({ node, depth = 0, disabled, onReplace, onRemove 
 
   const patch = (next) => onReplace(normalizeRequirementNode({ ...node, ...next }));
   const changeType = (type) => onReplace(normalizeRequirementNode({ ...createOpportunityRequirement(type), id: node.id, necessity: node.necessity, requirementState: node.requirementState, evaluationTime: node.evaluationTime, evaluationDate: node.evaluationDate, sourceText: node.sourceText }));
-  return <section style={{ border: "1px solid rgba(148,163,184,.22)", borderRadius: 10, padding: ".75rem", marginLeft: depth ? ".7rem" : 0, display: "grid", gap: ".6rem" }}>
+  return <section style={{ border: "1px solid var(--ui-border)", borderRadius: 10, padding: ".75rem", marginLeft: depth ? ".7rem" : 0, display: "grid", gap: ".6rem" }}>
     <div style={{ display: "grid", gridTemplateColumns: "minmax(150px,1.3fr) minmax(130px,1fr) minmax(120px,.9fr) auto", gap: ".5rem", alignItems: "center" }}>
       <Select value={node.type} onChange={(event) => changeType(event.target.value)} disabled={disabled}>{OPPORTUNITY_REQUIREMENT_TYPES.map((type) => <option key={type} value={type}>{OPPORTUNITY_REQUIREMENT_TYPE_LABELS[type]}</option>)}</Select>
       <Select value={node.necessity} onChange={(event) => patch({ necessity: event.target.value })} disabled={disabled}>{options(REQUIREMENT_NECESSITIES, REQUIREMENT_NECESSITY_LABELS)}</Select>
@@ -155,6 +155,6 @@ export default function OpportunityRequirementsEditor({ standardizedRequirements
 
     <div className={styles.fieldFull}><label htmlFor="opportunity-misc-requirements">Other eligibility criteria</label><TextArea id="opportunity-misc-requirements" size="medium" rows={4} value={residualMisc} onChange={(event) => emit(criteria, event.target.value, applicationComponents)} placeholder="Only criteria that cannot yet be represented structurally…" disabled={disabled} /></div>
 
-    {rawRequirementsText ? <div className={styles.fieldFull}><details><summary style={{ color: "#94a3b8", cursor: "pointer", fontSize: ".76rem", fontWeight: 700 }}>Original source requirements</summary><p style={{ margin: ".45rem 0 0", whiteSpace: "pre-wrap", color: "#94a3b8", fontSize: ".76rem", lineHeight: 1.45 }}>{rawRequirementsText}</p></details></div> : null}
+    {rawRequirementsText ? <div className={styles.fieldFull}><details><summary style={{ color: "var(--ui-text-3)", cursor: "pointer", fontSize: ".76rem", fontWeight: 700 }}>Original source requirements</summary><p style={{ margin: ".45rem 0 0", whiteSpace: "pre-wrap", color: "var(--ui-text-3)", fontSize: ".76rem", lineHeight: 1.45 }}>{rawRequirementsText}</p></details></div> : null}
   </>;
 }
