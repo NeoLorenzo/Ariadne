@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { CalendarClock, CalendarDays, Check, ChevronRight, Clock, Copy, Crosshair, Flag, Gauge, GripVertical, Hourglass, Plus, Timer, Trash2, X } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { supabase } from "@/lib/supabase/client";
 import { useIsMobileExperience } from "@/lib/device/useIsMobileExperience";
@@ -26,7 +27,7 @@ import { createTaskWriteCoordinator } from "@/lib/tasks/writeCoordinator";
 const TASK_STORAGE_KEY = "fabbro_tasks_v1";
 const TASKS_SYNC_CACHE_NAMESPACE = "tasks.resolved_cloud";
 const TASK_TOMBSTONE_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
-const TARGET_DATE_COLOR = "#38bdf8";
+const TARGET_DATE_COLOR = "var(--ui-accent-text)";
 
 const EMPTY_FORM = {
   completed: false,
@@ -885,8 +886,8 @@ export default function TasksPage() {
   const activeTasks = displayedTasks.filter((task) => !task.completed);
   const completedTasks = displayedTasks.filter((task) => task.completed);
 
-  const submitLabel = editingTaskId ? "Save Task" : "Add Task";
-  const taskModalTitle = editingTaskId ? "Edit Task" : "Add Task";
+  const submitLabel = editingTaskId ? "Save task" : "Add task";
+  const taskModalTitle = editingTaskId ? "Edit task" : "Add task";
   const timePressureByTaskId = useMemo(
     () => buildQueueAdjustedTimePressureByTaskId(liveTasks),
     [liveTasks]
@@ -948,7 +949,7 @@ export default function TasksPage() {
       }
     };
   }, [averageTimePressure]);
-  const averagePressureLabel = isAveragePressureCompact ? "Avg TP" : "Avg Time Pressure";
+  const averagePressureLabel = isAveragePressureCompact ? "Avg pressure" : "Average pressure";
   const cloudSyncBadge = useMemo(() => {
     if (!supabase) {
       return { label: "Local", tone: "local" };
@@ -1363,7 +1364,7 @@ export default function TasksPage() {
           disabled={githubBacked}
           title={githubBacked ? "Completion is managed by the GitHub issue state" : undefined}
           aria-label={githubBacked ? "Completion managed by GitHub" : task.completed ? "Mark task incomplete" : "Mark task complete"}
-        >{task.completed ? "✓" : ""}</button>
+        >{task.completed ? <Check aria-hidden="true" /> : null}</button>
         <div className={`task-card-content${task.completed ? " is-complete" : ""}`}>
         <header className="task-card-header">
           <h4 className="task-card-title">{task.title}</h4>
@@ -1377,14 +1378,14 @@ export default function TasksPage() {
               aria-label={`Open GitHub issue ${task.githubIssueNumber || ""}`}
               onClick={(event) => event.stopPropagation()}
             >
-              ↗ #{task.githubIssueNumber || ""}
+              #{task.githubIssueNumber || ""}
             </a>
           ) : null}
           {directionalGoalId ? (
-            <span className="task-card-goal-tag">D · Directional</span>
+            <span className="task-card-goal-tag">Directional</span>
           ) : priorityScore > 0 ? (
             <span className={`task-card-priority-pill priority-band-${priorityBand}`}>
-              Priority {priorityScore}
+              P{priorityScore}
             </span>
           ) : null}
           <span
@@ -1395,7 +1396,7 @@ export default function TasksPage() {
           <div className="task-card-actions">
             {!isMobileExperience && !githubBacked ? (
               <button type="button" className="task-card-btn" title="Duplicate" aria-label="Duplicate task" onClick={(event) => { event.stopPropagation(); duplicateTask(task); }}>
-                ⧉
+                <Copy aria-hidden="true" />
               </button>
             ) : null}
             {!isMobileExperience && !githubBacked ? (
@@ -1406,7 +1407,7 @@ export default function TasksPage() {
                 aria-label="Delete task"
                 onClick={(event) => { event.stopPropagation(); deleteTask(task.id); }}
               >
-                ×
+                <Trash2 aria-hidden="true" />
               </button>
             ) : null}
           </div>
@@ -1425,18 +1426,30 @@ export default function TasksPage() {
             {subtasks.length > 3 ? <span className="task-card-subtask-more">+{subtasks.length - 3} more</span> : null}
           </div>
         ) : null}
-        {hasDueDate ? <p className="task-card-date">{formatDueInDays(task.dueDate, task.dueTime)}</p> : null}
-        {hasTargetDate ? <p className="task-card-date task-card-target-date" style={{ color: TARGET_DATE_COLOR }}>{formatTargetInDays(task.targetDate)}</p> : null}
-        {hasEstimatedTime || hasTimePressure ? (
+        {hasDueDate || hasTargetDate || hasEstimatedTime || hasTimePressure ? (
           <div className="task-card-metrics">
+            {hasDueDate ? (
+              <p className={`task-card-date${getDueUrgencyClass(task.dueDate, task.dueTime)}`} title={formatDueDateTimeLabel(task.dueDate, task.dueTime)}>
+                <CalendarClock aria-hidden="true" />
+                {formatDueInDays(task.dueDate, task.dueTime)}
+              </p>
+            ) : null}
+            {hasTargetDate ? (
+              <p className="task-card-date task-card-target-date" style={{ color: TARGET_DATE_COLOR }} title={`Target ${normalizedTargetDate}`}>
+                <Crosshair aria-hidden="true" />
+                {formatTargetInDays(task.targetDate)}
+              </p>
+            ) : null}
             {hasEstimatedTime ? (
-              <p className="task-card-estimated-time task-card-chip">
-                Est: {formatEstimatedHours(normalizedEstimatedHours)}
+              <p className="task-card-estimated-time task-card-chip" title="Estimated effort">
+                <Hourglass aria-hidden="true" />
+                {formatEstimatedHours(normalizedEstimatedHours)}
               </p>
             ) : null}
             {hasTimePressure ? (
-              <p className="task-card-time-pressure task-card-chip" style={{ color: timePressureColor }}>
-                Pressure: {formatTimePressure(timePressureRatio)}
+              <p className="task-card-time-pressure task-card-chip" style={{ color: timePressureColor }} title="Time pressure">
+                <Gauge aria-hidden="true" />
+                {formatTimePressure(timePressureRatio)}
               </p>
             ) : null}
           </div>
@@ -1453,6 +1466,7 @@ export default function TasksPage() {
           <div className="task-board-toolbar">
             <header className="task-board-header">
               <h2 className="task-board-title">Tasks</h2>
+              <span className="task-board-list-count">{activeTasks.length}</span>
               <p className={`task-board-sync-badge is-${cloudSyncBadge.tone}`}>{cloudSyncBadge.label}</p>
               {averageTimePressure !== null ? <p
                 ref={averagePressureRef}
@@ -1473,10 +1487,10 @@ export default function TasksPage() {
                   <option value="priority">Priority</option>
                 </select>
               </label>
-              <span className="task-board-list-count">{activeTasks.length}</span>
             </header>
             <button type="button" className="task-board-add-btn" onClick={openAddModal} aria-label="Add task">
-              +
+              <Plus aria-hidden="true" />
+              <span>New task</span>
             </button>
           </div>
           {displayedTasks.length === 0 ? (
@@ -1503,9 +1517,9 @@ export default function TasksPage() {
                     aria-expanded={isCompletedTasksExpanded}
                   >
                     <span className="task-board-completed-chevron" aria-hidden="true">
-                      {isCompletedTasksExpanded ? "⌄" : "›"}
+                      <ChevronRight />
                     </span>
-                    <h3>Completed Tasks</h3>
+                    <h3>Completed</h3>
                     <span className="task-board-completed-count">{completedTasks.length}</span>
                   </button>
                   {isCompletedTasksExpanded ? (
@@ -1535,7 +1549,7 @@ export default function TasksPage() {
                       disabled={isGitHubIssueTask(editingTask)}
                       title={isGitHubIssueTask(editingTask) ? "Completion is managed by GitHub" : undefined}
                       aria-label={isGitHubIssueTask(editingTask) ? "Completion managed by GitHub" : form.completed ? "Mark task incomplete" : "Mark task complete"}
-                    >{form.completed ? "✓" : ""}</button>
+                    >{form.completed ? <Check aria-hidden="true" /> : null}</button>
                     <div className="task-editor-main-content">
                     <textarea
                       id="task-title"
@@ -1560,7 +1574,7 @@ export default function TasksPage() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        {editingTask.githubRepositoryFullName || "GitHub"} #{editingTask.githubIssueNumber || ""} ↗
+                        {editingTask.githubRepositoryFullName || "GitHub"} #{editingTask.githubIssueNumber || ""} · Open issue ↗
                       </a>
                     ) : null}
                     <textarea
@@ -1580,10 +1594,10 @@ export default function TasksPage() {
                   <ModalBody className="task-editor-body">
 
                   <div className="task-editor-metadata-row">
-                    <label className="task-editor-meta-control"><span>▣</span><input id="task-due-date" type="date" aria-label="Due date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} /></label>
-                    <label className="task-editor-meta-control" style={{ color: TARGET_DATE_COLOR }}><span>Target</span><input id="task-target-date" type="date" aria-label="Target date" value={form.targetDate} style={{ color: TARGET_DATE_COLOR }} onChange={(event) => setForm((current) => ({ ...current, targetDate: event.target.value }))} /></label>
-                    <label className="task-editor-meta-control"><span>◷</span><input id="task-due-time" type="time" aria-label="Due time" value={form.dueTime} onChange={(event) => setForm((current) => ({ ...current, dueTime: event.target.value }))} /></label>
-                    <label className="task-editor-meta-control"><span>Priority</span>
+                    <label className="task-editor-meta-control" title="Due date"><CalendarDays aria-hidden="true" /><input id="task-due-date" type="date" aria-label="Due date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} /></label>
+                    <label className="task-editor-meta-control is-target" title="Target date"><Crosshair aria-hidden="true" /><input id="task-target-date" type="date" aria-label="Target date" value={form.targetDate} onChange={(event) => setForm((current) => ({ ...current, targetDate: event.target.value }))} /></label>
+                    <label className="task-editor-meta-control" title="Due time"><Clock aria-hidden="true" /><input id="task-due-time" type="time" aria-label="Due time" value={form.dueTime} onChange={(event) => setForm((current) => ({ ...current, dueTime: event.target.value }))} /></label>
+                    <label className="task-editor-meta-control" title="Priority"><Flag aria-hidden="true" />
                     <select
                       id="task-priority"
                       aria-label="Priority"
@@ -1596,15 +1610,15 @@ export default function TasksPage() {
                         }))
                       }
                     >
-                      {form.sourceGoalId ? <option value={form.priority}>D · Directional</option> : null}
-                      <option value="0">0 · No priority</option>
-                      <option value="1">1 · Highest</option>
-                      <option value="2">2 · High</option>
-                      <option value="3">3 · Medium</option>
-                      <option value="4">4 · Lowest</option>
+                      {form.sourceGoalId ? <option value={form.priority}>Directional</option> : null}
+                      <option value="0">No priority</option>
+                      <option value="1">P1 · Highest</option>
+                      <option value="2">P2 · High</option>
+                      <option value="3">P3 · Medium</option>
+                      <option value="4">P4 · Lowest</option>
                     </select>
                     </label>
-                    <label className="task-editor-meta-control"><span>Estimate</span>
+                    <label className="task-editor-meta-control" title="Estimated effort"><Timer aria-hidden="true" />
                     <input
                       id="task-estimated-hours"
                       type="number"
@@ -1621,10 +1635,10 @@ export default function TasksPage() {
 
                   <section className="task-editor-subtasks">
                     <div className="task-editor-subtasks-header">
-                      <button type="button" className="task-editor-subtasks-toggle" onClick={() => setAreSubtasksExpanded((current) => !current)} aria-expanded={areSubtasksExpanded}>{areSubtasksExpanded ? "⌄" : "›"}</button>
-                      <strong>Sub-tasks</strong>
-                      <span className="task-editor-subtask-progress-ring">○</span>
+                      <button type="button" className="task-editor-subtasks-toggle" onClick={() => setAreSubtasksExpanded((current) => !current)} aria-expanded={areSubtasksExpanded} aria-label={areSubtasksExpanded ? "Collapse subtasks" : "Expand subtasks"}><ChevronRight aria-hidden="true" /></button>
+                      <strong>Subtasks</strong>
                       <span>{(form.subtasks || []).filter((item) => item.completed).length}/{(form.subtasks || []).length}</span>
+                      <span className="task-editor-subtask-progress-ring" aria-hidden="true"><span style={{ width: `${(form.subtasks || []).length ? ((form.subtasks || []).filter((item) => item.completed).length / (form.subtasks || []).length) * 100 : 0}%` }} /></span>
                       <button type="button" className="task-editor-hide-completed" onClick={() => setHideCompletedSubtasks((current) => !current)}>{hideCompletedSubtasks ? "Show completed" : "Hide completed"}</button>
                     </div>
                     {areSubtasksExpanded ? <div className="task-editor-subtask-list">
@@ -1650,24 +1664,24 @@ export default function TasksPage() {
                               }
                             }}
                           >
-                            ⠿
+                            <GripVertical aria-hidden="true" />
                           </button>
-                          <button type="button" className={`task-editor-completion task-editor-subtask-completion${subtask.completed ? " is-complete" : ""}`} onClick={() => updateDraftSubtask(subtask.id, { completed: !subtask.completed })} aria-label={`Mark ${subtask.title || "subtask"} ${subtask.completed ? "incomplete" : "complete"}`}>{subtask.completed ? "✓" : ""}</button>
+                          <button type="button" className={`task-editor-completion task-editor-subtask-completion${subtask.completed ? " is-complete" : ""}`} onClick={() => updateDraftSubtask(subtask.id, { completed: !subtask.completed })} aria-label={`Mark ${subtask.title || "subtask"} ${subtask.completed ? "incomplete" : "complete"}`}>{subtask.completed ? <Check aria-hidden="true" /> : null}</button>
                           <div className={`task-editor-subtask-content${subtask.completed ? " is-complete" : ""}`}>
                             <textarea
                               className="task-editor-subtask-title task-editor-wrapping-title"
                               value={subtask.title}
                               onChange={(event) => updateDraftSubtask(subtask.id, { title: event.target.value.replace(/\r?\n/g, " ") })}
-                              placeholder="Sub-task title"
+                              placeholder="Subtask title"
                               aria-label="Subtask title"
                               rows={1}
                             />
                             <input className="task-editor-subtask-description" value={subtask.description || ""} onChange={(event) => updateDraftSubtask(subtask.id, { description: event.target.value })} placeholder="Add description" aria-label="Subtask description" />
                           </div>
-                          <button type="button" className="task-editor-remove-subtask" onClick={() => removeDraftSubtask(subtask.id)} aria-label="Delete subtask">×</button>
+                          <button type="button" className="task-editor-remove-subtask" onClick={() => removeDraftSubtask(subtask.id)} aria-label="Delete subtask"><X aria-hidden="true" /></button>
                         </div>
                       ))}
-                      <button type="button" className="task-editor-add-subtask" onClick={addDraftSubtask}><span>＋</span> Add sub-task</button>
+                      <button type="button" className="task-editor-add-subtask" onClick={addDraftSubtask}><Plus aria-hidden="true" /> Add subtask</button>
                     </div> : null}
                   </section>
                   {isMobileExperience && editingTaskId ? (
@@ -1698,14 +1712,14 @@ export default function TasksPage() {
                   <ModalFooter className="task-editor-actions">
                     <p className="task-editor-auto-summary" aria-live="polite">
                       {formTimePressure !== null ? <>
-                        <span>Pressure: </span>
+                        <span>Pressure</span>
                         <strong style={{ color: getTimePressureColor(formTimePressure) }}>
                           {formatTimePressure(formTimePressure)}
                         </strong>
                         <span className="task-editor-auto-divider">|</span>
                       </> : null}
-                      <span>Priority: </span>
-                      <strong>{calculatePriorityScore(form)}</strong>
+                      <span>Priority</span>
+                      <strong>{calculatePriorityScore(form) || "—"}</strong>
                     </p>
                     <div className="task-editor-action-buttons">
                       <SecondaryButton onClick={cancelEdit}>Cancel</SecondaryButton>
@@ -1881,10 +1895,35 @@ function formatDueInDays(dueDate, dueTime) {
   const hours = totalHours % 24;
   const minutes = absoluteMinutes % 60;
 
-  const prefix = isOverdue ? "Overdue by" : "Due in";
-  return `${prefix} ${days} ${days === 1 ? "day" : "days"}, ${hours} ${
-    hours === 1 ? "hour" : "hours"
-  }, and ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  const duration = formatCompactDuration(days, hours, minutes);
+  return isOverdue ? `Overdue by ${duration}` : `Due in ${duration}`;
+}
+
+function formatCompactDuration(days, hours, minutes) {
+  if (days > 0) return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  return `${minutes}m`;
+}
+
+function getDueUrgencyClass(dueDate, dueTime) {
+  const dueTimestamp = getDueTimestamp(dueDate, dueTime);
+  if (dueTimestamp === null) return "";
+  const differenceMs = dueTimestamp - Date.now();
+  if (differenceMs < 0) return " is-overdue";
+  if (differenceMs < 2 * 24 * 60 * 60 * 1000) return " is-soon";
+  return "";
+}
+
+function formatDueDateTimeLabel(dueDate, dueTime) {
+  const dueTimestamp = getDueTimestamp(dueDate, dueTime);
+  if (dueTimestamp === null) return "";
+  return `Due ${new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    ...(dueTime ? { hour: "2-digit", minute: "2-digit" } : {})
+  }).format(new Date(dueTimestamp))}`;
 }
 
 function formatTargetInDays(targetDate) {
@@ -1900,8 +1939,8 @@ function formatTargetInDays(targetDate) {
   const days = Math.floor(totalHours / 24);
   const hours = totalHours % 24;
   const minutes = absoluteMinutes % 60;
-  const duration = `${days} ${days === 1 ? "day" : "days"}, ${hours} ${hours === 1 ? "hour" : "hours"}, and ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-  return isPast ? `Target was ${duration} ago` : `Target in ${duration}`;
+  const duration = formatCompactDuration(days, hours, minutes);
+  return isPast ? `Target passed ${duration} ago` : `Target in ${duration}`;
 }
 
 function getDueTimestamp(dueDate, dueTime) {
@@ -2112,7 +2151,7 @@ function calculateAverageTimePressure(taskList, pressureByTaskId) {
 
 function getTimePressureColor(ratio) {
   if (ratio === null || ratio === undefined) {
-    return "#94a3b8";
+    return "#a0a0a0";
   }
 
   const clamped = Number.isFinite(ratio) ? Math.max(0, Math.min(1, ratio)) : 1;

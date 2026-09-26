@@ -61,7 +61,11 @@ function AppShellContents({
           <div className={styles.context}>
             {!hideMobileNav ? <SidebarTrigger /> : null}
             {currentPageLabel ? (
-              <span className={styles.pageLabel}>{currentPageLabel}</span>
+              <nav className={styles.breadcrumb} aria-label="Location">
+                <span className={styles.breadcrumbRoot}>Ariadne</span>
+                <span className={styles.breadcrumbSeparator} aria-hidden="true">/</span>
+                <span className={styles.pageLabel} aria-current="page">{currentPageLabel}</span>
+              </nav>
             ) : null}
           </div>
 
@@ -71,6 +75,7 @@ function AppShellContents({
               src="/brand/fabbro-mark.svg"
               alt="Fabbro Systems"
             />
+            <span className={styles.utilityDivider} aria-hidden="true" />
             <AuthPanel compact />
           </div>
         </header>

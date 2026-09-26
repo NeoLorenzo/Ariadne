@@ -206,14 +206,13 @@ export default function GitHubReposModule({ onProjectsChange }) {
     <section className="coding-workspace">
       <section className="coding-board-modal">
         <header className="coding-board-header">
-          <h2 className="coding-board-title">Programming</h2>
+          <div className="notice-board-title-group">
+            <h2 className="coding-board-title">Repositories</h2>
+            <span className="ui-count">{visibleRepos.length}</span>
+          </div>
         </header>
 
-        <section className="coding-repos-module">
-          <div className="coding-repos-header">
-            <h3 className="coding-repos-title">Repos</h3>
-            <p className="coding-repos-count">{visibleRepos.length}</p>
-          </div>
+        <section className="coding-repos-module" aria-label="Active repositories">
           <div className="coding-repos-list">
             {visibleRepos.length === 0 ? (
               <p className="coding-repos-empty">No active repositories.</p>
@@ -239,7 +238,7 @@ function RepoCard({ project }) {
       </div>
       <div className="coding-repo-meta-row">
         <p className={`coding-repo-last-commit is-${lastCommitTone}`}>
-          Last commit: {formattedLastCommit || "Unknown"}
+          {formattedLastCommit || "No commit recorded"}
         </p>
         {relativeAge ? (
           <span className={`coding-repo-age-chip is-${lastCommitTone}`}>{relativeAge}</span>
@@ -409,13 +408,10 @@ function formatLastCommitDateTime(lastCommitAt) {
   if (!Number.isFinite(timestamp)) return "";
 
   try {
-    return new Date(timestamp).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    const date = new Date(timestamp);
+    const day = date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    const time = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    return `Committed ${day}, ${time}`;
   } catch {
     return "";
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import KleosVectorStateLayer from "@/components/KleosVectorStateLayer";
 import StrategicObjectives from "@/components/StrategicObjectives";
 import {
@@ -44,11 +45,6 @@ export default function DirectionPanel({ userId }) {
   const archivedDirections = useMemo(() => state.directions
     .filter((direction) => direction.status === "archived")
     .sort(compareDirections), [state.directions]);
-
-  const vectorDirectionMap = useMemo(() => Object.fromEntries(VECTOR_DEFINITIONS.map((vector) => [
-    vector.id,
-    activeDirections.filter((direction) => direction.vectorIds.includes(vector.id))
-  ])), [activeDirections]);
 
   const openCreate = () => {
     setDraft(EMPTY_DRAFT);
@@ -175,31 +171,13 @@ export default function DirectionPanel({ userId }) {
       <section className="objectives-panel" aria-labelledby="directions-workspace-title">
         <header className="objectives-header">
           <div>
-            <span className="direction-eyebrow">8D navigation</span>
+            <span className="direction-eyebrow">Strategy controls</span>
             <h3 id="directions-workspace-title" className="direction-title">Directions</h3>
           </div>
-          <PrimaryButton onClick={openCreate}>+ New direction</PrimaryButton>
+          <PrimaryButton onClick={openCreate}><Plus aria-hidden="true" />New direction</PrimaryButton>
         </header>
         {message ? <p className="direction-sync-error" role="status">{message}</p> : null}
 
-        <div className="objectives-grid" aria-label="Vector coverage">
-          {VECTOR_DEFINITIONS.map((vector) => {
-            const directions = vectorDirectionMap[vector.id] || [];
-            return (
-              <article className="objective-card objective-surface" key={vector.id}>
-                <header className="objective-card-header">
-                  <h4 className="objective-card-title">{vector.label}</h4>
-                  <span>{directions.length}</span>
-                </header>
-                <p className="objective-success">
-                  {directions.length
-                    ? directions.map((direction) => direction.title).join(" · ")
-                    : "No active direction currently influences this vector."}
-                </p>
-              </article>
-            );
-          })}
-        </div>
       </section>
 
       <KleosVectorStateLayer userId={userId} directions={state.directions} />

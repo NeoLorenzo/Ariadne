@@ -80,8 +80,9 @@ function OpportunityTooltip({ active, payload }) {
   );
 }
 
-const axisTick = { fill: "#64748b", fontSize: 12, fontWeight: 600 };
-const axisLine = { stroke: "rgba(100, 116, 139, 0.4)" };
+const axisTick = { fill: "#6b6b72", fontSize: 11, fontWeight: 500 };
+const axisLine = { stroke: "#27272a" };
+const quadrantLabel = (value, fill = "rgba(160, 160, 160, 0.5)") => ({ value, position: "insideTopLeft", fill, fontSize: 10, fontWeight: 600, letterSpacing: "0.12em" });
 
 export default function OpportunityLandscapeChart({ opportunities = [], scoresByOpportunity = {}, onSelect }) {
   const points = opportunities
@@ -117,47 +118,47 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
           <div className={styles.chart}>
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 24, right: 28, bottom: 42, left: 18 }}>
-                <CartesianGrid stroke="rgba(100, 116, 139, 0.16)" vertical horizontal />
+                <CartesianGrid stroke="#161618" vertical horizontal />
 
                 <ReferenceArea
                   x1={0}
                   x2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y2={100}
-                  fill="rgba(148, 163, 184, 0.02)"
+                  fill="rgba(255, 255, 255, 0.012)"
                   stroke="none"
-                  label={{ value: "ACCESSIBLE / LOWER VALUE", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
+                  label={quadrantLabel("ACCESSIBLE / LOWER VALUE")}
                 />
                 <ReferenceArea
                   x1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   x2={100}
                   y1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y2={100}
-                  fill="rgba(0, 136, 255, 0.075)"
+                  fill="rgba(0, 136, 255, 0.07)"
                   stroke="none"
-                  label={{ value: "PRIME OPPORTUNITIES", position: "insideTopLeft", fill: "rgba(0, 136, 255, 0.64)", fontSize: 11 }}
+                  label={quadrantLabel("PRIME OPPORTUNITIES", "rgba(77, 171, 255, 0.85)")}
                 />
                 <ReferenceArea
                   x1={0}
                   x2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   y1={0}
                   y2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
-                  fill="rgba(148, 163, 184, 0.01)"
+                  fill="rgba(255, 255, 255, 0)"
                   stroke="none"
-                  label={{ value: "BACKGROUND", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.4)", fontSize: 11 }}
+                  label={quadrantLabel("BACKGROUND", "rgba(160, 160, 160, 0.35)")}
                 />
                 <ReferenceArea
                   x1={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
                   x2={100}
                   y1={0}
                   y2={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD}
-                  fill="rgba(0, 136, 255, 0.025)"
+                  fill="rgba(0, 136, 255, 0.02)"
                   stroke="none"
-                  label={{ value: "BUILD TOWARD", position: "insideTopLeft", fill: "rgba(148, 163, 184, 0.46)", fontSize: 11 }}
+                  label={quadrantLabel("BUILD TOWARD")}
                 />
 
-                <ReferenceLine x={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
-                <ReferenceLine y={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD} stroke="rgba(148, 163, 184, 0.34)" strokeDasharray="5 6" />
+                <ReferenceLine x={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD} stroke="#3f3f46" strokeDasharray="4 6" />
+                <ReferenceLine y={OPPORTUNITY_LANDSCAPE_HIGH_THRESHOLD} stroke="#3f3f46" strokeDasharray="4 6" />
 
                 <XAxis
                   type="number"
@@ -167,7 +168,7 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
                   tick={axisTick}
                   tickLine={false}
                   axisLine={axisLine}
-                  label={{ value: "Strategic value", position: "insideBottom", offset: -28, fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
+                  label={{ value: "Strategic value", position: "insideBottom", offset: -28, fill: "#a0a0a0", fontSize: 12, fontWeight: 550 }}
                 />
                 <YAxis
                   type="number"
@@ -178,11 +179,11 @@ export default function OpportunityLandscapeChart({ opportunities = [], scoresBy
                   tickLine={false}
                   axisLine={axisLine}
                   width={52}
-                  label={{ value: "Attainability", angle: -90, position: "insideLeft", fill: "#94a3b8", fontSize: 13, fontWeight: 700 }}
+                  label={{ value: "Attainability", angle: -90, position: "insideLeft", fill: "#a0a0a0", fontSize: 12, fontWeight: 550 }}
                 />
 
                 <Tooltip
-                  cursor={{ stroke: "rgba(0, 136, 255, 0.26)", strokeDasharray: "3 4" }}
+                  cursor={{ stroke: "rgba(0, 136, 255, 0.3)", strokeDasharray: "3 4" }}
                   content={<OpportunityTooltip />}
                 />
 
