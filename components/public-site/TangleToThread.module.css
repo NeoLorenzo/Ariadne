@@ -1,0 +1,160 @@
+.wrapper { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--fs-space-5); }
+
+.toggle {
+  position: relative;
+  width: fit-content;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border: 1px solid var(--fs-color-border);
+  border-radius: 999px;
+  background: #070708;
+}
+.toggle button {
+  position: relative;
+  z-index: 1;
+  min-height: 38px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fs-color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--fs-motion-normal) ease;
+}
+.toggle button[aria-pressed="true"] { color: var(--fs-color-text); }
+.toggleThumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 999px;
+  background: #1a1a1d;
+  transition: transform .45s var(--fs-app-motion-ease), background .45s ease;
+}
+.toggleThumb[data-on="right"] {
+  transform: translateX(100%);
+  background: color-mix(in srgb, var(--fs-accent) 30%, #0b0b0d);
+}
+
+.stage {
+  position: relative;
+  border: 1px solid var(--fs-color-border);
+  border-radius: var(--fs-radius-lg);
+  background:
+    radial-gradient(circle at 1px 1px, #1a1a1d 1px, transparent 0) 0 0 / 22px 22px,
+    #020203;
+  overflow: hidden;
+  transition: height .5s var(--fs-app-motion-ease);
+}
+
+.column {
+  position: absolute;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 18px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--fs-radius-lg);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .5s ease, transform .6s var(--fs-app-motion-ease), border-color .5s ease;
+}
+.threaded .column {
+  opacity: 1;
+  transform: none;
+  border-color: #1d1d21;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--fs-accent) 7%, transparent), transparent 70%);
+  transition-delay: .25s;
+}
+.threaded .unlinkedColumn {
+  border-style: dashed;
+  border-color: #2a2a2f;
+  background: none;
+}
+.columnKicker {
+  color: var(--fs-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.unlinkedColumn .columnKicker { color: var(--fs-color-text-muted); }
+.column strong {
+  max-width: 24ch;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.columnThread {
+  position: absolute;
+  z-index: 2;
+  top: 113px;
+  bottom: 47px;
+  left: 32px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--fs-accent), color-mix(in srgb, var(--fs-accent) 20%, transparent));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform .8s var(--fs-app-motion-ease) .45s;
+}
+.threaded .columnThread { transform: scaleY(1); }
+
+.chip {
+  position: absolute;
+  z-index: 1;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid #2a2a2f;
+  border-radius: 10px;
+  background: #0e0e10;
+  color: var(--fs-color-text-secondary);
+  font-size: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .9);
+  transition:
+    left .9s var(--fs-app-motion-ease),
+    top .9s var(--fs-app-motion-ease),
+    width .9s var(--fs-app-motion-ease),
+    transform .9s var(--fs-app-motion-ease),
+    border-color .6s ease,
+    color .6s ease,
+    opacity .6s ease;
+}
+.chipDot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #3f3f46;
+  border-radius: 50%;
+  background: #0e0e10;
+  transition: border-color .6s ease, background .6s ease;
+}
+.threaded .chip { border-color: #232327; color: var(--fs-color-text); }
+.threaded .chip .chipDot { border-color: var(--fs-accent); background: #000; }
+.threaded .chipUnlinked { color: var(--fs-color-text-muted); opacity: .7; }
+.threaded .chipUnlinked .chipDot { border-color: #52525b; }
+
+@media (max-width: 900px) {
+  .chip { font-size: 13px; }
+  .columnThread { bottom: 39px; }
+  .toggle button { padding: 0 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .column,
+  .columnThread,
+  .toggleThumb { transition: none; }
+}

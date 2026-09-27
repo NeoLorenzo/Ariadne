@@ -1,0 +1,112 @@
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 700px;
+  margin-inline: auto;
+}
+
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--fs-accent) 16%, transparent), transparent 62%);
+  filter: blur(30px);
+  opacity: .5;
+  transition: opacity 1.4s var(--fs-app-motion-ease);
+}
+.complete::before { opacity: 1; }
+
+.svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.walls path {
+  fill: none;
+  stroke: #2e2e33;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0;
+}
+.started .walls path {
+  animation: wallIn 1.2s var(--fs-app-motion-ease) both;
+  animation-delay: calc(var(--ring, 4) * -60ms + 520ms);
+}
+
+.core { opacity: 0; transition: opacity 1.6s var(--fs-app-motion-ease); }
+.complete .core { opacity: 1; }
+
+.thread,
+.threadGlow,
+.pulse {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.thread {
+  stroke: var(--fs-accent);
+  stroke-width: 2.6;
+}
+.threadGlow {
+  stroke: var(--fs-accent);
+  stroke-width: 7;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.complete .threadGlow { opacity: .45; }
+
+.pulse {
+  stroke: #cfe8ff;
+  stroke-width: 3;
+  stroke-dasharray: .035 .965;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+.complete .pulse {
+  opacity: 1;
+  animation: pulseTravel 5.5s linear infinite;
+}
+
+.headHalo { fill: color-mix(in srgb, var(--fs-accent) 30%, transparent); }
+.headDot { fill: #e6f3ff; }
+.head { transition: opacity .3s ease; }
+
+.mark {
+  opacity: .25;
+  transition: opacity 1s ease;
+}
+.markRing {
+  fill: #000;
+  stroke: color-mix(in srgb, var(--fs-accent) 55%, transparent);
+  stroke-width: 1.5;
+}
+.complete .mark { opacity: 1; }
+.complete .markRing { animation: markBreath 3.6s ease-in-out infinite; }
+
+@keyframes wallIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulseTravel {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes markBreath {
+  0%, 100% { stroke-width: 1.5; stroke-opacity: .7; }
+  50% { stroke-width: 5; stroke-opacity: .35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walls path { opacity: 1; }
+  .started .walls path,
+  .complete .pulse,
+  .complete .markRing { animation: none; }
+  .pulse { display: none; }
+}

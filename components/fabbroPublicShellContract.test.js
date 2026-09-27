@@ -1,8 +1,13 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const read = (relativePath) =>
   readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
+
+const publicSiteModules = () =>
+  readdirSync(new URL("./public-site/", import.meta.url))
+    .filter((file) => /\.(jsx?|css)$/.test(file))
+    .map((file) => [`components/public-site/${file}`, read(`components/public-site/${file}`)]);
 
 describe("Fabbro public shell adoption", () => {
   it("adopts Fabbro Design System 0.4.0 and Public Shell 1.0.0", () => {
@@ -42,18 +47,35 @@ describe("Fabbro public shell adoption", () => {
     expect(publicSite).toContain('id="strategy"');
     expect(publicSite).toContain('id="opportunities"');
     expect(publicSite).toContain('id="prioritization"');
+    expect(publicSite).toContain('id="signals"');
     expect(publicSite).toContain("Evidence → state → action.");
     expect(publicSite).toContain("Synthetic example only");
   });
 
   it("keeps the public surface static and separate from private repositories", () => {
-    const publicSite = read("components/AriadnePublicSite.jsx");
+    const sources = [
+      ["components/AriadnePublicSite.jsx", read("components/AriadnePublicSite.jsx")],
+      ...publicSiteModules()
+    ];
 
-    expect(publicSite).not.toContain("@/lib/");
-    expect(publicSite).not.toContain("supabase");
-    expect(publicSite).not.toContain("localStorage");
-    expect(publicSite).not.toContain("DashboardStrategyOverview");
-    expect(publicSite).not.toContain("OpportunityRepository");
+    expect(sources.length).toBeGreaterThan(1);
+    for (const [, source] of sources) {
+      expect(source).not.toContain("@/lib/");
+      expect(source).not.toContain("supabase");
+      expect(source).not.toContain("localStorage");
+      expect(source).not.toContain("DashboardStrategyOverview");
+      expect(source).not.toContain("OpportunityRepository");
+    }
+  });
+
+  it("renders product demonstrations from synthetic data only", () => {
+    const synthetic = read("components/public-site/syntheticWorkspace.js");
+    expect(synthetic).toContain("Synthetic, fictional workspace");
+
+    for (const [file, source] of publicSiteModules()) {
+      if (!file.endsWith(".jsx")) continue;
+      expect(source, file).not.toMatch(/from\s+["']@\/(lib|app)\//);
+    }
   });
 
   it("consumes canonical public-shell tokens instead of re-hardcoding shell geometry", () => {
