@@ -1,36 +1,55 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { Compass, GitBranch, HardDrive, Lock } from "lucide-react";
+import LabyrinthThread from "./public-site/LabyrinthThread";
+import OpportunityDemo from "./public-site/OpportunityDemo";
+import PriorityDemo, { PRIORITY_SIGNALS } from "./public-site/PriorityDemo";
+import SignalsDemo from "./public-site/SignalsDemo";
+import StrategyExplorer from "./public-site/StrategyExplorer";
+import StrategyLayers from "./public-site/StrategyLayers";
+import TangleToThread from "./public-site/TangleToThread";
+import WorkspacePreview from "./public-site/WorkspacePreview";
+import { useInView } from "./public-site/useInView";
 import styles from "./AriadnePublicSite.module.css";
 
-const STRATEGY_STAGES = [
+const RAIL_SECTIONS = [
+  ["workspace", "Workspace"],
+  ["problem", "The problem"],
+  ["how-it-works", "How it works"],
+  ["strategy", "Strategy"],
+  ["prioritization", "Prioritization"],
+  ["opportunities", "Opportunities"],
+  ["signals", "Signals"]
+];
+
+const PRINCIPLES = [
   {
-    number: "01",
-    title: "Direction",
-    body: "Define the movement that matters across the major dimensions of life."
+    icon: HardDrive,
+    title: "Local-first",
+    body: "Opens instantly and keeps working offline. Changes sync safely in the background when the cloud is available."
   },
   {
-    number: "02",
-    title: "Strategic Objectives",
-    body: "Identify the major changes required to move deliberately in that direction."
+    icon: Lock,
+    title: "Private by default",
+    body: "Your strategy is yours. Private data never renders on a public surface and is cleared when access is revoked."
   },
   {
-    number: "03",
-    title: "Execution",
-    body: "Express concrete work through projects and tasks without losing its strategic context."
+    icon: GitBranch,
+    title: "GitHub-native",
+    body: "Repositories and issues sync through a GitHub App, so shipped work shows up as progress on its own."
   },
   {
-    number: "04",
-    title: "Progress",
-    body: "Keep execution legible against the strategy it is meant to advance."
+    icon: Compass,
+    title: "Your judgment, in charge",
+    body: "Recommendations are inspectable and editable. Ariadne supports decisions; it never takes them from you."
   }
 ];
 
-const PRIORITY_SIGNALS = [
-  "Strategic relevance",
-  "Urgency",
-  "Leverage",
-  "Obligations",
-  "Actionability"
+const HERO_POINTS = [
+  "Several directions at once",
+  "Priority with reasons",
+  "Progress without reporting"
 ];
 
 export default function AriadnePublicSite({
@@ -40,14 +59,20 @@ export default function AriadnePublicSite({
   authMessage = "",
   signInLabel: requestedSignInLabel = ""
 }) {
+  const siteRef = useRef(null);
+  const [closingRef, closingInView] = useInView({ threshold: 0.3 });
   const signInLabel = isSigningIn
     ? "Opening sign in…"
     : !signInAvailable
       ? "Sign In Unavailable"
       : requestedSignInLabel || "Sign In";
 
+  useReveal(siteRef);
+
   return (
-    <div className={styles.site} id="top">
+    <div className={styles.site} id="top" ref={siteRef} data-public-scroll>
+      <ThreadRail scrollRef={siteRef} />
+
       <header className={styles.header}>
         <a className={styles.productBrand} href="#top" aria-label="Ariadne home">
           <img src="/brand/ariadne-lockup.svg" alt="Ariadne" />
@@ -56,8 +81,9 @@ export default function AriadnePublicSite({
         <nav className={styles.nav} aria-label="Ariadne public navigation">
           <a href="#how-it-works">How It Works</a>
           <a href="#strategy">Strategy</a>
-          <a href="#opportunities">Opportunities</a>
           <a href="#prioritization">Prioritization</a>
+          <a href="#opportunities">Opportunities</a>
+          <a href="#signals">Signals</a>
         </nav>
 
         <button
@@ -73,208 +99,151 @@ export default function AriadnePublicSite({
       <main>
         <section className={styles.hero} aria-labelledby="ariadne-public-title">
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>Ariadne · Strategy &amp; execution</p>
+            <p className={styles.eyebrow}>Ariadne · Personal strategy &amp; execution</p>
             <h1 id="ariadne-public-title">Turn direction into action.</h1>
             <p className={styles.heroLede}>
-              Ariadne connects long-term direction to strategic objectives, opportunities,
-              projects and tasks so the work in front of you stays tied to what actually matters.
+              The thread between where you&rsquo;re going and what you do today.
             </p>
             <div className={styles.heroActions}>
-              <a className={styles.primaryButton} href="#how-it-works">
-                Explore Ariadne
+              <a className={styles.primaryButton} href="#workspace">
+                See it in action
               </a>
-              <a className={styles.secondaryButton} href="#strategy">
-                See the strategy model
+              <a className={styles.secondaryButton} href="#how-it-works">
+                How it works
               </a>
             </div>
+            <ul className={styles.heroPoints}>
+              {HERO_POINTS.map((point) => <li key={point}>{point}</li>)}
+            </ul>
             {authMessage ? <p className={styles.authMessage} role="status">{authMessage}</p> : null}
           </div>
 
-          <StrategyThread />
-        </section>
-
-        <section className={styles.problemSection}>
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionKicker}>The problem</p>
-            <h2>Strategy and execution drift apart.</h2>
-            <p>
-              Long-term direction often lives in plans or in your head while projects, tasks and
-              opportunities compete elsewhere for attention. Ariadne keeps those layers connected
-              so urgency does not become the only thing deciding what gets done.
-            </p>
-          </div>
-
-          <div className={styles.problemFlow} aria-label="Disconnected work becomes a connected action model">
-            <div className={styles.problemInputs}>
-              <article><span>Direction</span><strong>Where to move</strong></article>
-              <article><span>Work</span><strong>What to do</strong></article>
-              <article><span>Opportunities</span><strong>What could matter</strong></article>
-            </div>
-            <span className={styles.flowArrow} aria-hidden="true">↓</span>
-            <div className={styles.connectedModel}>
-              <img src="/brand/ariadne-mark.svg" alt="" aria-hidden="true" />
-              <div>
-                <span>Ariadne</span>
-                <strong>One connected action model</strong>
-              </div>
-            </div>
+          <div className={styles.heroVisual}>
+            <LabyrinthThread />
           </div>
         </section>
 
-        <section className={styles.section} id="how-it-works">
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionKicker}>How it works</p>
-            <h2>Direction → objectives → execution → progress.</h2>
-            <p>
-              Ariadne uses a small strategy hierarchy so abstract direction can remain connected
-              to concrete work without turning every task into a strategy object.
-            </p>
-          </div>
+        <section className={styles.section} id="workspace" aria-labelledby="workspace-title">
+          <SectionHeading
+            id="workspace-title"
+            kicker="The workspace"
+            title="Your whole strategy on one calm screen."
+            body="Where you stand, where you're heading, and what needs attention right now — the dashboard answers all three at a glance, without a separate reporting system."
+          />
+          <WorkspacePreview />
+        </section>
 
-          <div className={styles.stageGrid}>
-            {STRATEGY_STAGES.map((stage) => (
-              <article className={styles.stageCard} key={stage.number}>
-                <span>{stage.number}</span>
-                <h3>{stage.title}</h3>
-                <p>{stage.body}</p>
+        <section className={styles.section} id="problem" aria-labelledby="problem-title">
+          <SectionHeading
+            id="problem-title"
+            kicker="The problem"
+            title="Busy is not the same as moving."
+            body="Long-term direction lives in your head while tasks, projects and opportunities compete for attention elsewhere. Urgency wins by default. Ariadne hangs every piece of work from a thread back to why it matters — and makes work without a thread impossible to miss."
+          />
+          <TangleToThread />
+        </section>
+
+        <section className={styles.section} id="how-it-works" aria-labelledby="how-title">
+          <SectionHeading
+            id="how-title"
+            kicker="How it works"
+            title="Five layers. One unbroken thread."
+            body="A deliberately small hierarchy keeps abstract direction connected to concrete work — without turning every task into a strategy object."
+          />
+          <StrategyLayers />
+        </section>
+
+        <section className={styles.section} id="strategy" aria-labelledby="strategy-title">
+          <SectionHeading
+            id="strategy-title"
+            kicker="Strategy model"
+            title="Pull any thread."
+            body="Pick a direction to see everything it drives, or a task to see exactly why it matters. Every link is explicit, so the why never gets lost behind the what."
+          />
+          <StrategyExplorer />
+        </section>
+
+        <section className={styles.section} id="prioritization" aria-labelledby="priority-title">
+          <div className={styles.split}>
+            <div className={styles.splitCopy} data-reveal>
+              <p className={styles.sectionKicker}>Prioritization</p>
+              <h2 id="priority-title">Priority with context.</h2>
+              <p className={styles.sectionBody}>
+                Ari Bot reads your enabled directions, active objectives and open tasks, then weighs
+                each task on five signals. It proposes a single 0–4 priority — and shows its reasons.
+              </p>
+              <ol className={styles.signalList} aria-label="Ariadne prioritization signals">
+                {PRIORITY_SIGNALS.map(([key, label], index) => (
+                  <li key={key} data-signal={key}>
+                    <small>{String(index + 1).padStart(2, "0")}</small>
+                    {label}
+                  </li>
+                ))}
+              </ol>
+              <p className={styles.fineprint}>
+                Synthetic example only. The public surface never renders private Ariadne data.
+              </p>
+            </div>
+            <PriorityDemo />
+          </div>
+        </section>
+
+        <section className={styles.section} id="opportunities" aria-labelledby="opportunities-title">
+          <SectionHeading
+            id="opportunities-title"
+            kicker="Opportunity Landscape"
+            title="Turn possibilities into deliberate decisions."
+            body="Discovery fills an inbox, not your plans. Candidates are reviewed against real requirements, and only what earns it is promoted to a curated Landscape — mapped by strategic value and how attainable it really is."
+          />
+          <OpportunityDemo />
+        </section>
+
+        <section className={styles.section} id="signals" aria-labelledby="signals-title">
+          <SectionHeading
+            id="signals-title"
+            kicker="Progress signals"
+            title="Know when work stalls, before it matters."
+            body="Ariadne watches repositories, publications and deadlines, and raises a notice when something goes quiet. Progress stays visible without a weekly reporting ritual."
+          />
+          <SignalsDemo />
+        </section>
+
+        <section className={styles.section} id="principles" aria-labelledby="principles-title">
+          <SectionHeading
+            id="principles-title"
+            kicker="Built to be trusted"
+            title="Fast, private, and firmly yours."
+          />
+          <div className={styles.principles}>
+            {PRINCIPLES.map(({ icon: Icon, title, body }, index) => (
+              <article key={title} data-reveal style={{ "--reveal-delay": `${index * 90}ms` }}>
+                <span className={styles.principleIcon}><Icon size={20} strokeWidth={1.8} /></span>
+                <h3>{title}</h3>
+                <p>{body}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className={styles.section} id="strategy">
-          <div className={styles.strategyGrid}>
-            <div>
-              <p className={styles.sectionKicker}>Strategy model</p>
-              <h2>Keep the why connected to the work.</h2>
-              <p className={styles.sectionBody}>
-                Directions describe desired movement. Strategic Objectives identify the major
-                changes required. Concrete deliverables, deadlines and next actions remain ordinary
-                projects and tasks.
-              </p>
-            </div>
-
-            <div className={styles.strategyModel} aria-label="Ariadne strategy hierarchy">
-              <StrategyModelRow label="Vectors" detail="Context" />
-              <ModelConnector />
-              <StrategyModelRow label="Directions" detail="Desired movement" accent />
-              <ModelConnector />
-              <StrategyModelRow label="Strategic Objectives" detail="Major required changes" accent />
-              <ModelConnector />
-              <div className={styles.executionFork}>
-                <StrategyModelRow label="Projects" detail="Concrete delivery" compact />
-                <StrategyModelRow label="Tasks" detail="Next actions" compact />
-              </div>
-              <ModelConnector />
-              <StrategyModelRow label="Progress Signals" detail="Movement made legible" />
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.section} id="opportunities">
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionKicker}>Opportunity Landscape</p>
-            <h2>Turn possibilities into deliberate decisions.</h2>
-            <p>
-              Discovery does not automatically become strategy. Candidates remain separate until
-              review promotes them into the curated Opportunity Landscape, where applications can
-              be tracked deliberately.
-            </p>
-          </div>
-
-          <div className={styles.opportunityFlow} aria-label="Ariadne opportunity review flow">
-            {[
-              ["01", "Discovery", "External or manually supplied candidate"],
-              ["02", "Candidate Inbox", "Untrusted possibilities remain separate"],
-              ["03", "Review", "Relevance, requirements and provenance are inspected"],
-              ["04", "Opportunity Landscape", "Accepted opportunities become canonical"],
-              ["05", "Application", "Execution history remains connected to the opportunity"]
-            ].map(([number, title, body], index, items) => (
-              <div className={styles.opportunityStep} key={number}>
-                <article>
-                  <span>{number}</span>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
-                </article>
-                {index < items.length - 1 ? <span className={styles.stepArrow} aria-hidden="true">→</span> : null}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.section} id="prioritization">
-          <div className={styles.priorityGrid}>
-            <div>
-              <p className={styles.sectionKicker}>Prioritization</p>
-              <h2>Priority with context.</h2>
-              <p className={styles.sectionBody}>
-                Ariadne can reason over a bounded strategy and task surface. Ari Bot uses strategic
-                relevance alongside operational signals to support reprioritization without becoming
-                an opaque authority over what the user should do.
-              </p>
-
-              <div className={styles.signalList} aria-label="Ariadne prioritization signals">
-                {PRIORITY_SIGNALS.map((signal, index) => (
-                  <span key={signal}>
-                    <small>{String(index + 1).padStart(2, "0")}</small>
-                    {signal}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <aside className={styles.priorityPreview} aria-label="Illustrative prioritization model">
-              <div className={styles.previewHeader}>
-                <span>Illustrative example</span>
-                <strong>Bounded prioritization</strong>
-              </div>
-              <div className={styles.previewTask}>
-                <span>Current work</span>
-                <strong>Prepare application materials</strong>
-              </div>
-              <div className={styles.previewFactors}>
-                <span><i data-level="high" />Strategic relevance</span>
-                <span><i data-level="medium" />Urgency</span>
-                <span><i data-level="high" />Leverage</span>
-                <span><i data-level="low" />Obligation</span>
-              </div>
-              <div className={styles.previewResult}>
-                <span>Result</span>
-                <strong>Higher current priority</strong>
-                <p>Recommendation remains inspectable and editable by the user.</p>
-              </div>
-              <p className={styles.previewNote}>
-                Synthetic example only. The public surface never renders private Ariadne data.
-              </p>
-            </aside>
-          </div>
-        </section>
-
-        <section className={styles.section} id="fabbro-context">
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionKicker}>Fabbro Systems</p>
-            <h2>Evidence → state → action.</h2>
-            <p>
-              Ariadne is the action layer of the current Fabbro Systems family. It can use
-              current-state context from Kleos without becoming the canonical store for personal
-              measurement or specialist evidence.
-            </p>
-          </div>
-
+        <section className={styles.section} id="fabbro-context" aria-labelledby="family-title">
+          <SectionHeading
+            id="family-title"
+            kicker="Fabbro Systems"
+            title="Evidence → state → action."
+            body="Ariadne is the action layer of the Fabbro Systems family. It can read current-state context from Kleos without becoming the store for personal measurement or specialist evidence."
+          />
           <div className={styles.familyFlow} aria-label="Fabbro Systems product relationship">
-            <a href="https://heracles.fabbrosystems.com/">
+            <a href="https://heracles.fabbrosystems.com/" data-product="heracles" data-reveal>
               <span>01 · Evidence</span>
               <strong>Heracles</strong>
               <p>Domain evidence and interpretation for resistance training.</p>
             </a>
-            <span className={styles.familyArrow} aria-hidden="true">→</span>
-            <a href="https://kleos.fabbrosystems.com/">
+            <a href="https://kleos.fabbrosystems.com/" data-product="kleos" data-reveal style={{ "--reveal-delay": "120ms" }}>
               <span>02 · State</span>
               <strong>Kleos</strong>
-              <p>Evidence-based modelling of the person's current state.</p>
+              <p>Evidence-based modelling of a person&rsquo;s current state.</p>
             </a>
-            <span className={styles.familyArrow} aria-hidden="true">→</span>
-            <a className={styles.currentFamilyStage} href="#top">
+            <a className={styles.currentFamilyStage} href="#top" data-product="ariadne" data-reveal style={{ "--reveal-delay": "240ms" }}>
               <span>03 · Action</span>
               <strong>Ariadne</strong>
               <p>Strategy, priorities, opportunities, projects, tasks and execution.</p>
@@ -282,29 +251,33 @@ export default function AriadnePublicSite({
           </div>
         </section>
 
-        <section className={styles.closingSection}>
-          <div>
+        <section className={styles.closingSection} id="start" ref={closingRef} aria-labelledby="closing-title">
+          <div className={styles.closingCopy}>
             <p className={styles.sectionKicker}>Ariadne</p>
-            <h2>Turn direction into action.</h2>
-          </div>
-          <div>
+            <h2 id="closing-title">Find your thread.</h2>
             <p>
-              Keep long-term direction connected to the decisions, opportunities and work that
-              move it forward.
+              Keep long-term direction connected to the decisions, opportunities and work that move
+              it forward — every single day.
             </p>
+            <div className={styles.heroActions}>
+              <button
+                className={styles.primaryButton}
+                type="button"
+                onClick={onSignIn}
+                disabled={isSigningIn || !signInAvailable}
+              >
+                {signInLabel}
+              </button>
+              <a className={styles.secondaryButton} href="#top">Back to top</a>
+            </div>
             <small>
-              The current deployment is an owner-focused private workspace. The public surface
-              explains the system; authentication opens the private application.
+              Ariadne is currently a private workspace; signing in opens the application for
+              authorized accounts. Every example on this page is synthetic.
             </small>
           </div>
-          <button
-            className={styles.primaryButton}
-            type="button"
-            onClick={onSignIn}
-            disabled={isSigningIn || !signInAvailable}
-          >
-            {signInLabel}
-          </button>
+          <div className={styles.closingVisual}>
+            <LabyrinthThread start={closingInView} />
+          </div>
         </section>
       </main>
 
@@ -334,48 +307,100 @@ export default function AriadnePublicSite({
   );
 }
 
-function StrategyThread() {
-  const nodes = [
-    ["Direction", "Choose the movement that matters"],
-    ["Strategic objective", "Define the major required change"],
-    ["Projects & tasks", "Convert strategy into executable work"],
-    ["Progress", "Keep movement visible"]
-  ];
-
+function SectionHeading({ id, kicker, title, body }) {
   return (
-    <div className={styles.threadVisual} aria-label="Illustrative Ariadne strategy thread">
-      <div className={styles.threadHeader}>
-        <span>Strategy thread</span>
-        <strong>Direction → action</strong>
-      </div>
-      <div className={styles.threadPath}>
-        {nodes.map(([title, body], index) => (
-          <div className={styles.threadNode} key={title}>
-            <span className={styles.threadIndex}>{String(index + 1).padStart(2, "0")}</span>
-            <span className={styles.threadDot} aria-hidden="true" />
-            <div>
-              <strong>{title}</strong>
-              <p>{body}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className={styles.threadNote}>A continuous line keeps strategic context attached to execution.</p>
+    <div className={styles.sectionHeading} data-reveal>
+      <p className={styles.sectionKicker}>{kicker}</p>
+      <h2 id={id}>{title}</h2>
+      {body ? <p className={styles.sectionBody}>{body}</p> : null}
     </div>
   );
 }
 
-function StrategyModelRow({ label, detail, accent = false, compact = false }) {
+// Adds a one-time entrance to headings and cards. Content stays visible when
+// scripting or IntersectionObserver is unavailable.
+function useReveal(siteRef) {
+  useEffect(() => {
+    const site = siteRef.current;
+    if (!site || typeof IntersectionObserver === "undefined") return undefined;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
+
+    const targets = Array.from(site.querySelectorAll("[data-reveal]"));
+    const viewport = window.innerHeight || 0;
+    targets.forEach((target) => {
+      if (target.getBoundingClientRect().top < viewport) target.dataset.visible = "true";
+    });
+    site.dataset.motion = "ready";
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.dataset.visible = "true";
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+    targets.filter((target) => !target.dataset.visible).forEach((target) => observer.observe(target));
+    return () => observer.disconnect();
+  }, [siteRef]);
+}
+
+function ThreadRail({ scrollRef }) {
+  const [state, setState] = useState({ progress: 0, active: -1, marks: [], visible: false });
+
+  useEffect(() => {
+    const site = scrollRef.current;
+    if (!site) return undefined;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const max = Math.max(site.scrollHeight - site.clientHeight, 1);
+      const progress = Math.min(site.scrollTop / max, 1);
+      const probe = site.scrollTop + site.clientHeight * 0.4;
+      let active = -1;
+      const marks = RAIL_SECTIONS.map(([id], index) => {
+        const section = document.getElementById(id);
+        const top = section ? section.offsetTop : 0;
+        if (section && top <= probe) active = index;
+        return Math.min(Math.max((top - site.clientHeight * 0.4) / max, 0), 1);
+      });
+      setState({ progress, active, marks, visible: site.scrollTop > site.clientHeight * 0.5 });
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    site.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      site.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [scrollRef]);
+
   return (
-    <div
-      className={`${styles.modelRow}${accent ? ` ${styles.modelRowAccent}` : ""}${compact ? ` ${styles.modelRowCompact}` : ""}`}
+    <nav
+      className={styles.rail}
+      data-visible={state.visible ? "true" : undefined}
+      aria-label="Page progress"
     >
-      <strong>{label}</strong>
-      <span>{detail}</span>
-    </div>
+      <span className={styles.railTrack} aria-hidden="true">
+        <span style={{ transform: `scaleY(${state.progress})` }} />
+      </span>
+      {RAIL_SECTIONS.map(([id, label], index) => (
+        <a
+          key={id}
+          href={`#${id}`}
+          className={styles.railMark}
+          data-state={index < state.active ? "passed" : index === state.active ? "active" : undefined}
+          style={{ top: `${(state.marks[index] ?? index / RAIL_SECTIONS.length) * 100}%` }}
+          tabIndex={state.visible ? 0 : -1}
+        >
+          <span>{label}</span>
+        </a>
+      ))}
+    </nav>
   );
-}
-
-function ModelConnector() {
-  return <span className={styles.modelConnector} aria-hidden="true" />;
 }

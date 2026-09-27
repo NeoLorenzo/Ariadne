@@ -111,6 +111,16 @@ npm run dev
 
 The default local URL is [http://localhost:3000](http://localhost:3000).
 
+The `dev` scripts deliberately run Next.js with `--webpack`. On the Windows development setup used for
+Ariadne, Next.js 16's default Turbopack path has produced large numbers of Node `postcss.js` child processes
+that persisted after compilation and exhausted system memory. Using Webpack avoids that observed failure mode.
+Do not remove the flag until the upstream behavior is resolved; `scripts/devServerContract.test.js` guards it.
+If a stray Turbopack session has already piled up workers, stop them with:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'Ariadne' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
 ## Environment variables
 
 Create `.env.local`:

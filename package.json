@@ -6,9 +6,9 @@
     "check:privacy": "node scripts/privacy-check.mjs",
     "check:undefined": "eslint app components lib",
     "test": "npm run check:undefined && vitest run",
-    "dev": "next dev",
-    "dev:reset": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\" && next dev",
-    "dev:stable": "set WATCHPACK_POLLING=true&& set CHOKIDAR_USEPOLLING=1&& next dev",
+    "dev": "next dev --webpack",
+    "dev:reset": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\" && next dev --webpack",
+    "dev:stable": "set WATCHPACK_POLLING=true&& set CHOKIDAR_USEPOLLING=1&& next dev --webpack",
     "build": "next build",
     "start": "next start"
   },
