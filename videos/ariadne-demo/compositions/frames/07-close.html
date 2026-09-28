@@ -1,0 +1,363 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f7-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 55% at 50% 45%, #061222 0%, #000 68%);
+    }
+    #f7-cam {
+      position: absolute;
+      inset: 0;
+    }
+    .f7-card {
+      position: absolute;
+      left: 0;
+      top: 0;
+      padding: 18px 22px;
+      border-radius: 14px;
+      background: #111113;
+      border: 1px solid #27272a;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+      white-space: nowrap;
+    }
+    .f7-k {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    .f7-t {
+      margin-top: 8px;
+      font-size: 21px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .f7-p {
+      padding: 4px 9px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 750;
+      color: #f26d6d;
+      background: rgba(242, 109, 109, 0.14);
+    }
+    .f7-score {
+      font-size: 30px;
+      font-weight: 700;
+    }
+    .f7-bar {
+      margin-top: 10px;
+      height: 4px;
+      width: 190px;
+      border-radius: 2px;
+      background: #1c1c1f;
+      overflow: hidden;
+    }
+    .f7-bar i {
+      display: block;
+      width: 84%;
+      height: 100%;
+      background: #0088ff;
+    }
+    .f7-lit {
+      position: absolute;
+      inset: -1px;
+      border-radius: 14px;
+      border: 1.5px solid #0088ff;
+      box-shadow: 0 0 0 4px rgba(0, 136, 255, 0.12), 0 0 40px rgba(0, 136, 255, 0.35);
+    }
+    .f7-svg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: visible;
+    }
+    .f7-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-width: 13;
+      stroke-linecap: round;
+      opacity: 0.55;
+    }
+    .f7-core {
+      fill: none;
+      stroke: #2b9bff;
+      stroke-width: 3.6;
+      stroke-linecap: round;
+    }
+    .f7-comet {
+      fill: none;
+      stroke: #e6f4ff;
+      stroke-width: 4.2;
+      stroke-linecap: round;
+    }
+    #f7-mark-fill {
+      fill: #0088ff;
+    }
+    #f7-mark-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.6;
+    }
+    #f7-mark-line {
+      fill: none;
+      stroke: #7cc1ff;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #f7-mark-comet {
+      fill: none;
+      stroke: #e6f4ff;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+    #f7-markg {
+      filter: drop-shadow(0 0 22px rgba(0, 136, 255, 0.6));
+    }
+    #f7-flare {
+      position: absolute;
+      left: 610px;
+      top: 45px;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 136, 255, 0.5) 0%, rgba(0, 136, 255, 0.14) 32%, rgba(0, 136, 255, 0) 66%);
+    }
+    #f7-lock {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 548px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #f7-word {
+      font-size: 60px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.35em;
+      margin-right: -0.35em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+    }
+    .f7-ch {
+      display: inline-block;
+    }
+    #f7-hero {
+      margin-top: 40px;
+      font-size: 92px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.12em;
+      margin-right: -0.12em;
+      text-transform: uppercase;
+    }
+    #f7-fab {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 830px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    #f7-fab img {
+      width: 26px;
+      height: 26px;
+    }
+    #f7-black {
+      position: absolute;
+      inset: 0;
+      background: #000;
+    }
+  </style>
+
+  <div id="root" data-composition-id="07-close" data-width="1920" data-height="1080">
+    <div id="f7-bg" class="clip" data-start="0" data-duration="6.144" data-track-index="0"></div>
+    <div id="f7-cam" data-layout-allow-overflow data-layout-allow-overlap>
+      <svg class="f7-svg" id="f7-under" viewBox="0 0 1920 1080">
+        <defs>
+          <filter id="f7-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5" /></filter>
+        </defs>
+        <g class="f7-W">
+          <path class="f7-glow f7-w" d="M -140.00 560.00 C -38.33 521.67, 310.00 308.33, 470.00 330.00 C 630.00 351.67, 700.00 695.00, 820.00 690.00 C 940.00 685.00, 1043.33 376.33, 1190.00 300.00 C 1336.67 223.67, 1641.67 167.00, 1700.00 232.00 C 1758.33 297.00, 1626.67 592.00, 1540.00 690.00 C 1453.33 788.00, 1276.67 833.33, 1180.00 820.00 C 1083.33 806.67, 1007.00 668.33, 960.00 610.00 C 913.00 551.67, 905.28 504.88, 898.00 470.00 C 890.72 435.12, 913.25 412.25, 916.30 400.70" filter="url(#f7-blur)" />
+          <path class="f7-core f7-w" d="M -140.00 560.00 C -38.33 521.67, 310.00 308.33, 470.00 330.00 C 630.00 351.67, 700.00 695.00, 820.00 690.00 C 940.00 685.00, 1043.33 376.33, 1190.00 300.00 C 1336.67 223.67, 1641.67 167.00, 1700.00 232.00 C 1758.33 297.00, 1626.67 592.00, 1540.00 690.00 C 1453.33 788.00, 1276.67 833.33, 1180.00 820.00 C 1083.33 806.67, 1007.00 668.33, 960.00 610.00 C 913.00 551.67, 905.28 504.88, 898.00 470.00 C 890.72 435.12, 913.25 412.25, 916.30 400.70" />
+          <path class="f7-comet f7-wc" d="M -140.00 560.00 C -38.33 521.67, 310.00 308.33, 470.00 330.00 C 630.00 351.67, 700.00 695.00, 820.00 690.00 C 940.00 685.00, 1043.33 376.33, 1190.00 300.00 C 1336.67 223.67, 1641.67 167.00, 1700.00 232.00 C 1758.33 297.00, 1626.67 592.00, 1540.00 690.00 C 1453.33 788.00, 1276.67 833.33, 1180.00 820.00 C 1083.33 806.67, 1007.00 668.33, 960.00 610.00 C 913.00 551.67, 905.28 504.88, 898.00 470.00 C 890.72 435.12, 913.25 412.25, 916.30 400.70" />
+        </g>
+        <g class="f7-head">
+          <circle r="16" fill="rgba(0,136,255,0.35)" filter="url(#f7-blur)" />
+          <circle r="8" fill="rgba(0,136,255,0.5)" />
+          <circle r="4.2" fill="#f2f9ff" />
+        </g>
+      </svg>
+      <div class="f7-card" id="f7-c0" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Direction</div><div data-layout-allow-overlap class="f7-t">Become a credible ML researcher</div><span class="f7-lit" id="f7-l0"></span></div>
+      <div class="f7-card" id="f7-c1" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Strategic objective</div><div data-layout-allow-overlap class="f7-t">Earn a place in a research lab</div><span class="f7-lit" id="f7-l1"></span></div>
+      <div class="f7-card" id="f7-c2" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Task</div><div data-layout-allow-overlap class="f7-t">Apply: Frontier Safety Fellowship <span class="f7-p">P1</span></div><span class="f7-lit" id="f7-l2"></span></div>
+      <div class="f7-card" id="f7-c3" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k" style="color: #0088ff">Deadline</div><div data-layout-allow-overlap class="f7-t">Closes in 3 days</div><span class="f7-lit" id="f7-l3"></span></div>
+      <div class="f7-card" id="f7-c4" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Vector</div><div data-layout-allow-overlap class="f7-t">Intellectual <span class="f7-score">84</span></div><div class="f7-bar"><i></i></div><span class="f7-lit" id="f7-l4"></span></div>
+      <svg class="f7-svg" id="f7-over" viewBox="0 0 1920 1080">
+        <defs>
+          <clipPath id="f7-clip"></clipPath>
+          <mask id="f7-markmask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="140" height="140">
+            <path id="f7-mask-line" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" />
+          </mask>
+        </defs>
+        <g clip-path="url(#f7-clip)">
+          <g class="f7-W">
+            <path class="f7-glow f7-w" d="M -140.00 560.00 C -38.33 521.67, 310.00 308.33, 470.00 330.00 C 630.00 351.67, 700.00 695.00, 820.00 690.00 C 940.00 685.00, 1043.33 376.33, 1190.00 300.00 C 1336.67 223.67, 1641.67 167.00, 1700.00 232.00 C 1758.33 297.00, 1626.67 592.00, 1540.00 690.00 C 1453.33 788.00, 1276.67 833.33, 1180.00 820.00 C 1083.33 806.67, 1007.00 668.33, 960.00 610.00 C 913.00 551.67, 905.28 504.88, 898.00 470.00 C 890.72 435.12, 913.25 412.25, 916.30 400.70" filter="url(#f7-blur)" />
+            <path class="f7-core f7-w" d="M -140.00 560.00 C -38.33 521.67, 310.00 308.33, 470.00 330.00 C 630.00 351.67, 700.00 695.00, 820.00 690.00 C 940.00 685.00, 1043.33 376.33, 1190.00 300.00 C 1336.67 223.67, 1641.67 167.00, 1700.00 232.00 C 1758.33 297.00, 1626.67 592.00, 1540.00 690.00 C 1453.33 788.00, 1276.67 833.33, 1180.00 820.00 C 1083.33 806.67, 1007.00 668.33, 960.00 610.00 C 913.00 551.67, 905.28 504.88, 898.00 470.00 C 890.72 435.12, 913.25 412.25, 916.30 400.70" />
+            <path class="f7-comet f7-wc" d="M -140.00 560.00 C -38.33 521.67, 310.00 308.33, 470.00 330.00 C 630.00 351.67, 700.00 695.00, 820.00 690.00 C 940.00 685.00, 1043.33 376.33, 1190.00 300.00 C 1336.67 223.67, 1641.67 167.00, 1700.00 232.00 C 1758.33 297.00, 1626.67 592.00, 1540.00 690.00 C 1453.33 788.00, 1276.67 833.33, 1180.00 820.00 C 1083.33 806.67, 1007.00 668.33, 960.00 610.00 C 913.00 551.67, 905.28 504.88, 898.00 470.00 C 890.72 435.12, 913.25 412.25, 916.30 400.70" />
+          </g>
+          <g class="f7-head">
+            <circle r="16" fill="rgba(0,136,255,0.35)" filter="url(#f7-blur)" />
+            <circle r="8" fill="rgba(0,136,255,0.5)" />
+            <circle r="4.2" fill="#f2f9ff" />
+          </g>
+        </g>
+        <g id="f7-markpop">
+          <g id="f7-markg" transform="translate(865 300) scale(1.9)">
+            <path id="f7-mark-fill" d="M52.4496 0.00109119C57.7693 -0.0759977 61.2954 3.94816 63.3575 6.76579C70.6652 19.3634 75.6881 31.1216 81.5221 43.3895L81.5614 43.4779C86.085 53.9555 90.7391 64.4436 95.5821 74.7701C97.0146 77.8422 98.3359 80.9608 99.2517 84.4666C99.6924 86.2316 100.059 88.0749 99.992 90.2572C99.9471 91.3431 99.7823 92.5465 99.2661 93.8087C99.0097 94.4344 98.6518 95.0723 98.2224 95.6338C97.825 96.172 97.2165 96.7422 97.1068 96.8509C93.0937 100.446 88.1617 100.622 84.0549 99.0796C76.8009 95.9313 72.8981 90.6442 68.6209 85.9988C64.2108 80.9833 60.3614 75.585 56.5647 70.4367C53.7285 66.5585 50.9703 64.0273 46.9903 63.5914C36.8517 62.9186 25.0529 63.1548 14.6323 63.6058C14.4597 63.6222 14.2919 63.644 14.1282 63.6692C12.2016 63.9753 10.8563 64.7934 9.47545 66.5107C7.63787 68.8013 6.40481 71.4665 6.1035 74.2735C5.76331 77.0837 6.29872 80.4381 7.53408 81.847C8.91627 83.2638 10.1132 83.8062 12.0409 83.3062C12.9327 83.0762 13.7368 82.6224 14.4566 81.9046C15.2899 81.0796 15.9743 79.9309 16.5631 78.675C18.1634 75.2297 19.8089 71.8 21.4981 68.3858C20.6863 72.1078 19.8296 75.8142 18.9288 79.505C18.5567 80.987 18.0373 82.5403 17.0422 83.9892C16.1934 85.2391 14.9175 86.3518 13.4475 87.0065C10.7384 88.5214 6.38378 87.6509 4.1967 85.6107C0.430759 82.0753 0.0365807 77.8624 0 73.9161C0.0847299 69.713 1.71327 65.649 4.13237 62.4108C5.9857 59.7215 9.54684 57.2887 13.0817 56.8632C13.3812 56.8171 13.681 56.7803 13.9813 56.7517C25.6268 56.2589 36.0069 55.9753 47.9053 56.7661C54.0792 57.296 59.248 62.2296 62.0921 66.3349C65.9711 71.5986 69.6538 76.7504 73.796 81.4599C77.8184 86.0012 82.1023 90.8721 86.5003 92.6434C87.5915 93.0587 88.6636 93.1927 89.6994 93.0469C90.2152 92.9744 90.7246 92.8305 91.1934 92.6252C91.4271 92.5229 91.6485 92.4053 91.8424 92.2832C92.024 92.1726 92.2123 92.0154 92.2073 92.0161C92.4611 91.7629 92.5394 91.6934 92.6115 91.6175C92.6783 91.548 92.7148 91.5037 92.7469 91.4619C92.808 91.3806 92.8534 91.3052 92.9043 91.1833C93.0053 90.9457 93.0972 90.5195 93.1156 89.9912C93.1581 88.9208 92.938 87.5495 92.5846 86.1746C91.8647 83.3967 90.6816 80.5337 89.3548 77.701C84.4692 67.2828 79.8199 56.8058 75.2678 46.2637C69.6409 34.3424 63.8864 21.436 57.8003 10.8273C55.9798 8.33005 54.1798 6.76896 52.4496 6.88683C51.9807 6.88561 51.6613 6.90702 51.4539 6.94542C50.6273 6.80325 48.4133 9.51552 46.9183 12.1923C43.7332 17.7932 40.9126 24.1506 38.1188 30.3077C36.902 33.0483 35.6572 35.779 34.3839 38.499C32.1554 43.2593 29.8401 47.9883 27.4384 52.6854C28.6179 47.5429 29.8839 42.4314 31.2366 37.352C32.0095 34.4498 32.8107 31.5576 33.6379 28.6824C35.6369 21.9764 37.7946 15.4738 41.098 8.96849C42.9473 6.03133 44.1685 1.78873 50.2394 0.167279C51.0891 0.0151801 51.8462 0.00192251 52.4496 0.00109119Z" mask="url(#f7-markmask)" />
+            <path id="f7-mark-glow" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" filter="url(#f7-blur)" />
+            <path id="f7-mark-line" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" />
+            <path id="f7-mark-comet" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" />
+          </g>
+        </g>
+        <g class="f7-head" id="f7-head-top">
+          <circle r="16" fill="rgba(0,136,255,0.35)" filter="url(#f7-blur)" />
+          <circle r="8" fill="rgba(0,136,255,0.5)" />
+          <circle r="4.2" fill="#f2f9ff" />
+        </g>
+      </svg>
+    </div>
+    <div id="f7-flare"></div>
+    <div id="f7-lock">
+      <div id="f7-word">Ariadne</div>
+      <div id="f7-hero">Find your thread.</div>
+    </div>
+    <div id="f7-fab"><img src="assets/brand/fabbro-mark.svg" alt="" />A Fabbro Systems product</div>
+    <div id="f7-black"></div>
+  </div>
+
+  <script>
+    document.fonts.load('900 92px "Inter"').then(function () {
+      const CARDS = [{"x":250,"y":250,"r":-5,"a":[470,330],"over":true,"frac":0.18},{"x":610,"y":640,"r":4,"a":[820,690],"over":false,"frac":0.32},{"x":980,"y":230,"r":-3,"a":[1190,300],"over":true,"frac":0.4667},{"x":1420,"y":610,"r":5,"a":[1540,690],"over":false,"frac":0.7467},{"x":1500,"y":150,"r":-4,"a":[1700,232],"over":true,"frac":0.6133}]; // rest pose, whether the thread passes over it, and where along the weave
+      const W = {"len":3698,"pts":[[-140,560],[-117.29,550.47],[-94.97,540.06],[-72.83,529.24],[-50.8,518.23],[-28.81,507.13],[-6.83,496],[15.15,484.88],[37.16,473.81],[59.21,462.83],[81.31,451.96],[103.48,441.22],[125.72,430.63],[148.05,420.24],[170.48,410.05],[193.02,400.11],[215.68,390.46],[238.49,381.14],[261.44,372.2],[284.57,363.72],[307.88,355.75],[331.39,348.42],[355.13,341.86],[379.13,336.28],[403.37,331.92],[427.84,329.15],[452.45,328.59],[476.92,331.18],[500.47,338.28],[522.35,349.54],[542.34,363.9],[560.58,380.44],[577.35,398.47],[592.93,417.55],[607.52,437.39],[621.39,457.75],[634.7,478.47],[647.63,499.44],[660.33,520.55],[672.94,541.71],[685.63,562.82],[698.58,583.78],[711.99,604.45],[726.14,624.61],[741.4,643.93],[758.29,661.85],[777.57,677.12],[799.81,687.48],[824.18,689.65],[847.92,683.45],[869.44,671.57],[888.78,656.34],[906.41,639.15],[922.78,620.75],[938.25,601.58],[953.06,581.9],[967.41,561.87],[981.45,541.64],[995.32,521.28],[1009.12,500.87],[1022.96,480.49],[1036.92,460.2],[1051.13,440.08],[1065.67,420.19],[1080.64,400.63],[1096.21,381.55],[1112.48,363.05],[1129.65,345.39],[1147.87,328.82],[1167.38,313.8],[1188.35,300.91],[1210.42,289.98],[1232.96,280.04],[1255.83,270.88],[1278.97,262.44],[1302.31,254.58],[1325.85,247.3],[1349.53,240.54],[1373.36,234.28],[1397.31,228.52],[1421.37,223.27],[1445.54,218.52],[1469.82,214.31],[1494.18,210.69],[1518.63,207.69],[1543.16,205.44],[1567.75,204.01],[1592.38,203.6],[1616.99,204.52],[1641.46,207.24],[1665.49,212.57],[1688.04,222.31],[1705.32,239.47],[1712.91,262.77],[1714.38,287.33],[1712.49,311.88],[1708.52,336.18],[1703.1,360.21],[1696.6,383.96],[1689.2,407.46],[1681.1,430.72],[1672.36,453.75],[1663.08,476.57],[1653.26,499.16],[1642.96,521.54],[1632.19,543.69],[1620.93,565.6],[1609.19,587.25],[1596.91,608.61],[1584.05,629.62],[1570.51,650.19],[1556.12,670.18],[1540.6,689.3],[1523.49,707.02],[1504.93,723.2],[1485.19,737.93],[1464.51,751.29],[1443.06,763.41],[1420.98,774.32],[1398.38,784.11],[1375.34,792.81],[1351.92,800.46],[1328.19,807.05],[1304.19,812.58],[1279.95,816.96],[1255.53,820.14],[1230.96,821.95],[1206.34,822.13],[1181.79,820.23],[1157.83,814.7],[1135.28,804.86],[1114.37,791.86],[1095.03,776.63],[1077.02,759.82],[1060.12,741.9],[1044.12,723.18],[1028.82,703.87],[1014.06,684.16],[999.64,664.18],[985.35,644.11],[970.9,624.17],[955.81,604.7],[941.47,584.68],[928.82,563.55],[918.15,541.36],[909.66,518.25],[903.22,494.47],[898.08,470.38],[897.39,445.9],[905.14,422.62],[916.3,400.7]]}; // weave path { len, pts } in screen px
+      const B = {"len":308,"pts":[[916.3,400.7],[920.12,391.77],[923.94,382.82],[927.78,373.91],[931.65,364.98],[935.53,356.09],[939.44,347.18],[943.36,338.28],[947.16,329.34],[951.41,320.62],[957.09,312.75],[965.41,308.64],[973.07,314.35],[978.41,322.44],[982.59,331.22],[986.66,340.03],[990.84,348.81],[994.96,357.61],[999.08,366.4],[1003.21,375.2],[1007.33,384.02],[1011.43,392.81],[1015.59,401.59],[1019.85,410.33],[1024.2,419.02],[1028.57,427.7],[1032.94,436.38],[1037.5,444.95],[1041.93,453.62],[1045.18,462.75],[1045.65,472.35],[1040.6,480.52],[1031.78,483.86],[1022.45,481.32],[1014.21,476.21],[1006.74,470.01],[999.81,463.21],[993.53,455.78],[987.59,448.11],[981.64,440.41],[975.87,432.6],[969.48,425.29],[962.18,418.9],[953.16,415.46],[943.51,414.38],[933.8,413.85],[924.09,413.77],[914.38,413.96],[904.65,413.96],[894.94,414.28],[885.77,417.29],[878.34,423.46],[873.8,431.99],[872.03,441.51],[873.38,451.09],[878.59,459.16],[887.29,462.75],[895.61,458.29],[899.83,449.57],[903.11,440.43],[905.85,431.1]]}; // mark centreline { len (mark units), pts (screen px) }
+      const T_IN = 0.2, TW = 1.25, TB = 0.6; // weave 0.2→1.45 · write the mark 1.45→2.05 (bar line)
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Clip for the "over" copy: the rest pose of each card the thread passes over.
+      const NS = "http://www.w3.org/2000/svg";
+      const clip = document.getElementById("f7-clip");
+      CARDS.forEach((c, i) => {
+        if (!c.over) return;
+        const el = document.getElementById("f7-c" + i);
+        const w = el.offsetWidth, h = el.offsetHeight;
+        const r = document.createElementNS(NS, "rect");
+        r.setAttribute("x", c.x);
+        r.setAttribute("y", c.y);
+        r.setAttribute("width", w);
+        r.setAttribute("height", h);
+        r.setAttribute("rx", 14);
+        r.setAttribute("transform", "rotate(" + c.r + " " + (c.x + w / 2) + " " + (c.y + h / 2) + ")");
+        clip.appendChild(r);
+      });
+
+      // Scene 1 — pull back across the floating pieces; the thread weaves over and under them.
+      tl.set("#f7-cam", { transformOrigin: "50% 50%" }, 0);
+      tl.fromTo("#f7-cam", { scale: 1.26 }, { scale: 1.0, duration: 1.4, ease: "power3.out" }, 0);
+      CARDS.forEach((c, i) => {
+        tl.fromTo("#f7-c" + i, { x: c.x + 30, y: c.y + 40, rotation: c.r * 1.6, opacity: 0 },
+          { x: c.x, y: c.y, rotation: c.r, opacity: 1, duration: 0.55, ease: "expo.out" }, i * 0.04);
+        tl.set("#f7-l" + i, { opacity: 0 }, 0);
+      });
+      const COMET = 150, BC = 26;
+      tl.set(".f7-w", { attr: { "stroke-dasharray": W.len + " " + W.len }, strokeDashoffset: W.len }, 0);
+      tl.set(".f7-wc", { attr: { "stroke-dasharray": COMET + " " + W.len * 2 }, strokeDashoffset: COMET, opacity: 0 }, 0);
+      tl.set(["#f7-mark-line", "#f7-mark-glow", "#f7-mask-line"], { attr: { "stroke-dasharray": B.len + " " + B.len }, strokeDashoffset: B.len }, 0);
+      tl.set("#f7-mark-comet", { attr: { "stroke-dasharray": BC + " " + B.len * 2 }, strokeDashoffset: BC, opacity: 0 }, 0);
+      tl.set(".f7-head", { x: W.pts[0][0], y: W.pts[0][1] }, 0);
+      tl.set("#f7-head-top", { opacity: 0 }, 0);
+
+      const draw = gsap.timeline();
+      draw.to(".f7-w", { strokeDashoffset: 0, duration: TW, ease: "power1.in" }, 0);
+      draw.to(".f7-wc", { strokeDashoffset: COMET - W.len, duration: TW, ease: "power1.in" }, 0);
+      draw.to(".f7-head", { keyframes: W.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power1.in", duration: TW }, 0);
+      draw.to(["#f7-mark-line", "#f7-mark-glow", "#f7-mask-line"], { strokeDashoffset: 0, duration: TB, ease: "power2.out" }, TW);
+      draw.to("#f7-mark-comet", { strokeDashoffset: BC - B.len, duration: TB, ease: "power2.out" }, TW);
+      draw.to(".f7-head", { keyframes: B.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power2.out", duration: TB }, TW);
+      // The tail pulls through after the head: the whole thread becomes the mark.
+      draw.to(".f7-w", { strokeDashoffset: -W.len, duration: 0.7, ease: "power2.in" }, TW);
+      tl.add(draw, T_IN);
+      tl.to(".f7-wc", { opacity: 1, duration: 0.1 }, T_IN);
+      tl.to(".f7-wc", { opacity: 0, duration: 0.1 }, T_IN + TW - 0.05);
+      tl.to("#f7-mark-comet", { opacity: 1, duration: 0.05 }, T_IN + TW);
+      tl.to("#f7-head-top", { opacity: 1, duration: 0.01 }, T_IN + TW);
+      tl.to([".f7-head", "#f7-mark-comet"], { opacity: 0, duration: 0.25 }, T_IN + TW + TB);
+      tl.to(["#f7-mark-line", "#f7-mark-glow"], { opacity: 0, duration: 0.5, ease: "power2.out" }, T_IN + TW + TB + 0.05);
+
+      // Cards light as the head crosses them (power1.in reaches progress p at √p of the time).
+      CARDS.forEach((c, i) => {
+        const at = T_IN + TW * Math.sqrt(c.frac);
+        tl.to("#f7-l" + i, { opacity: 1, duration: 0.18, ease: "power2.out" }, at - 0.04);
+        tl.to("#f7-c" + i, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, at - 0.04);
+      });
+
+      // Scene 2 — the pieces fall away into black as the thread lets go of them.
+      CARDS.forEach((c, i) => {
+        tl.to("#f7-c" + i, { y: c.y + 120, opacity: 0, filter: "blur(10px)", duration: 0.55, ease: "power3.in" }, 1.5 + i * 0.05);
+      });
+
+      // Scene 3 — the mark lands on the bar line (2.048); lockup, hero line, family endorsement.
+      tl.fromTo("#f7-flare", { scale: 0.1, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 0.35, ease: "power3.out" }, 2.02);
+      tl.to("#f7-flare", { scale: 0.95, opacity: 0.55, duration: 1.2, ease: "power2.out" }, 2.37);
+      tl.fromTo("#f7-markpop", { scale: 1, svgOrigin: "960 395" }, { scale: 1.08, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, 2.048);
+      const word = document.getElementById("f7-word");
+      const letters = word.textContent.split("");
+      word.textContent = "";
+      letters.forEach((ch) => { const sp = document.createElement("span"); sp.className = "f7-ch"; sp.textContent = ch; word.appendChild(sp); });
+      gsap.utils.toArray(".f7-ch").forEach((sp, i) => {
+        tl.fromTo(sp, { x: (i - (letters.length - 1) / 2) * 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 2.56);
+      });
+      tl.fromTo("#f7-hero", { opacity: 0, y: 26, scale: 1.08, filter: "blur(14px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "expo.out" }, 3.072);
+      tl.fromTo("#f7-fab", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 3.584);
+      tl.to(["#f7-lock", "#f7-fab"], { scale: 1.025, duration: 2.4, ease: "none" }, 3.2);
+      tl.to("#f7-cam", { scale: 1.025, duration: 2.4, ease: "none" }, 3.2);
+      // Final frame: settle to black.
+      tl.fromTo("#f7-black", { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "power2.in" }, 5.55);
+
+      window.__timelines["07-close"] = tl;
+      if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+    });
+  </script>
+</template>

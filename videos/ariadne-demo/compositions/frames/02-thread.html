@@ -1,0 +1,297 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f2-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, #050b14 0%, #000 72%);
+    }
+    #f2-world {
+      position: absolute;
+      inset: 0;
+    }
+    #f2-cam {
+      position: absolute;
+      left: 460px;
+      top: 40px;
+      width: 1000px;
+      height: 1000px;
+    }
+    #f2-svg {
+      position: absolute;
+      inset: 0;
+      width: 1000px;
+      height: 1000px;
+      overflow: visible;
+    }
+    .f2-ring path,
+    #f2-radials path {
+      fill: none;
+      stroke: #3a3a41;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+    }
+    .f2-ring path {
+      stroke-dasharray: 1000;
+    }
+    #f2-thread-glow,
+    #f2-mark-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.6;
+    }
+    #f2-thread-glow { stroke-width: 10; }
+    #f2-mark-glow { stroke-width: 10; }
+    #f2-thread,
+    #f2-mark-line {
+      fill: none;
+      stroke: #2b9bff;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #f2-thread { stroke-width: 3; }
+    #f2-mark-line { stroke-width: 2.6; stroke: #7cc1ff; }
+    #f2-comet,
+    #f2-mark-comet {
+      fill: none;
+      stroke: #e6f4ff;
+      stroke-linecap: round;
+    }
+    #f2-comet { stroke-width: 3.6; }
+    #f2-mark-comet { stroke-width: 3.4; }
+    #f2-mark-fill {
+      fill: #0088ff;
+    }
+    #f2-markg {
+      filter: drop-shadow(0 0 10px rgba(0, 136, 255, 0.7));
+    }
+    .f2-label {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7c7c84;
+      white-space: nowrap;
+    }
+    #f2-flare {
+      position: absolute;
+      left: 660px;
+      top: 240px;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 136, 255, 0.55) 0%, rgba(0, 136, 255, 0.18) 30%, rgba(0, 136, 255, 0) 65%);
+    }
+    #f2-lockup {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 660px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+    }
+    #f2-word {
+      font-size: 68px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.35em;
+      margin-right: -0.35em;
+      text-transform: uppercase;
+    }
+    .f2-ch {
+      display: inline-block;
+    }
+    #f2-tag {
+      font-size: 40px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.2em;
+      margin-right: -0.2em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+    }
+    #f2-tag b {
+      color: #f4f4f5;
+      font-weight: 900;
+    }
+  </style>
+
+  <div id="root" data-composition-id="02-thread" data-width="1920" data-height="1080">
+    <div id="f2-bg" class="clip" data-start="0" data-duration="6.144" data-track-index="0"></div>
+    <div id="f2-world" data-layout-allow-overflow>
+      <div id="f2-cam">
+        <svg id="f2-svg" viewBox="-280 -280 560 560">
+          <defs>
+            <filter id="f2-blur" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" />
+            </filter>
+            <radialGradient id="f2-core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(90)">
+              <stop offset="0" stop-color="#0088ff" stop-opacity="0.6" />
+              <stop offset="1" stop-color="#0088ff" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <circle id="f2-coreglow" r="90" fill="url(#f2-core)" />
+          <g id="f2-walls">
+          <g class="f2-ring" data-ring="0"><path d="M 41.62 -14.28 A 44 44 0 1 1 33.17 -28.91" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="1"><path d="M 71.57 -7.82 A 72 72 0 1 1 -66.16 -28.41" pathLength="1000"/><path d="M -57.68 -43.09 A 72 72 0 0 1 67.76 -24.35" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="2"><path d="M 29.02 -95.7 A 100 100 0 0 1 42.06 90.73" pathLength="1000"/><path d="M 26.1 96.53 A 100 100 0 1 1 12.41 -99.23" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="3"><path d="M 51.66 -117.11 A 128 128 0 0 1 118.52 48.35" pathLength="1000"/><path d="M 111.07 63.62 A 128 128 0 1 1 35.7 -122.92" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="4"><path d="M 140.36 -68.09 A 156 156 0 1 1 -143.47 61.26" pathLength="1000"/><path d="M -149.28 45.29 A 156 156 0 0 1 132.12 -82.95" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="5"><path d="M 183.8 8.5 A 184 184 0 1 1 -117.4 -141.68" pathLength="1000"/><path d="M -103.83 -151.91 A 184 184 0 0 1 183.8 -8.5" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="6"><path d="M 208.97 -35.73 A 212 212 0 1 1 -142.67 -156.81" pathLength="1000"/><path d="M -129.65 -167.73 A 212 212 0 0 1 205.43 -52.35" pathLength="1000"/></g>
+          <g class="f2-ring" data-ring="7"><path d="M -90.02 222.48 A 240 240 0 0 1 -45.91 -235.57" pathLength="1000"/><path d="M -29.13 -238.23 A 240 240 0 1 1 -74.05 228.29" pathLength="1000"/></g>
+          <g id="f2-radials"><path d="M 112.34 -179.79 L 127.18 -203.53"/><path d="M 167.06 130.52 L 189.12 147.76"/><path d="M 65.94 171.78 L 75.97 197.92"/><path d="M -173.98 59.9 L -200.45 69.02"/><path d="M -58.44 144.64 L -68.93 170.6"/><path d="M 104.38 115.93 L 123.12 136.74"/><path d="M 127.98 -2.23 L 155.98 -2.72"/><path d="M -2.23 127.98 L -2.72 155.98"/><path d="M -71.93 69.47 L -92.08 88.92"/><path d="M -71.93 -69.47 L -92.08 -88.92"/><path d="M -70.43 14.97 L -97.81 20.79"/><path d="M -26.97 66.76 L -37.46 92.72"/><path d="M 32.7 29.44 L 53.51 48.18"/><path d="M -32.7 29.44 L -53.51 48.18"/></g>
+          </g>
+          <g id="f2-threadA">
+            <path id="f2-thread-glow" d="M -90.98 249.96 L -77.3 212.37 A 226 226 0 0 1 -145.27 -173.13 L -127.27 -151.68 A 198 198 0 0 1 198 0 L 170 0 A 170 170 0 1 0 -159.75 58.14 L -133.44 48.57 A 142 142 0 0 1 48.57 -133.44 L 38.99 -107.12 A 114 114 0 0 1 38.99 107.12 L 29.41 80.81 A 86 86 0 1 0 -74.48 -43 L -50.23 -29 A 58 58 0 0 1 50.23 -29 L 15.59 -9 C -6.93 4.00, -33.73 30.43, -21.9 2.86" filter="url(#f2-blur)" />
+            <path id="f2-thread" d="M -90.98 249.96 L -77.3 212.37 A 226 226 0 0 1 -145.27 -173.13 L -127.27 -151.68 A 198 198 0 0 1 198 0 L 170 0 A 170 170 0 1 0 -159.75 58.14 L -133.44 48.57 A 142 142 0 0 1 48.57 -133.44 L 38.99 -107.12 A 114 114 0 0 1 38.99 107.12 L 29.41 80.81 A 86 86 0 1 0 -74.48 -43 L -50.23 -29 A 58 58 0 0 1 50.23 -29 L 15.59 -9 C -6.93 4.00, -33.73 30.43, -21.9 2.86" />
+            <path id="f2-comet" d="M -90.98 249.96 L -77.3 212.37 A 226 226 0 0 1 -145.27 -173.13 L -127.27 -151.68 A 198 198 0 0 1 198 0 L 170 0 A 170 170 0 1 0 -159.75 58.14 L -133.44 48.57 A 142 142 0 0 1 48.57 -133.44 L 38.99 -107.12 A 114 114 0 0 1 38.99 107.12 L 29.41 80.81 A 86 86 0 1 0 -74.48 -43 L -50.23 -29 A 58 58 0 0 1 50.23 -29 L 15.59 -9 C -6.93 4.00, -33.73 30.43, -21.9 2.86" />
+          </g>
+          <circle id="f2-dot-halo" r="12" fill="rgba(0,136,255,0.45)" filter="url(#f2-blur)" />
+          <circle id="f2-dot" r="3.92" fill="#eaf5ff" />
+          <mask id="f2-markmask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="140" height="140">
+            <path id="f2-mask-line" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" />
+          </mask>
+          <g id="f2-markpop"><g id="f2-markg" transform="translate(-47.6 -47.6) scale(0.952)">
+            <path id="f2-mark-fill" d="M52.4496 0.00109119C57.7693 -0.0759977 61.2954 3.94816 63.3575 6.76579C70.6652 19.3634 75.6881 31.1216 81.5221 43.3895L81.5614 43.4779C86.085 53.9555 90.7391 64.4436 95.5821 74.7701C97.0146 77.8422 98.3359 80.9608 99.2517 84.4666C99.6924 86.2316 100.059 88.0749 99.992 90.2572C99.9471 91.3431 99.7823 92.5465 99.2661 93.8087C99.0097 94.4344 98.6518 95.0723 98.2224 95.6338C97.825 96.172 97.2165 96.7422 97.1068 96.8509C93.0937 100.446 88.1617 100.622 84.0549 99.0796C76.8009 95.9313 72.8981 90.6442 68.6209 85.9988C64.2108 80.9833 60.3614 75.585 56.5647 70.4367C53.7285 66.5585 50.9703 64.0273 46.9903 63.5914C36.8517 62.9186 25.0529 63.1548 14.6323 63.6058C14.4597 63.6222 14.2919 63.644 14.1282 63.6692C12.2016 63.9753 10.8563 64.7934 9.47545 66.5107C7.63787 68.8013 6.40481 71.4665 6.1035 74.2735C5.76331 77.0837 6.29872 80.4381 7.53408 81.847C8.91627 83.2638 10.1132 83.8062 12.0409 83.3062C12.9327 83.0762 13.7368 82.6224 14.4566 81.9046C15.2899 81.0796 15.9743 79.9309 16.5631 78.675C18.1634 75.2297 19.8089 71.8 21.4981 68.3858C20.6863 72.1078 19.8296 75.8142 18.9288 79.505C18.5567 80.987 18.0373 82.5403 17.0422 83.9892C16.1934 85.2391 14.9175 86.3518 13.4475 87.0065C10.7384 88.5214 6.38378 87.6509 4.1967 85.6107C0.430759 82.0753 0.0365807 77.8624 0 73.9161C0.0847299 69.713 1.71327 65.649 4.13237 62.4108C5.9857 59.7215 9.54684 57.2887 13.0817 56.8632C13.3812 56.8171 13.681 56.7803 13.9813 56.7517C25.6268 56.2589 36.0069 55.9753 47.9053 56.7661C54.0792 57.296 59.248 62.2296 62.0921 66.3349C65.9711 71.5986 69.6538 76.7504 73.796 81.4599C77.8184 86.0012 82.1023 90.8721 86.5003 92.6434C87.5915 93.0587 88.6636 93.1927 89.6994 93.0469C90.2152 92.9744 90.7246 92.8305 91.1934 92.6252C91.4271 92.5229 91.6485 92.4053 91.8424 92.2832C92.024 92.1726 92.2123 92.0154 92.2073 92.0161C92.4611 91.7629 92.5394 91.6934 92.6115 91.6175C92.6783 91.548 92.7148 91.5037 92.7469 91.4619C92.808 91.3806 92.8534 91.3052 92.9043 91.1833C93.0053 90.9457 93.0972 90.5195 93.1156 89.9912C93.1581 88.9208 92.938 87.5495 92.5846 86.1746C91.8647 83.3967 90.6816 80.5337 89.3548 77.701C84.4692 67.2828 79.8199 56.8058 75.2678 46.2637C69.6409 34.3424 63.8864 21.436 57.8003 10.8273C55.9798 8.33005 54.1798 6.76896 52.4496 6.88683C51.9807 6.88561 51.6613 6.90702 51.4539 6.94542C50.6273 6.80325 48.4133 9.51552 46.9183 12.1923C43.7332 17.7932 40.9126 24.1506 38.1188 30.3077C36.902 33.0483 35.6572 35.779 34.3839 38.499C32.1554 43.2593 29.8401 47.9883 27.4384 52.6854C28.6179 47.5429 29.8839 42.4314 31.2366 37.352C32.0095 34.4498 32.8107 31.5576 33.6379 28.6824C35.6369 21.9764 37.7946 15.4738 41.098 8.96849C42.9473 6.03133 44.1685 1.78873 50.2394 0.167279C51.0891 0.0151801 51.8462 0.00192251 52.4496 0.00109119Z" mask="url(#f2-markmask)" />
+            <path id="f2-mark-glow" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" filter="url(#f2-blur)" />
+            <path id="f2-mark-line" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" />
+            <path id="f2-mark-comet" d="M 27.00 53.00 C 28.00 50.67, 30.83 44.00, 33.00 39.00 C 35.17 34.00, 37.83 27.83, 40.00 23.00 C 42.17 18.17, 44.00 13.08, 46.00 10.00 C 48.00 6.92, 50.00 4.67, 52.00 4.50 C 54.00 4.33, 56.00 6.25, 58.00 9.00 C 60.00 11.75, 61.67 16.17, 64.00 21.00 C 66.33 25.83, 69.33 32.33, 72.00 38.00 C 74.67 43.67, 77.33 49.50, 80.00 55.00 C 82.67 60.50, 85.67 66.33, 88.00 71.00 C 90.33 75.67, 92.83 79.67, 94.00 83.00 C 95.17 86.33, 95.67 88.75, 95.00 91.00 C 94.33 93.25, 92.17 95.83, 90.00 96.50 C 87.83 97.17, 85.00 96.58, 82.00 95.00 C 79.00 93.42, 75.17 90.17, 72.00 87.00 C 68.83 83.83, 65.67 79.33, 63.00 76.00 C 60.33 72.67, 58.33 69.42, 56.00 67.00 C 53.67 64.58, 52.00 62.67, 49.00 61.50 C 46.00 60.33, 42.00 60.25, 38.00 60.00 C 34.00 59.75, 29.00 59.92, 25.00 60.00 C 21.00 60.08, 17.00 59.67, 14.00 60.50 C 11.00 61.33, 8.70 62.92, 7.00 65.00 C 5.30 67.08, 4.13 70.33, 3.80 73.00 C 3.47 75.67, 3.97 78.92, 5.00 81.00 C 6.03 83.08, 8.25 85.00, 10.00 85.50 C 11.75 86.00, 14.00 85.42, 15.50 84.00 C 17.00 82.58, 18.00 79.50, 19.00 77.00 C 20.00 74.50, 21.08 70.33, 21.50 69.00" />
+          </g></g>
+          <g id="f2-head">
+            <circle r="13" fill="rgba(0,136,255,0.3)" filter="url(#f2-blur)" />
+            <circle r="7" fill="rgba(0,136,255,0.45)" />
+            <circle r="3.4" fill="#f2f9ff" />
+          </g>
+        </svg>
+        <div id="f2-labels"></div>
+      </div>
+      <div id="f2-flare"></div>
+      <div id="f2-lockup">
+        <div id="f2-word">Ariadne</div>
+        <div id="f2-tag">Turn <b>direction</b> into <b>action.</b></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const K = 1000 / 560; // svg units → px
+      const VECTORS = ["Physical", "Psychological", "Intellectual", "Professional", "Financial", "Relational", "Creative", "Experiential"];
+
+      // Eight vector names orbit the outer wall.
+      const labels = document.getElementById("f2-labels");
+      VECTORS.forEach((name, i) => {
+        const a = ((i * 45 + 22.5) * Math.PI) / 180;
+        const r = 272 * K;
+        const el = document.createElement("div");
+        el.className = "f2-label";
+        el.textContent = name;
+        labels.appendChild(el);
+        el.dataset.x = String(500 + Math.sin(a) * r);
+        el.dataset.y = String(500 - Math.cos(a) * r);
+      });
+      const labelEls = Array.from(labels.children);
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 — the point from frame 1 pulses; eight rings ripple outward and draw on.
+      tl.fromTo("#f2-dot", { scale: 1, svgOrigin: "0 0" }, { scale: 1.9, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }, 0.05);
+      tl.fromTo("#f2-dot-halo", { opacity: 0.4 }, { opacity: 1, duration: 0.3 }, 0);
+      tl.fromTo("#f2-coreglow", { scale: 0.2, opacity: 0, svgOrigin: "0 0" }, { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.05);
+      gsap.utils.toArray(".f2-ring").forEach((ring, i) => {
+        const at = 0.08 + i * 0.07;
+        tl.fromTo(ring, { scale: 0.45, opacity: 0, svgOrigin: "0 0" }, { scale: 1, opacity: 1, duration: 0.7, ease: "expo.out" }, at);
+        tl.fromTo(ring.querySelectorAll("path"), { strokeDashoffset: 1000 }, { strokeDashoffset: 0, duration: 0.75, ease: "power3.out" }, at);
+      });
+      tl.fromTo("#f2-radials", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.7);
+      labelEls.forEach((el, i) => {
+        tl.fromTo(el,
+          { x: +el.dataset.x, y: +el.dataset.y + 14, xPercent: -50, yPercent: -50, opacity: 0 },
+          { y: +el.dataset.y, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.45 + i * 0.05);
+      });
+
+      // Scene 2 — the thread solves the maze, swoops through the centre and writes the
+      // Ariadne mark in one continuous stroke. Real path lengths (no pathLength=1: the
+      // renderer rounds dash values), comet highlight riding just behind the head, mark
+      // fill revealed by a mask that draws in lock-step with the stroke.
+      const A = {"len":2878,"pts":[[-90.98,249.96],[-84.96,233.42],[-78.94,216.88],[-89.2,207.65],[-105.09,200.08],[-120.34,191.3],[-134.86,181.36],[-148.56,170.31],[-161.36,158.24],[-173.18,145.2],[-183.96,131.29],[-193.61,116.57],[-202.1,101.16],[-209.36,85.12],[-215.34,68.58],[-220.03,51.61],[-223.38,34.34],[-225.37,16.85],[-226,-0.74],[-225.26,-18.32],[-223.15,-35.79],[-219.69,-53.04],[-214.89,-69.98],[-208.8,-86.49],[-201.43,-102.47],[-192.85,-117.83],[-183.1,-132.48],[-172.23,-146.33],[-160.33,-159.28],[-147.45,-171.28],[-135.79,-161.83],[-123.91,-154.43],[-109.71,-164.83],[-94.64,-173.92],[-78.83,-181.63],[-62.39,-187.91],[-45.46,-192.71],[-28.17,-195.99],[-10.66,-197.71],[6.94,-197.88],[24.48,-196.48],[41.83,-193.53],[58.84,-189.05],[75.4,-183.08],[91.35,-175.67],[106.59,-166.86],[120.98,-156.74],[134.42,-145.38],[146.8,-132.87],[158.02,-119.31],[167.99,-104.81],[176.63,-89.48],[183.87,-73.45],[189.67,-56.83],[193.97,-39.77],[196.73,-22.39],[197.94,-4.83],[185.23,0],[169.98,-2.37],[168.83,-19.93],[165.86,-37.27],[161.12,-54.22],[154.66,-70.58],[146.53,-86.19],[136.84,-100.87],[125.68,-114.48],[113.17,-126.85],[99.46,-137.87],[84.67,-147.41],[68.98,-155.37],[52.55,-161.67],[35.56,-166.24],[18.19,-169.02],[0.62,-170],[-16.95,-169.15],[-34.35,-166.49],[-51.37,-162.05],[-67.85,-155.87],[-83.59,-148.03],[-98.45,-138.59],[-112.24,-127.68],[-124.84,-115.39],[-136.1,-101.87],[-145.9,-87.26],[-154.14,-71.71],[-160.72,-55.39],[-165.59,-38.48],[-168.68,-21.16],[-169.96,-3.62],[-169.42,13.97],[-167.07,31.41],[-162.93,48.51],[-152.74,55.59],[-136.2,49.57],[-137.73,34.55],[-140.95,17.26],[-142,-0.3],[-140.87,-17.86],[-137.58,-35.14],[-132.18,-51.88],[-124.75,-67.83],[-115.41,-82.73],[-104.3,-96.37],[-91.58,-108.52],[-77.46,-119.01],[-62.15,-127.68],[-45.89,-134.38],[-28.92,-139.02],[-11.51,-141.53],[6.08,-141.87],[23.58,-140.03],[40.71,-136.04],[45.38,-124.68],[39.36,-108.14],[54.05,-100.37],[68.85,-90.86],[82,-79.2],[93.21,-65.64],[102.19,-50.53],[108.75,-34.21],[112.71,-17.08],[114,0.46],[112.57,17.99],[108.47,35.09],[101.78,51.35],[92.67,66.4],[81.36,79.86],[68.11,91.42],[53.24,100.81],[38.3,105.23],[32.28,88.69],[37.89,77.21],[52.79,67.89],[65.49,55.75],[75.45,41.27],[82.26,25.08],[85.64,7.83],[85.45,-9.74],[81.68,-26.9],[74.51,-42.94],[64.23,-57.19],[51.26,-69.05],[36.16,-78.03],[19.54,-83.75],[2.11,-85.97],[-15.41,-84.61],[-32.29,-79.71],[-47.81,-71.48],[-61.34,-60.27],[-72.31,-46.55],[-62.83,-36.28],[-48.64,-31.6],[-36.97,-44.69],[-21.92,-53.7],[-4.87,-57.79],[12.62,-56.61],[28.96,-50.25],[42.66,-39.3],[46.08,-26.6],[30.83,-17.8],[15.59,-9],[-0.89,1.83],[-17.25,12.85],[-21.9,2.86]]}; // { len, pts } in svg units
+      const B = {"len":308,"pts":[[-21.9,2.86],[-19.98,-1.62],[-18.07,-6.1],[-16.15,-10.57],[-14.2,-15.04],[-12.26,-19.5],[-10.3,-23.96],[-8.34,-28.42],[-6.44,-32.9],[-4.3,-37.27],[-1.46,-41.21],[2.71,-43.27],[6.55,-40.41],[9.22,-36.36],[11.32,-31.96],[13.36,-27.54],[15.45,-23.14],[17.52,-18.74],[19.58,-14.33],[21.65,-9.92],[23.71,-5.5],[25.77,-1.09],[27.86,3.3],[29.99,7.68],[32.17,12.03],[34.36,16.38],[36.55,20.73],[38.83,25.03],[41.05,29.37],[42.68,33.95],[42.92,38.76],[40.38,42.85],[35.97,44.53],[31.29,43.25],[27.16,40.69],[23.42,37.58],[19.94,34.18],[16.8,30.45],[13.82,26.61],[10.84,22.75],[7.95,18.84],[4.75,15.17],[1.09,11.98],[-3.43,10.25],[-8.26,9.71],[-13.13,9.44],[-17.99,9.41],[-22.86,9.5],[-27.73,9.5],[-32.6,9.66],[-37.19,11.17],[-40.92,14.26],[-43.19,18.54],[-44.08,23.3],[-43.4,28.1],[-40.79,32.15],[-36.43,33.95],[-32.26,31.71],[-30.15,27.34],[-28.5,22.76],[-27.13,18.09]]}; // { len (mark units), pts (svg units) }
+      const TA = 1.976, TB = 0.584; // maze 1.024→3.0, mark 3.0→3.584 (impact on the beat)
+      const COMET = 110, BCOMET = 34;
+      tl.set(["#f2-thread", "#f2-thread-glow"], { attr: { "stroke-dasharray": A.len + " " + A.len }, strokeDashoffset: A.len }, 0);
+      tl.set("#f2-comet", { attr: { "stroke-dasharray": COMET + " " + A.len * 2 }, strokeDashoffset: COMET, opacity: 0 }, 0);
+      tl.set(["#f2-mark-line", "#f2-mark-glow", "#f2-mask-line"], { attr: { "stroke-dasharray": B.len + " " + B.len }, strokeDashoffset: B.len }, 0);
+      tl.set("#f2-mark-comet", { attr: { "stroke-dasharray": BCOMET + " " + B.len * 2 }, strokeDashoffset: BCOMET, opacity: 0 }, 0);
+      tl.set("#f2-head", { x: A.pts[0][0], y: A.pts[0][1], opacity: 0 }, 0);
+
+      const draw = gsap.timeline();
+      draw.to(["#f2-thread", "#f2-thread-glow"], { strokeDashoffset: 0, duration: TA, ease: "power1.in" }, 0);
+      draw.to("#f2-comet", { strokeDashoffset: COMET - A.len, duration: TA, ease: "power1.in" }, 0);
+      draw.to("#f2-head", { keyframes: A.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power1.in", duration: TA }, 0);
+      draw.to(["#f2-mark-line", "#f2-mark-glow", "#f2-mask-line"], { strokeDashoffset: 0, duration: TB, ease: "power2.out" }, TA);
+      draw.to("#f2-mark-comet", { strokeDashoffset: BCOMET - B.len, duration: TB, ease: "power2.out" }, TA);
+      draw.to("#f2-head", { keyframes: B.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power2.out", duration: TB }, TA);
+      tl.add(draw, 1.024);
+      tl.to(["#f2-head", "#f2-comet"], { opacity: 1, duration: 0.12 }, 1.024);
+      tl.to("#f2-comet", { opacity: 0, duration: 0.1 }, 1.024 + TA - 0.02);
+      tl.to("#f2-mark-comet", { opacity: 1, duration: 0.05 }, 1.024 + TA);
+      tl.to(["#f2-head", "#f2-mark-comet"], { opacity: 0, duration: 0.25 }, 3.584);
+      // The written stroke melts into the solid mark.
+      tl.to(["#f2-mark-line", "#f2-mark-glow"], { opacity: 0, duration: 0.5, ease: "power2.out" }, 3.62);
+
+      // Camera: the maze unlocks — counter-rotates back to upright just as the mark is written.
+      tl.fromTo("#f2-cam", { rotation: 14, scale: 1 }, { rotation: 0, scale: 1.03, duration: 3.0, ease: "power2.out" }, 0);
+
+      // Scene 3 — the mark lands on the beat: flare, maze recedes, lockup rises.
+      tl.fromTo("#f2-flare", { scale: 0.1, opacity: 0 }, { scale: 1.3, opacity: 1, duration: 0.3, ease: "power3.out" }, 3.56);
+      tl.to("#f2-flare", { scale: 0.9, opacity: 0.45, duration: 0.8, ease: "power2.out" }, 3.86);
+      tl.to(["#f2-dot", "#f2-dot-halo"], { opacity: 0, duration: 0.3 }, 3.2);
+      tl.fromTo("#f2-markpop", { scale: 1, svgOrigin: "0 0" }, { scale: 1.1, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, 3.584);
+      tl.to(["#f2-walls", "#f2-threadA", "#f2-labels", "#f2-coreglow"], { opacity: 0.4, duration: 0.35, ease: "power2.out" }, 2.95);
+      tl.to(["#f2-walls", "#f2-threadA", "#f2-labels", "#f2-coreglow"], { opacity: 0.18, duration: 0.6, ease: "power2.out" }, 3.7);
+      tl.to("#f2-cam", { y: -110, duration: 0.6, ease: "expo.inOut" }, 3.9);
+      tl.to("#f2-flare", { y: -110, duration: 0.6, ease: "expo.inOut" }, 3.9);
+      // Wordmark tracks in: letters start spread wide and settle to Fabbro's 0.35em.
+      const word = document.getElementById("f2-word");
+      const letters = word.textContent.split("");
+      word.textContent = "";
+      letters.forEach((ch) => {
+        const sp = document.createElement("span");
+        sp.className = "f2-ch";
+        sp.textContent = ch;
+        word.appendChild(sp);
+      });
+      tl.fromTo("#f2-word", { y: 12 }, { y: -80, duration: 0.7, ease: "expo.out" }, 4.096);
+      gsap.utils.toArray(".f2-ch").forEach((sp, i) => {
+        tl.fromTo(sp, { x: (i - (letters.length - 1) / 2) * 34, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 4.096);
+      });
+      tl.fromTo("#f2-tag", { opacity: 0, y: 20, filter: "blur(10px)" }, { opacity: 1, y: -80, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, 4.608);
+
+      // Scene 4 — dive into the mark.
+      tl.to("#f2-world", { scale: 7.5, transformOrigin: "960px 430px", filter: "blur(6px)", duration: 1.0, ease: "power4.in" }, 5.12);
+
+      window.__timelines["02-thread"] = tl;
+    })();
+  </script>
+</template>

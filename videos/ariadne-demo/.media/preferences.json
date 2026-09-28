@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "x-feed",
+      "confirmed_in": [
+        "ariadne-demo"
+      ],
+      "updated_at": "2026-09-27T19:21:56.221Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "ariadne-demo"
+      ],
+      "updated_at": "2026-09-27T19:21:56.329Z"
+    },
+    "language": {
+      "value": "en",
+      "confirmed_in": [
+        "ariadne-demo"
+      ],
+      "updated_at": "2026-09-27T19:21:56.432Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "ariadne-demo"
+      ],
+      "updated_at": "2026-09-27T19:21:56.522Z"
+    },
+    "storyboard": {
+      "value": "no",
+      "confirmed_in": [
+        "ariadne-demo"
+      ],
+      "updated_at": "2026-09-27T19:21:56.620Z"
+    }
+  },
+  "sightings": {}
+}

@@ -1,0 +1,378 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f4-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 40% 45%, #061222 0%, #000 65%);
+    }
+    #f4-cam {
+      position: absolute;
+      inset: 0;
+    }
+    #f4-persp {
+      position: absolute;
+      inset: 0;
+      perspective: 2400px;
+      perspective-origin: 50% 30%;
+    }
+    #f4-panel {
+      position: absolute;
+      left: 120px;
+      top: 200px;
+      width: 1680px;
+      height: 760px;
+      border-radius: 16px;
+      background: #0a0a0b;
+      border: 1px solid #1c1c1f;
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8), 0 -1px 0 rgba(255, 255, 255, 0.05) inset;
+      transform-origin: 50% 0%;
+    }
+    .f4-colh {
+      position: absolute;
+      top: 34px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    .f4-item {
+      position: absolute;
+      border-radius: 12px;
+      background: #111113;
+      border: 1px solid #27272a;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 20px;
+    }
+    .f4-dir {
+      height: 104px;
+    }
+    .f4-dir-t {
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .f4-tags {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .f4-tag {
+      padding: 3px 10px;
+      border-radius: 7px;
+      border: 1px solid #27272a;
+      background: #18181b;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+    .f4-obj,
+    .f4-task {
+      height: 58px;
+      font-size: 17px;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+    .f4-task {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      height: 54px;
+    }
+    .f4-p {
+      flex: none;
+      min-width: 34px;
+      padding: 4px 0;
+      text-align: center;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .f4-p1 { color: #f26d6d; background: rgba(242, 109, 109, 0.12); }
+    .f4-p2 { color: #f0a53a; background: rgba(240, 165, 58, 0.12); }
+    .f4-p3 { color: #e2c044; background: rgba(226, 192, 68, 0.12); }
+    .f4-lit {
+      position: absolute;
+      inset: -1px;
+      border-radius: 12px;
+      border: 1.5px solid #0088ff;
+      box-shadow: 0 0 0 4px rgba(0, 136, 255, 0.12), 0 0 34px rgba(0, 136, 255, 0.3);
+      opacity: 0;
+    }
+    #f4-links {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1680px;
+      height: 760px;
+      overflow: visible;
+      pointer-events: none;
+    }
+    #f4-links .f4-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-width: 9;
+      opacity: 0.45;
+      stroke-linecap: round;
+      stroke-dasharray: 1000;
+    }
+    #f4-links .f4-core {
+      fill: none;
+      stroke: #0088ff;
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-dasharray: 1000;
+    }
+    #f4-links .f4-comet {
+      fill: none;
+      stroke: #d6ecff;
+      stroke-width: 3.4;
+      stroke-linecap: round;
+      stroke-dasharray: 160 2000;
+    }
+    #f4-foot {
+      position: absolute;
+      left: 36px;
+      right: 36px;
+      bottom: 30px;
+      height: 64px;
+      border-radius: 12px;
+      border: 1px solid #1c1c1f;
+      background: #000;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 22px;
+      font-size: 16px;
+      color: #a0a0a0;
+    }
+    #f4-foot b {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: #7c7c84;
+    }
+    #f4-foot strong {
+      color: #4dacff;
+      font-weight: 600;
+    }
+    #f4-foot em {
+      margin-left: auto;
+      font-style: normal;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(0, 136, 255, 0.12);
+      border: 1px solid rgba(0, 136, 255, 0.4);
+      color: #7cc1ff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    #f4-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+    }
+    #f4-ripple {
+      position: absolute;
+      left: -26px;
+      top: -26px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 136, 255, 0.9);
+      background: rgba(0, 136, 255, 0.18);
+    }
+    #f4-head {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      white-space: nowrap;
+      transform-origin: 0 50%;
+    }
+    #f4-rule {
+      display: block;
+      width: 72px;
+      height: 6px;
+      border-radius: 3px;
+      background: #0088ff;
+      box-shadow: 0 0 24px rgba(0, 136, 255, 0.8);
+      transform-origin: 0 50%;
+    }
+    #f4-head-t {
+      font-size: 112px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+  </style>
+
+  <div id="root" data-composition-id="04-chain" data-width="1920" data-height="1080">
+    <div id="f4-bg" class="clip" data-start="0" data-duration="6.144" data-track-index="0"></div>
+    <div id="f4-cam" data-layout-allow-overflow>
+      <div id="f4-persp">
+        <div id="f4-panel">
+          <div class="f4-colh" style="left: 36px">Directions</div>
+          <div class="f4-colh" style="left: 620px">Strategic objectives</div>
+          <div class="f4-colh" style="left: 1204px">Tasks</div>
+          <svg id="f4-links" viewBox="0 0 1680 760"></svg>
+          <div id="f4-items"></div>
+          <div id="f4-foot">
+            <b>WHAT IT DRIVES</b>
+            <strong>Become a credible ML researcher</strong>
+            <span>Intellectual · Professional</span>
+            <em>2 objectives · 3 tasks</em>
+          </div>
+          <svg id="f4-cursor" viewBox="0 0 24 24"><path d="M5 2.5 L5 19.5 L9.3 15.4 L12.2 21.6 L15 20.4 L12.2 14.3 L18.2 14.3 Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round" /></svg>
+          <div id="f4-ripple"></div>
+        </div>
+      </div>
+    </div>
+    <div id="f4-head" data-layout-allow-overlap><span id="f4-rule"></span><span id="f4-head-t" data-layout-allow-overlap>Pull any thread.</span></div>
+  </div>
+
+  <script>
+    document.fonts.load('900 112px "Inter"').then(function () {
+      const COL = { d: 36, o: 620, t: 1204 };
+      const W = 440;
+      const DIRS = [
+        ["d1", "Become a credible ML researcher", ["Intellectual", "Professional"]],
+        ["d2", "Build a sustainable creative practice", ["Creative", "Financial"]],
+        ["d3", "Train for a first marathon", ["Physical", "Psychological"]],
+      ];
+      const OBJS = [
+        ["o1", "Publish original research", "d1"], ["o2", "Earn a place in a research lab", "d1"],
+        ["o3", "Ship one essay every month", "d2"], ["o4", "Reach 1,000 subscribers", "d2"],
+        ["o5", "Run 40 km a week by March", "d3"],
+      ];
+      const TASKS = [
+        ["t1", "Draft methods section", "o1", 1], ["t2", "Apply: Frontier Safety Fellowship", "o2", 1],
+        ["t3", "Replicate eval baseline", "o1", 2], ["t4", "Outline the October essay", "o3", 2],
+        ["t5", "Add a newsletter signup page", "o4", 3], ["t6", "Long run — 18 km easy", "o5", 2],
+        ["t7", "Book a physio assessment", "o5", 3],
+      ];
+      const pos = {};
+      const items = document.getElementById("f4-items");
+      const add = (id, cls, x, y, h, html) => {
+        const el = document.createElement("div");
+        el.className = "f4-item " + cls;
+        el.id = "f4-" + id;
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+        el.style.width = W + "px";
+        el.innerHTML = html + '<span class="f4-lit" id="f4-lit-' + id + '"></span>';
+        items.appendChild(el);
+        pos[id] = { x, y, h };
+      };
+      DIRS.forEach(([id, t, tags], i) =>
+        add(id, "f4-dir", COL.d, 86 + i * 128, 104,
+          '<div class="f4-dir-t">' + t + '</div><div class="f4-tags">' + tags.map((g) => '<span class="f4-tag">' + g + "</span>").join("") + "</div>"));
+      OBJS.forEach(([id, t], i) => add(id, "f4-obj", COL.o, 86 + i * 74, 58, "<span>" + t + "</span>"));
+      TASKS.forEach(([id, t, , p], i) =>
+        add(id, "f4-task", COL.t, 86 + i * 66, 54, "<span>" + t + '</span><span class="f4-p f4-p' + p + '" id="f4-p-' + id + '">P' + p + "</span>"));
+
+      // Connectors: right edge of the parent → left edge of the child, smooth S-curves.
+      const svg = document.getElementById("f4-links");
+      const NS = "http://www.w3.org/2000/svg";
+      const link = (a, b, key) => {
+        const x1 = pos[a].x + W, y1 = pos[a].y + pos[a].h / 2;
+        const x2 = pos[b].x, y2 = pos[b].y + pos[b].h / 2;
+        const mx = (x1 + x2) / 2;
+        const d = "M " + x1 + " " + y1 + " C " + mx + " " + y1 + ", " + mx + " " + y2 + ", " + x2 + " " + y2;
+        ["f4-glow", "f4-core", "f4-comet"].forEach((cls) => {
+          const p = document.createElementNS(NS, "path");
+          p.setAttribute("d", d);
+          p.setAttribute("pathLength", "1000");
+          p.setAttribute("class", cls + " f4-l-" + key);
+          svg.appendChild(p);
+        });
+      };
+      const L1 = [["d1", "o1"], ["d1", "o2"]];
+      const L2 = [["o1", "t1"], ["o2", "t2"], ["o1", "t3"]];
+      L1.concat(L2).forEach(([a, b]) => link(a, b, a + b));
+
+      const tl = gsap.timeline({ paused: true });
+      const P = document.getElementById("f4-panel");
+
+      // Scene 1 — headline, panel rises.
+      const head = document.getElementById("f4-head");
+      const hx = (1920 - head.offsetWidth) / 2, hy = (1080 - head.offsetHeight) / 2 - 40;
+      tl.fromTo("#f4-head", { x: hx, y: hy + 40, opacity: 0 }, { y: hy, opacity: 1, duration: 0.45, ease: "expo.out" }, 0);
+      tl.fromTo("#f4-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "expo.out" }, 0.08);
+      tl.to("#f4-head", { x: 120, y: 70, scale: 0.3, duration: 0.7, ease: "expo.inOut" }, 0.9);
+      tl.fromTo("#f4-panel", { y: 420, rotationX: 26, opacity: 0 }, { y: 0, rotationX: 0, opacity: 1, duration: 1.3, ease: "expo.out" }, 0.3);
+      tl.fromTo(".f4-item", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.03, ease: "power3.out" }, 0.55);
+      tl.set(".f4-core, .f4-glow", { strokeDashoffset: 1000 }, 0);
+      tl.set(".f4-comet", { strokeDashoffset: 160, opacity: 0 }, 0);
+
+      // Scene 2 — the cursor pulls the first direction; unrelated work dims.
+      const d1 = pos.d1;
+      const tip = { x: d1.x + 250, y: d1.y + 40 };
+      tl.set("#f4-cursor", { x: 900, y: 640, opacity: 0, scale: 1 }, 0);
+      tl.to("#f4-cursor", { opacity: 1, duration: 0.12 }, 0.95);
+      tl.to("#f4-cursor", { x: tip.x - 6, y: tip.y - 3, duration: 0.55, ease: "power3.inOut" }, 0.98);
+      tl.to("#f4-cursor", { scale: 0.82, duration: 0.08, yoyo: true, repeat: 1 }, 1.52);
+      tl.fromTo("#f4-ripple", { x: tip.x, y: tip.y, scale: 0.2, opacity: 0 }, { scale: 0.2, opacity: 1, duration: 0.01 }, 1.536);
+      tl.to("#f4-ripple", { scale: 1.6, opacity: 0, duration: 0.5, ease: "power2.out" }, 1.546);
+      tl.to("#f4-lit-d1", { opacity: 1, duration: 0.25 }, 1.546);
+      tl.to("#f4-cursor", { opacity: 0, duration: 0.3 }, 2.0);
+      const related = ["d1", "o1", "o2", "t1", "t2", "t3"];
+      const unrelated = Object.keys(pos).filter((k) => !related.includes(k));
+      tl.to(unrelated.map((k) => "#f4-" + k), { opacity: 0.28, duration: 0.45, ease: "power2.out" }, 1.6);
+
+      // Scene 3 — the thread travels: direction → objectives (beat 2.048), objectives → tasks (beat 3.072).
+      const drawLinks = (pairs, at, dur) => pairs.forEach(([a, b], i) => {
+        const k = ".f4-l-" + a + b;
+        const t0 = at + i * 0.1;
+        tl.to(k + ".f4-core, " + k + ".f4-glow", { strokeDashoffset: 0, duration: dur, ease: "power2.inOut" }, t0);
+        tl.to(k + ".f4-comet", { opacity: 1, duration: 0.05 }, t0);
+        tl.to(k + ".f4-comet", { strokeDashoffset: -1000, duration: dur * 1.05, ease: "power2.inOut" }, t0);
+        tl.to(k + ".f4-comet", { opacity: 0, duration: 0.08 }, t0 + dur * 1.05 - 0.04);
+        tl.to("#f4-lit-" + b, { opacity: 1, duration: 0.25, ease: "power2.out" }, t0 + dur - 0.05);
+        tl.to("#f4-" + b, { scale: 1.035, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, t0 + dur - 0.05);
+      });
+      drawLinks(L1, 1.62, 0.55);
+      drawLinks(L2, 2.56, 0.6);
+      tl.to(["#f4-o1", "#f4-o2", "#f4-t1", "#f4-t2", "#f4-t3"], { color: "#f4f4f5", duration: 0.3 }, 2.2);
+
+      // Camera follows the thread head: punch toward directions→objectives, pan to tasks, settle.
+      const focus = (fx, fy, s) => ({ scale: s, x: s * (960 - (120 + fx)), y: s * (540 - (200 + fy)) });
+      tl.set("#f4-cam", { transformOrigin: "50% 50%" }, 0);
+      tl.to("#f4-cam", { ...focus(560, 250, 1.32), duration: 1.1, ease: "power3.inOut" }, 1.3);
+      tl.to("#f4-cam", { ...focus(1140, 250, 1.32), duration: 1.4, ease: "power2.inOut" }, 2.4);
+      tl.to("#f4-cam", { ...focus(840, 380, 1.06), duration: 1.4, ease: "expo.inOut" }, 3.9);
+
+      // Scene 4 — priorities pop on the three tasks; the footer tells you what the direction drives.
+      ["t1", "t2", "t3"].forEach((k, i) => {
+        tl.to("#f4-p-" + k, { scale: 1.45, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, 3.584 + i * 0.1);
+      });
+      tl.fromTo("#f4-foot", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 4.1);
+      tl.fromTo("#f4-foot em", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 4.608);
+
+      window.__timelines["04-chain"] = tl;
+      if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+    });
+  </script>
+</template>
