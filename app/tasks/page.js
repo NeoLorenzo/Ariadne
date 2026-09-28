@@ -754,21 +754,38 @@ export default function TasksPage() {
 
       refreshInFlight = true;
       try {
-        const { data: remoteRow, error } = await supabase
+        const { data: versionRow, error: versionError } = await supabase
           .from("user_tasks")
-          .select("tasks,version")
+          .select("version")
           .eq("user_id", cloudUserId)
           .maybeSingle();
-        if (!isActive || error || !Array.isArray(remoteRow?.tasks)) {
+        if (!isActive || versionError) {
           return;
         }
 
-        const remoteVersion = Number(remoteRow.version);
+        const remoteVersion = Number(versionRow?.version);
         if (!Number.isFinite(remoteVersion)) {
           return;
         }
         const currentVersion = Number(cloudVersionRef.current);
         if (Number.isFinite(currentVersion) && remoteVersion <= currentVersion) {
+          return;
+        }
+
+        const { data: remoteRow, error: remoteReadError } = await supabase
+          .from("user_tasks")
+          .select("tasks,version")
+          .eq("user_id", cloudUserId)
+          .maybeSingle();
+        if (!isActive || remoteReadError || !Array.isArray(remoteRow?.tasks)) {
+          return;
+        }
+
+        const resolvedRemoteVersion = Number(remoteRow.version);
+        if (!Number.isFinite(resolvedRemoteVersion)) {
+          return;
+        }
+        if (Number.isFinite(currentVersion) && resolvedRemoteVersion <= currentVersion) {
           return;
         }
 
@@ -779,14 +796,14 @@ export default function TasksPage() {
           cloudSnapshotSignaturesRef.current
         );
         const remoteSignatures = createTaskSignatureMap(remoteTasks);
-        const nextCachePayload = { tasks: remoteTasks, version: remoteVersion };
+        const nextCachePayload = { tasks: remoteTasks, version: resolvedRemoteVersion };
 
         tasksRef.current = reconciledTasks;
-        cloudVersionRef.current = remoteVersion;
+        cloudVersionRef.current = resolvedRemoteVersion;
         cloudSnapshotSignaturesRef.current = remoteSignatures;
         skipNextCloudWriteRef.current = true;
         setTasks(reconciledTasks);
-        setCloudVersion(remoteVersion);
+        setCloudVersion(resolvedRemoteVersion);
         setCloudSnapshotSignaturesByTaskId(remoteSignatures);
         setCloudReadState("ok");
         setCloudReadSource("cloud-refresh");
