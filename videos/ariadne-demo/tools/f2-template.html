@@ -1,0 +1,289 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f2-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, #050b14 0%, #000 72%);
+    }
+    #f2-world {
+      position: absolute;
+      inset: 0;
+    }
+    #f2-cam {
+      position: absolute;
+      left: 460px;
+      top: 40px;
+      width: 1000px;
+      height: 1000px;
+    }
+    #f2-svg {
+      position: absolute;
+      inset: 0;
+      width: 1000px;
+      height: 1000px;
+      overflow: visible;
+    }
+    .f2-ring path,
+    #f2-radials path {
+      fill: none;
+      stroke: #3a3a41;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+    }
+    .f2-ring path {
+      stroke-dasharray: 1000;
+    }
+    #f2-thread-glow,
+    #f2-mark-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.6;
+    }
+    #f2-thread-glow { stroke-width: 10; }
+    #f2-mark-glow { stroke-width: 10; }
+    #f2-thread,
+    #f2-mark-line {
+      fill: none;
+      stroke: #2b9bff;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #f2-thread { stroke-width: 3; }
+    #f2-mark-line { stroke-width: 2.6; stroke: #7cc1ff; }
+    #f2-comet,
+    #f2-mark-comet {
+      fill: none;
+      stroke: #e6f4ff;
+      stroke-linecap: round;
+    }
+    #f2-comet { stroke-width: 3.6; }
+    #f2-mark-comet { stroke-width: 3.4; }
+    #f2-mark-fill {
+      fill: #0088ff;
+    }
+    #f2-markg {
+      filter: drop-shadow(0 0 10px rgba(0, 136, 255, 0.7));
+    }
+    .f2-label {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7c7c84;
+      white-space: nowrap;
+    }
+    #f2-flare {
+      position: absolute;
+      left: 660px;
+      top: 240px;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 136, 255, 0.55) 0%, rgba(0, 136, 255, 0.18) 30%, rgba(0, 136, 255, 0) 65%);
+    }
+    #f2-lockup {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 660px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+    }
+    #f2-word {
+      font-size: 68px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.35em;
+      margin-right: -0.35em;
+      text-transform: uppercase;
+    }
+    .f2-ch {
+      display: inline-block;
+    }
+    #f2-tag {
+      font-size: 40px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.2em;
+      margin-right: -0.2em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+    }
+    #f2-tag b {
+      color: #f4f4f5;
+      font-weight: 900;
+    }
+  </style>
+
+  <div id="root" data-composition-id="02-thread" data-width="1920" data-height="1080">
+    <div id="f2-bg" class="clip" data-start="0" data-duration="6.144" data-track-index="0"></div>
+    <div id="f2-world" data-layout-allow-overflow>
+      <div id="f2-cam">
+        <svg id="f2-svg" viewBox="-280 -280 560 560">
+          <defs>
+            <filter id="f2-blur" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" />
+            </filter>
+            <radialGradient id="f2-core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(90)">
+              <stop offset="0" stop-color="#0088ff" stop-opacity="0.6" />
+              <stop offset="1" stop-color="#0088ff" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <circle id="f2-coreglow" r="90" fill="url(#f2-core)" />
+          <g id="f2-walls">
+/*WALLS*/
+          </g>
+          <g id="f2-threadA">
+            <path id="f2-thread-glow" d="/*THREAD*/" filter="url(#f2-blur)" />
+            <path id="f2-thread" d="/*THREAD*/" />
+            <path id="f2-comet" d="/*THREAD*/" />
+          </g>
+          <circle id="f2-dot-halo" r="12" fill="rgba(0,136,255,0.45)" filter="url(#f2-blur)" />
+          <circle id="f2-dot" r="3.92" fill="#eaf5ff" />
+          <mask id="f2-markmask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="140" height="140">
+            <path id="f2-mask-line" d="/*MARKLINE*/" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" />
+          </mask>
+          <g id="f2-markpop"><g id="f2-markg" transform="translate(/*MARKOFF*/ /*MARKOFF*/) scale(/*MARKSCALE*/)">
+            <path id="f2-mark-fill" d="/*MARK*/" mask="url(#f2-markmask)" />
+            <path id="f2-mark-glow" d="/*MARKLINE*/" filter="url(#f2-blur)" />
+            <path id="f2-mark-line" d="/*MARKLINE*/" />
+            <path id="f2-mark-comet" d="/*MARKLINE*/" />
+          </g></g>
+          <g id="f2-head">
+            <circle r="13" fill="rgba(0,136,255,0.3)" filter="url(#f2-blur)" />
+            <circle r="7" fill="rgba(0,136,255,0.45)" />
+            <circle r="3.4" fill="#f2f9ff" />
+          </g>
+        </svg>
+        <div id="f2-labels"></div>
+      </div>
+      <div id="f2-flare"></div>
+      <div id="f2-lockup">
+        <div id="f2-word">Ariadne</div>
+        <div id="f2-tag">Turn <b>direction</b> into <b>action.</b></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const K = 1000 / 560; // svg units → px
+      const VECTORS = ["Physical", "Psychological", "Intellectual", "Professional", "Financial", "Relational", "Creative", "Experiential"];
+
+      // Eight vector names orbit the outer wall.
+      const labels = document.getElementById("f2-labels");
+      VECTORS.forEach((name, i) => {
+        const a = ((i * 45 + 22.5) * Math.PI) / 180;
+        const r = 272 * K;
+        const el = document.createElement("div");
+        el.className = "f2-label";
+        el.textContent = name;
+        labels.appendChild(el);
+        el.dataset.x = String(500 + Math.sin(a) * r);
+        el.dataset.y = String(500 - Math.cos(a) * r);
+      });
+      const labelEls = Array.from(labels.children);
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 — the point from frame 1 pulses; eight rings ripple outward and draw on.
+      tl.fromTo("#f2-dot", { scale: 1, svgOrigin: "0 0" }, { scale: 1.9, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }, 0.05);
+      tl.fromTo("#f2-dot-halo", { opacity: 0.4 }, { opacity: 1, duration: 0.3 }, 0);
+      tl.fromTo("#f2-coreglow", { scale: 0.2, opacity: 0, svgOrigin: "0 0" }, { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.05);
+      gsap.utils.toArray(".f2-ring").forEach((ring, i) => {
+        const at = 0.08 + i * 0.07;
+        tl.fromTo(ring, { scale: 0.45, opacity: 0, svgOrigin: "0 0" }, { scale: 1, opacity: 1, duration: 0.7, ease: "expo.out" }, at);
+        tl.fromTo(ring.querySelectorAll("path"), { strokeDashoffset: 1000 }, { strokeDashoffset: 0, duration: 0.75, ease: "power3.out" }, at);
+      });
+      tl.fromTo("#f2-radials", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.7);
+      labelEls.forEach((el, i) => {
+        tl.fromTo(el,
+          { x: +el.dataset.x, y: +el.dataset.y + 14, xPercent: -50, yPercent: -50, opacity: 0 },
+          { y: +el.dataset.y, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.45 + i * 0.05);
+      });
+
+      // Scene 2 — the thread solves the maze, swoops through the centre and writes the
+      // Ariadne mark in one continuous stroke. Real path lengths (no pathLength=1: the
+      // renderer rounds dash values), comet highlight riding just behind the head, mark
+      // fill revealed by a mask that draws in lock-step with the stroke.
+      const A = /*A*/; // { len, pts } in svg units
+      const B = /*B*/; // { len (mark units), pts (svg units) }
+      const TA = 1.976, TB = 0.584; // maze 1.024→3.0, mark 3.0→3.584 (impact on the beat)
+      const COMET = 110, BCOMET = 34;
+      tl.set(["#f2-thread", "#f2-thread-glow"], { attr: { "stroke-dasharray": A.len + " " + A.len }, strokeDashoffset: A.len }, 0);
+      tl.set("#f2-comet", { attr: { "stroke-dasharray": COMET + " " + A.len * 2 }, strokeDashoffset: COMET, opacity: 0 }, 0);
+      tl.set(["#f2-mark-line", "#f2-mark-glow", "#f2-mask-line"], { attr: { "stroke-dasharray": B.len + " " + B.len }, strokeDashoffset: B.len }, 0);
+      tl.set("#f2-mark-comet", { attr: { "stroke-dasharray": BCOMET + " " + B.len * 2 }, strokeDashoffset: BCOMET, opacity: 0 }, 0);
+      tl.set("#f2-head", { x: A.pts[0][0], y: A.pts[0][1], opacity: 0 }, 0);
+
+      const draw = gsap.timeline();
+      draw.to(["#f2-thread", "#f2-thread-glow"], { strokeDashoffset: 0, duration: TA, ease: "power1.in" }, 0);
+      draw.to("#f2-comet", { strokeDashoffset: COMET - A.len, duration: TA, ease: "power1.in" }, 0);
+      draw.to("#f2-head", { keyframes: A.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power1.in", duration: TA }, 0);
+      draw.to(["#f2-mark-line", "#f2-mark-glow", "#f2-mask-line"], { strokeDashoffset: 0, duration: TB, ease: "power2.out" }, TA);
+      draw.to("#f2-mark-comet", { strokeDashoffset: BCOMET - B.len, duration: TB, ease: "power2.out" }, TA);
+      draw.to("#f2-head", { keyframes: B.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power2.out", duration: TB }, TA);
+      tl.add(draw, 1.024);
+      tl.to(["#f2-head", "#f2-comet"], { opacity: 1, duration: 0.12 }, 1.024);
+      tl.to("#f2-comet", { opacity: 0, duration: 0.1 }, 1.024 + TA - 0.02);
+      tl.to("#f2-mark-comet", { opacity: 1, duration: 0.05 }, 1.024 + TA);
+      tl.to(["#f2-head", "#f2-mark-comet"], { opacity: 0, duration: 0.25 }, 3.584);
+      // The written stroke melts into the solid mark.
+      tl.to(["#f2-mark-line", "#f2-mark-glow"], { opacity: 0, duration: 0.5, ease: "power2.out" }, 3.62);
+
+      // Camera: the maze unlocks — counter-rotates back to upright just as the mark is written.
+      tl.fromTo("#f2-cam", { rotation: 14, scale: 1 }, { rotation: 0, scale: 1.03, duration: 3.0, ease: "power2.out" }, 0);
+
+      // Scene 3 — the mark lands on the beat: flare, maze recedes, lockup rises.
+      tl.fromTo("#f2-flare", { scale: 0.1, opacity: 0 }, { scale: 1.3, opacity: 1, duration: 0.3, ease: "power3.out" }, 3.56);
+      tl.to("#f2-flare", { scale: 0.9, opacity: 0.45, duration: 0.8, ease: "power2.out" }, 3.86);
+      tl.to(["#f2-dot", "#f2-dot-halo"], { opacity: 0, duration: 0.3 }, 3.2);
+      tl.fromTo("#f2-markpop", { scale: 1, svgOrigin: "0 0" }, { scale: 1.1, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, 3.584);
+      tl.to(["#f2-walls", "#f2-threadA", "#f2-labels", "#f2-coreglow"], { opacity: 0.4, duration: 0.35, ease: "power2.out" }, 2.95);
+      tl.to(["#f2-walls", "#f2-threadA", "#f2-labels", "#f2-coreglow"], { opacity: 0.18, duration: 0.6, ease: "power2.out" }, 3.7);
+      tl.to("#f2-cam", { y: -110, duration: 0.6, ease: "expo.inOut" }, 3.9);
+      tl.to("#f2-flare", { y: -110, duration: 0.6, ease: "expo.inOut" }, 3.9);
+      // Wordmark tracks in: letters start spread wide and settle to Fabbro's 0.35em.
+      const word = document.getElementById("f2-word");
+      const letters = word.textContent.split("");
+      word.textContent = "";
+      letters.forEach((ch) => {
+        const sp = document.createElement("span");
+        sp.className = "f2-ch";
+        sp.textContent = ch;
+        word.appendChild(sp);
+      });
+      tl.fromTo("#f2-word", { y: 12 }, { y: -80, duration: 0.7, ease: "expo.out" }, 4.096);
+      gsap.utils.toArray(".f2-ch").forEach((sp, i) => {
+        tl.fromTo(sp, { x: (i - (letters.length - 1) / 2) * 34, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 4.096);
+      });
+      tl.fromTo("#f2-tag", { opacity: 0, y: 20, filter: "blur(10px)" }, { opacity: 1, y: -80, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, 4.608);
+
+      // Scene 4 — dive into the mark.
+      tl.to("#f2-world", { scale: 7.5, transformOrigin: "960px 430px", filter: "blur(6px)", duration: 1.0, ease: "power4.in" }, 5.12);
+
+      window.__timelines["02-thread"] = tl;
+    })();
+  </script>
+</template>

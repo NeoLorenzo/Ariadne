@@ -1,0 +1,363 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f7-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 55% at 50% 45%, #061222 0%, #000 68%);
+    }
+    #f7-cam {
+      position: absolute;
+      inset: 0;
+    }
+    .f7-card {
+      position: absolute;
+      left: 0;
+      top: 0;
+      padding: 18px 22px;
+      border-radius: 14px;
+      background: #111113;
+      border: 1px solid #27272a;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+      white-space: nowrap;
+    }
+    .f7-k {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    .f7-t {
+      margin-top: 8px;
+      font-size: 21px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .f7-p {
+      padding: 4px 9px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 750;
+      color: #f26d6d;
+      background: rgba(242, 109, 109, 0.14);
+    }
+    .f7-score {
+      font-size: 30px;
+      font-weight: 700;
+    }
+    .f7-bar {
+      margin-top: 10px;
+      height: 4px;
+      width: 190px;
+      border-radius: 2px;
+      background: #1c1c1f;
+      overflow: hidden;
+    }
+    .f7-bar i {
+      display: block;
+      width: 84%;
+      height: 100%;
+      background: #0088ff;
+    }
+    .f7-lit {
+      position: absolute;
+      inset: -1px;
+      border-radius: 14px;
+      border: 1.5px solid #0088ff;
+      box-shadow: 0 0 0 4px rgba(0, 136, 255, 0.12), 0 0 40px rgba(0, 136, 255, 0.35);
+    }
+    .f7-svg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: visible;
+    }
+    .f7-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-width: 13;
+      stroke-linecap: round;
+      opacity: 0.55;
+    }
+    .f7-core {
+      fill: none;
+      stroke: #2b9bff;
+      stroke-width: 3.6;
+      stroke-linecap: round;
+    }
+    .f7-comet {
+      fill: none;
+      stroke: #e6f4ff;
+      stroke-width: 4.2;
+      stroke-linecap: round;
+    }
+    #f7-mark-fill {
+      fill: #0088ff;
+    }
+    #f7-mark-glow {
+      fill: none;
+      stroke: #0088ff;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.6;
+    }
+    #f7-mark-line {
+      fill: none;
+      stroke: #7cc1ff;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #f7-mark-comet {
+      fill: none;
+      stroke: #e6f4ff;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+    #f7-markg {
+      filter: drop-shadow(0 0 22px rgba(0, 136, 255, 0.6));
+    }
+    #f7-flare {
+      position: absolute;
+      left: 610px;
+      top: 45px;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 136, 255, 0.5) 0%, rgba(0, 136, 255, 0.14) 32%, rgba(0, 136, 255, 0) 66%);
+    }
+    #f7-lock {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 548px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #f7-word {
+      font-size: 60px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.35em;
+      margin-right: -0.35em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+    }
+    .f7-ch {
+      display: inline-block;
+    }
+    #f7-hero {
+      margin-top: 40px;
+      font-size: 92px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.12em;
+      margin-right: -0.12em;
+      text-transform: uppercase;
+    }
+    #f7-fab {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 830px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    #f7-fab img {
+      width: 26px;
+      height: 26px;
+    }
+    #f7-black {
+      position: absolute;
+      inset: 0;
+      background: #000;
+    }
+  </style>
+
+  <div id="root" data-composition-id="07-close" data-width="1920" data-height="1080">
+    <div id="f7-bg" class="clip" data-start="0" data-duration="6.144" data-track-index="0"></div>
+    <div id="f7-cam" data-layout-allow-overflow data-layout-allow-overlap>
+      <svg class="f7-svg" id="f7-under" viewBox="0 0 1920 1080">
+        <defs>
+          <filter id="f7-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5" /></filter>
+        </defs>
+        <g class="f7-W">
+          <path class="f7-glow f7-w" d="/*W*/" filter="url(#f7-blur)" />
+          <path class="f7-core f7-w" d="/*W*/" />
+          <path class="f7-comet f7-wc" d="/*W*/" />
+        </g>
+        <g class="f7-head">
+          <circle r="16" fill="rgba(0,136,255,0.35)" filter="url(#f7-blur)" />
+          <circle r="8" fill="rgba(0,136,255,0.5)" />
+          <circle r="4.2" fill="#f2f9ff" />
+        </g>
+      </svg>
+      <div class="f7-card" id="f7-c0" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Direction</div><div data-layout-allow-overlap class="f7-t">Become a credible ML researcher</div><span class="f7-lit" id="f7-l0"></span></div>
+      <div class="f7-card" id="f7-c1" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Strategic objective</div><div data-layout-allow-overlap class="f7-t">Earn a place in a research lab</div><span class="f7-lit" id="f7-l1"></span></div>
+      <div class="f7-card" id="f7-c2" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Task</div><div data-layout-allow-overlap class="f7-t">Apply: Frontier Safety Fellowship <span class="f7-p">P1</span></div><span class="f7-lit" id="f7-l2"></span></div>
+      <div class="f7-card" id="f7-c3" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k" style="color: #0088ff">Deadline</div><div data-layout-allow-overlap class="f7-t">Closes in 3 days</div><span class="f7-lit" id="f7-l3"></span></div>
+      <div class="f7-card" id="f7-c4" data-layout-allow-overlap><div data-layout-allow-overlap class="f7-k">Vector</div><div data-layout-allow-overlap class="f7-t">Intellectual <span class="f7-score">84</span></div><div class="f7-bar"><i></i></div><span class="f7-lit" id="f7-l4"></span></div>
+      <svg class="f7-svg" id="f7-over" viewBox="0 0 1920 1080">
+        <defs>
+          <clipPath id="f7-clip"></clipPath>
+          <mask id="f7-markmask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="140" height="140">
+            <path id="f7-mask-line" d="/*B*/" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" />
+          </mask>
+        </defs>
+        <g clip-path="url(#f7-clip)">
+          <g class="f7-W">
+            <path class="f7-glow f7-w" d="/*W*/" filter="url(#f7-blur)" />
+            <path class="f7-core f7-w" d="/*W*/" />
+            <path class="f7-comet f7-wc" d="/*W*/" />
+          </g>
+          <g class="f7-head">
+            <circle r="16" fill="rgba(0,136,255,0.35)" filter="url(#f7-blur)" />
+            <circle r="8" fill="rgba(0,136,255,0.5)" />
+            <circle r="4.2" fill="#f2f9ff" />
+          </g>
+        </g>
+        <g id="f7-markpop">
+          <g id="f7-markg" transform="translate(/*MX*/ /*MY*/) scale(/*MS*/)">
+            <path id="f7-mark-fill" d="/*MARK*/" mask="url(#f7-markmask)" />
+            <path id="f7-mark-glow" d="/*B*/" filter="url(#f7-blur)" />
+            <path id="f7-mark-line" d="/*B*/" />
+            <path id="f7-mark-comet" d="/*B*/" />
+          </g>
+        </g>
+        <g class="f7-head" id="f7-head-top">
+          <circle r="16" fill="rgba(0,136,255,0.35)" filter="url(#f7-blur)" />
+          <circle r="8" fill="rgba(0,136,255,0.5)" />
+          <circle r="4.2" fill="#f2f9ff" />
+        </g>
+      </svg>
+    </div>
+    <div id="f7-flare"></div>
+    <div id="f7-lock">
+      <div id="f7-word">Ariadne</div>
+      <div id="f7-hero">Find your thread.</div>
+    </div>
+    <div id="f7-fab"><img src="assets/brand/fabbro-mark.svg" alt="" />A Fabbro Systems product</div>
+    <div id="f7-black"></div>
+  </div>
+
+  <script>
+    document.fonts.load('900 92px "Inter"').then(function () {
+      const CARDS = /*CARDS*/; // rest pose, whether the thread passes over it, and where along the weave
+      const W = /*WDATA*/; // weave path { len, pts } in screen px
+      const B = /*BDATA*/; // mark centreline { len (mark units), pts (screen px) }
+      const T_IN = 0.2, TW = 1.25, TB = 0.6; // weave 0.2→1.45 · write the mark 1.45→2.05 (bar line)
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Clip for the "over" copy: the rest pose of each card the thread passes over.
+      const NS = "http://www.w3.org/2000/svg";
+      const clip = document.getElementById("f7-clip");
+      CARDS.forEach((c, i) => {
+        if (!c.over) return;
+        const el = document.getElementById("f7-c" + i);
+        const w = el.offsetWidth, h = el.offsetHeight;
+        const r = document.createElementNS(NS, "rect");
+        r.setAttribute("x", c.x);
+        r.setAttribute("y", c.y);
+        r.setAttribute("width", w);
+        r.setAttribute("height", h);
+        r.setAttribute("rx", 14);
+        r.setAttribute("transform", "rotate(" + c.r + " " + (c.x + w / 2) + " " + (c.y + h / 2) + ")");
+        clip.appendChild(r);
+      });
+
+      // Scene 1 — pull back across the floating pieces; the thread weaves over and under them.
+      tl.set("#f7-cam", { transformOrigin: "50% 50%" }, 0);
+      tl.fromTo("#f7-cam", { scale: 1.26 }, { scale: 1.0, duration: 1.4, ease: "power3.out" }, 0);
+      CARDS.forEach((c, i) => {
+        tl.fromTo("#f7-c" + i, { x: c.x + 30, y: c.y + 40, rotation: c.r * 1.6, opacity: 0 },
+          { x: c.x, y: c.y, rotation: c.r, opacity: 1, duration: 0.55, ease: "expo.out" }, i * 0.04);
+        tl.set("#f7-l" + i, { opacity: 0 }, 0);
+      });
+      const COMET = 150, BC = 26;
+      tl.set(".f7-w", { attr: { "stroke-dasharray": W.len + " " + W.len }, strokeDashoffset: W.len }, 0);
+      tl.set(".f7-wc", { attr: { "stroke-dasharray": COMET + " " + W.len * 2 }, strokeDashoffset: COMET, opacity: 0 }, 0);
+      tl.set(["#f7-mark-line", "#f7-mark-glow", "#f7-mask-line"], { attr: { "stroke-dasharray": B.len + " " + B.len }, strokeDashoffset: B.len }, 0);
+      tl.set("#f7-mark-comet", { attr: { "stroke-dasharray": BC + " " + B.len * 2 }, strokeDashoffset: BC, opacity: 0 }, 0);
+      tl.set(".f7-head", { x: W.pts[0][0], y: W.pts[0][1] }, 0);
+      tl.set("#f7-head-top", { opacity: 0 }, 0);
+
+      const draw = gsap.timeline();
+      draw.to(".f7-w", { strokeDashoffset: 0, duration: TW, ease: "power1.in" }, 0);
+      draw.to(".f7-wc", { strokeDashoffset: COMET - W.len, duration: TW, ease: "power1.in" }, 0);
+      draw.to(".f7-head", { keyframes: W.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power1.in", duration: TW }, 0);
+      draw.to(["#f7-mark-line", "#f7-mark-glow", "#f7-mask-line"], { strokeDashoffset: 0, duration: TB, ease: "power2.out" }, TW);
+      draw.to("#f7-mark-comet", { strokeDashoffset: BC - B.len, duration: TB, ease: "power2.out" }, TW);
+      draw.to(".f7-head", { keyframes: B.pts.slice(1).map(([x, y]) => ({ x, y, ease: "none" })), ease: "power2.out", duration: TB }, TW);
+      // The tail pulls through after the head: the whole thread becomes the mark.
+      draw.to(".f7-w", { strokeDashoffset: -W.len, duration: 0.7, ease: "power2.in" }, TW);
+      tl.add(draw, T_IN);
+      tl.to(".f7-wc", { opacity: 1, duration: 0.1 }, T_IN);
+      tl.to(".f7-wc", { opacity: 0, duration: 0.1 }, T_IN + TW - 0.05);
+      tl.to("#f7-mark-comet", { opacity: 1, duration: 0.05 }, T_IN + TW);
+      tl.to("#f7-head-top", { opacity: 1, duration: 0.01 }, T_IN + TW);
+      tl.to([".f7-head", "#f7-mark-comet"], { opacity: 0, duration: 0.25 }, T_IN + TW + TB);
+      tl.to(["#f7-mark-line", "#f7-mark-glow"], { opacity: 0, duration: 0.5, ease: "power2.out" }, T_IN + TW + TB + 0.05);
+
+      // Cards light as the head crosses them (power1.in reaches progress p at √p of the time).
+      CARDS.forEach((c, i) => {
+        const at = T_IN + TW * Math.sqrt(c.frac);
+        tl.to("#f7-l" + i, { opacity: 1, duration: 0.18, ease: "power2.out" }, at - 0.04);
+        tl.to("#f7-c" + i, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, at - 0.04);
+      });
+
+      // Scene 2 — the pieces fall away into black as the thread lets go of them.
+      CARDS.forEach((c, i) => {
+        tl.to("#f7-c" + i, { y: c.y + 120, opacity: 0, filter: "blur(10px)", duration: 0.55, ease: "power3.in" }, 1.5 + i * 0.05);
+      });
+
+      // Scene 3 — the mark lands on the bar line (2.048); lockup, hero line, family endorsement.
+      tl.fromTo("#f7-flare", { scale: 0.1, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 0.35, ease: "power3.out" }, 2.02);
+      tl.to("#f7-flare", { scale: 0.95, opacity: 0.55, duration: 1.2, ease: "power2.out" }, 2.37);
+      tl.fromTo("#f7-markpop", { scale: 1, svgOrigin: "/*MC*/" }, { scale: 1.08, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, 2.048);
+      const word = document.getElementById("f7-word");
+      const letters = word.textContent.split("");
+      word.textContent = "";
+      letters.forEach((ch) => { const sp = document.createElement("span"); sp.className = "f7-ch"; sp.textContent = ch; word.appendChild(sp); });
+      gsap.utils.toArray(".f7-ch").forEach((sp, i) => {
+        tl.fromTo(sp, { x: (i - (letters.length - 1) / 2) * 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 2.56);
+      });
+      tl.fromTo("#f7-hero", { opacity: 0, y: 26, scale: 1.08, filter: "blur(14px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "expo.out" }, 3.072);
+      tl.fromTo("#f7-fab", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 3.584);
+      tl.to(["#f7-lock", "#f7-fab"], { scale: 1.025, duration: 2.4, ease: "none" }, 3.2);
+      tl.to("#f7-cam", { scale: 1.025, duration: 2.4, ease: "none" }, 3.2);
+      // Final frame: settle to black.
+      tl.fromTo("#f7-black", { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "power2.in" }, 5.55);
+
+      window.__timelines["07-close"] = tl;
+      if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+    });
+  </script>
+</template>

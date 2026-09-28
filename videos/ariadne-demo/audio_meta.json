@@ -1,0 +1,79 @@
+{
+  "bgm": {
+    "path": "assets/bgm/ariadne-score.mp3",
+    "volume": 1.0
+  },
+  "voices": [],
+  "sfx": [
+    {
+      "frame": 3,
+      "file": "assets/sfx/click.mp3",
+      "offset_s": 4.6,
+      "duration_s": 0.36,
+      "volume": 0.65
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/pop.mp3",
+      "offset_s": 5.12,
+      "duration_s": 0.72,
+      "volume": 0.35
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/click.mp3",
+      "offset_s": 1.53,
+      "duration_s": 0.36,
+      "volume": 0.65
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/pop.mp3",
+      "offset_s": 3.584,
+      "duration_s": 0.72,
+      "volume": 0.3
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/click.mp3",
+      "offset_s": 2.04,
+      "duration_s": 0.36,
+      "volume": 0.65
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/pop.mp3",
+      "offset_s": 4.45,
+      "duration_s": 0.72,
+      "volume": 0.3
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/click-soft.mp3",
+      "offset_s": 1.536,
+      "duration_s": 0.36,
+      "volume": 0.4
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/click-soft.mp3",
+      "offset_s": 2.048,
+      "duration_s": 0.36,
+      "volume": 0.4
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/click-soft.mp3",
+      "offset_s": 2.56,
+      "duration_s": 0.36,
+      "volume": 0.4
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/click-soft.mp3",
+      "offset_s": 3.072,
+      "duration_s": 0.36,
+      "volume": 0.4
+    }
+  ]
+}

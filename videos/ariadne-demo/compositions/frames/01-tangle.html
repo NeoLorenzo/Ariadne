@@ -1,0 +1,230 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f1-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, #07101c 0%, #000 70%);
+    }
+    #f1-cam {
+      position: absolute;
+      inset: 0;
+    }
+    .f1-chip {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 22px 14px 16px;
+      border-radius: 12px;
+      background: #111113;
+      border: 1px solid #27272a;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      color: #d0d0d0;
+      white-space: nowrap;
+    }
+    .f1-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid #3f3f46;
+      flex: none;
+    }
+    .f1-p {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 6px;
+      margin-left: 4px;
+    }
+    .f1-p1 { color: #f26d6d; background: rgba(242, 109, 109, 0.12); }
+    .f1-p2 { color: #f0a53a; background: rgba(240, 165, 58, 0.12); }
+    .f1-p3 { color: #e2c044; background: rgba(226, 192, 68, 0.12); }
+    #f1-head {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .f1-line {
+      display: flex;
+      align-items: center;
+      gap: 56px;
+      font-size: 196px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .f1-word {
+      display: block;
+      text-shadow: 0 10px 60px rgba(0, 0, 0, 0.9);
+    }
+    #f1-neq {
+      color: #7c7c84;
+      font-weight: 700;
+    }
+    #f1-dot {
+      position: absolute;
+      left: 953px;
+      top: 533px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #eaf5ff;
+      box-shadow: 0 0 14px 5px rgba(0, 136, 255, 0.95), 0 0 70px 24px rgba(0, 136, 255, 0.35);
+    }
+    #f1-wave {
+      position: absolute;
+      left: 760px;
+      top: 340px;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 136, 255, 0.7);
+      box-shadow: 0 0 30px rgba(0, 136, 255, 0.5), inset 0 0 30px rgba(0, 136, 255, 0.3);
+    }
+  </style>
+
+  <div id="root" data-composition-id="01-tangle" data-width="1920" data-height="1080">
+    <div id="f1-bg" class="clip" data-start="0" data-duration="4.352" data-track-index="0"></div>
+    <div id="f1-cam" data-layout-allow-overflow>
+      <div id="f1-field" data-layout-allow-overlap data-layout-allow-occlusion></div>
+      <div id="f1-head" data-layout-allow-overlap data-layout-allow-occlusion>
+        <div class="f1-line">
+          <span id="f1-busy" class="f1-word" data-layout-allow-overlap data-layout-allow-occlusion>Busy</span>
+          <span id="f1-neq" class="f1-word" data-layout-allow-overlap data-layout-allow-occlusion>&ne;</span>
+        </div>
+        <div class="f1-line">
+          <span id="f1-moving" class="f1-word" data-layout-allow-overlap data-layout-allow-occlusion>Moving.</span>
+        </div>
+      </div>
+    </div>
+    <div id="f1-wave"></div>
+    <div id="f1-dot"></div>
+  </div>
+
+  <script>
+    document.fonts.load('900 196px "Inter"').then(function () {
+      const TASKS = [
+        ["Answer 43 unread emails", 2], ["Reorganize reading list", 0], ["Compare six to-do apps", 0],
+        ["Reply to 12 comments", 3], ["Tweak portfolio fonts", 0], ["Rename project folders", 0],
+        ["Draft methods section", 1], ["Sync calendar colors", 0], ["Watch one more tutorial", 0],
+        ["Clean up bookmarks", 3], ["Outline October essay", 2], ["Update profile photo", 0],
+        ["Refactor dotfiles", 0], ["Long run — 18 km", 2], ["Research note-taking apps", 0],
+        ["Archive old drafts", 3], ["Plan the plan", 0], ["Replicate eval baseline", 2],
+        ["Tidy the desktop", 0], ["Book physio", 3], ["Read three papers", 0],
+        ["Fix the CSS bug", 2], ["Newsletter signup page", 3], ["Review budget", 0],
+        ["Inbox zero", 0], ["Apply: Safety Fellowship", 1],
+      ];
+      // Seeded PRNG — deterministic chip placement.
+      let s = 7;
+      const rnd = () => {
+        s |= 0; s = (s + 0x6d2b79f5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+
+      const field = document.getElementById("f1-field");
+      const LAYERS = [
+        { scale: 0.62, opacity: 0.32, blur: 2.2 },
+        { scale: 0.9, opacity: 0.72, blur: 0 },
+        { scale: 1.32, opacity: 0.9, blur: 4 },
+      ];
+      const chips = TASKS.map(([label, p], i) => {
+        const el = document.createElement("div");
+        el.className = "f1-chip";
+        el.setAttribute("data-layout-allow-overlap", "");
+        el.setAttribute("data-layout-allow-occlusion", "");
+        el.innerHTML = '<span class="f1-box"></span><span data-layout-allow-overlap data-layout-allow-occlusion>' + label + "</span>" +
+          (p ? '<span class="f1-p f1-p' + p + '" data-layout-allow-overlap data-layout-allow-occlusion>P' + p + "</span>" : "");
+        const layer = LAYERS[i % 3];
+        el.style.zIndex = String(i % 3);
+        if (layer.blur) el.style.filter = "blur(" + layer.blur + "px)";
+        field.appendChild(el);
+        // Rest in a ring-ish field around the headline, never dead centre.
+        const a = (i / TASKS.length) * Math.PI * 2 + rnd() * 0.6;
+        const rx = 560 + rnd() * 340;
+        const ry = 300 + rnd() * 170;
+        const x = 960 + Math.cos(a) * rx;
+        const y = 540 + Math.sin(a) * ry;
+        return { el, layer, x, y, a, dx: (rnd() - 0.5) * 220, dy: (rnd() - 0.5) * 120, r0: (rnd() - 0.5) * 30, r1: (rnd() - 0.5) * 14, d: rnd() };
+      });
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Camera: slow push the whole time — the busy world feels close and crowded.
+      tl.fromTo("#f1-cam", { scale: 1 }, { scale: 1.08, duration: 3.2, ease: "none" }, 0);
+
+      // Scene 1–2: chips fly in from beyond the edges, then keep drifting.
+      chips.forEach((c, i) => {
+        const inAt = 0.02 * i;
+        const inDur = 1.05 + c.d * 0.4;
+        const fromX = 960 + Math.cos(c.a) * 1500;
+        const fromY = 540 + Math.sin(c.a) * 1000;
+        tl.fromTo(c.el,
+          { x: fromX, y: fromY, xPercent: -50, yPercent: -50, scale: c.layer.scale, rotation: c.r0 * 2, opacity: 0 },
+          { x: c.x, y: c.y, rotation: c.r0, opacity: c.layer.opacity, duration: inDur, ease: "expo.out" }, inAt);
+        const driftStart = inAt + inDur;
+        tl.to(c.el, { x: c.x + c.dx, y: c.y + c.dy, rotation: c.r0 + c.r1, duration: 2.81 - driftStart, ease: "none" }, driftStart);
+        // Scene 3: every chip is pulled into the single point.
+        tl.to(c.el, { x: 960, y: 540, scale: 0.04, rotation: c.r0 * 3, opacity: 0, duration: 0.7 + c.d * 0.25, ease: "power4.in" }, 2.81 + c.d * 0.1);
+      });
+
+      // Headline slams, on beats.
+      const slam = (sel, at) => tl.fromTo(sel,
+        { scale: 1.45, opacity: 0, filter: "blur(24px)" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.42, ease: "expo.out" }, at);
+      // Keep whatever is visible optically centred: BUSY starts centred on its own,
+      // slides left as the ≠ lands; the first line starts centred vertically and rises
+      // when MOVING arrives.
+      const neq = document.getElementById("f1-neq");
+      const shiftX = (neq.offsetWidth + 56) / 2;
+      const shiftY = (document.getElementById("f1-moving").offsetHeight + 6) / 2;
+      tl.fromTo("#f1-busy", { x: shiftX }, { x: shiftX, duration: 0.01 }, 0);
+      tl.fromTo(".f1-line", { y: shiftY }, { y: shiftY, duration: 0.01 }, 0);
+      slam("#f1-busy", 0.25);
+      tl.to("#f1-busy", { x: 0, duration: 0.45, ease: "expo.out" }, 1.274);
+      slam("#f1-neq", 1.274);
+      tl.to(".f1-line", { y: 0, duration: 0.45, ease: "expo.out" }, 1.786);
+      slam("#f1-moving", 1.786);
+      // A small shake on the MOVING hit.
+      tl.fromTo("#f1-head", { x: 0 }, { keyframes: [{ x: -8, duration: 0.04 }, { x: 7, duration: 0.04 }, { x: -4, duration: 0.04 }, { x: 0, duration: 0.05 }] }, 1.806);
+
+      // Headline sucked into the point.
+      tl.to(".f1-word", { scale: 0.08, opacity: 0, filter: "blur(18px)", duration: 0.55, ease: "power3.in", stagger: 0.05 }, 2.95);
+
+      // The point ignites, the tangle arrives, a shockwave rings out, the point settles.
+      tl.fromTo("#f1-dot", { scale: 0, opacity: 0 }, { scale: 1.6, opacity: 1, duration: 0.35, ease: "back.out(3)" }, 2.81);
+      tl.to("#f1-dot", { scale: 2.6, duration: 0.12, ease: "power2.out" }, 3.83);
+      tl.to("#f1-dot", { scale: 1, duration: 0.33, ease: "power3.out" }, 3.95);
+      tl.fromTo("#f1-wave", { scale: 0.02, opacity: 0 }, { scale: 0.02, opacity: 1, duration: 0.01 }, 3.83);
+      tl.to("#f1-wave", { scale: 2.4, opacity: 0, duration: 0.42, ease: "power2.out" }, 3.84);
+
+      window.__timelines["01-tangle"] = tl;
+      if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+    });
+  </script>
+</template>

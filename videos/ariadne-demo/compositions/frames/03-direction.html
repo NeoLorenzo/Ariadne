@@ -1,0 +1,578 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f3-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 70% at 50% 110%, #06111f 0%, #000 60%);
+    }
+    #f3-cam {
+      position: absolute;
+      inset: 0;
+    }
+    #f3-persp {
+      position: absolute;
+      inset: 0;
+      perspective: 2200px;
+      perspective-origin: 50% 20%;
+    }
+    #f3-stage {
+      position: absolute;
+      left: 140px;
+      top: 168px;
+      width: 1312px;
+      height: 704px;
+      transform-origin: 0 0;
+    }
+    #f3-window {
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: #000;
+      border: 1px solid #27272a;
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.02), 0 -1px 0 rgba(255, 255, 255, 0.06) inset;
+      overflow: hidden;
+      transform-origin: 50% 0%;
+    }
+    .f3-chrome {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 14px;
+      background: #0a0a0b;
+      border-bottom: 1px solid #1c1c1f;
+    }
+    .f3-chrome i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #27272a;
+    }
+    .f3-url {
+      margin: 0 auto;
+      padding: 4px 60px;
+      border-radius: 6px;
+      background: #111113;
+      font-size: 11px;
+      color: #7c7c84;
+    }
+    .f3-app {
+      position: absolute;
+      top: 34px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+    }
+    .f3-side {
+      width: 214px;
+      flex: none;
+      background: #0a0a0b;
+      border-right: 1px solid #1c1c1f;
+      padding: 18px 12px;
+    }
+    .f3-side img {
+      display: block;
+      width: 128px;
+      margin: 4px 8px 26px;
+    }
+    .f3-group {
+      padding: 0 10px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    .f3-nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a0a0a0;
+    }
+    .f3-nav svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .f3-nav.f3-on {
+      background: rgba(255, 255, 255, 0.06);
+      color: #f4f4f5;
+    }
+    .f3-nav.f3-on::before {
+      content: "";
+      position: absolute;
+      left: -12px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      border-radius: 2px;
+      background: #0088ff;
+    }
+    .f3-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .f3-util {
+      height: 46px;
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid #1c1c1f;
+      font-size: 13px;
+      font-weight: 600;
+      color: #d0d0d0;
+    }
+    .f3-util img {
+      width: 20px;
+      opacity: 0.8;
+    }
+    .f3-content {
+      padding: 24px 28px;
+    }
+    .f3-kick {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #7c7c84;
+    }
+    .f3-title {
+      margin-top: 6px;
+      font-size: 24px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+    .f3-sub {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #a0a0a0;
+    }
+    .f3-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 318px;
+      gap: 16px;
+    }
+    .f3-card {
+      background: #0a0a0b;
+      border: 1px solid #1c1c1f;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .f3-card-h {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .f3-card-h small {
+      font-size: 11px;
+      font-weight: 500;
+      color: #7c7c84;
+    }
+    .f3-tiles {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px 18px;
+    }
+    .f3-tile-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+    .f3-score {
+      display: block;
+      font-size: 19px;
+      font-weight: 650;
+      color: #f4f4f5;
+      font-variant-numeric: tabular-nums;
+    }
+    .f3-score.f3-na {
+      font-size: 11px;
+      font-weight: 500;
+      color: #7c7c84;
+    }
+    .f3-track {
+      margin-top: 6px;
+      height: 3px;
+      border-radius: 2px;
+      background: #1c1c1f;
+      overflow: hidden;
+    }
+    .f3-fill {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 2px;
+      background: #0088ff;
+      transform-origin: 0 50%;
+    }
+    .f3-meta {
+      margin-top: 5px;
+      font-size: 10.5px;
+      color: #7c7c84;
+    }
+    .f3-sect {
+      margin: 16px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .f3-count {
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: #18181b;
+      font-size: 11px;
+      color: #a0a0a0;
+    }
+    .f3-dirs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .f3-dir {
+      position: relative;
+      background: #0a0a0b;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 13px 14px 14px;
+    }
+    .f3-dir-k {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: #0088ff;
+    }
+    .f3-dir-t {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .f3-dir-s {
+      margin-top: 6px;
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: #a0a0a0;
+    }
+    .f3-tags {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+    }
+    .f3-tag {
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid #27272a;
+      background: #111113;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+    #f3-glow {
+      position: absolute;
+      inset: -1px;
+      border-radius: 12px;
+      border: 1.5px solid #0088ff;
+      box-shadow: 0 0 0 4px rgba(0, 136, 255, 0.14), 0 0 40px rgba(0, 136, 255, 0.35);
+    }
+    #f3-drives {
+      position: absolute;
+      right: 12px;
+      top: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(0, 136, 255, 0.14);
+      border: 1px solid rgba(0, 136, 255, 0.4);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #7cc1ff;
+      white-space: nowrap;
+    }
+    .f3-notice {
+      margin-top: 10px;
+      padding: 9px 11px;
+      border-radius: 8px;
+      border: 1px solid #1c1c1f;
+      border-left: 2px solid var(--c);
+      background: #111113;
+    }
+    .f3-notice b {
+      display: block;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c);
+    }
+    .f3-notice span {
+      display: block;
+      margin-top: 3px;
+      font-size: 11.5px;
+      color: #d0d0d0;
+    }
+    .f3-repo {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid #1c1c1f;
+      font-size: 11.5px;
+      color: #d0d0d0;
+    }
+    .f3-repo em {
+      font-style: normal;
+      color: #3ecf8e;
+      font-weight: 600;
+    }
+    #f3-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+    }
+    #f3-ripple {
+      position: absolute;
+      left: -22px;
+      top: -22px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 136, 255, 0.9);
+      background: rgba(0, 136, 255, 0.18);
+    }
+    #f3-head {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      white-space: nowrap;
+      transform-origin: 0 50%;
+    }
+    #f3-rule {
+      display: block;
+      width: 72px;
+      height: 6px;
+      border-radius: 3px;
+      background: #0088ff;
+      box-shadow: 0 0 24px rgba(0, 136, 255, 0.8);
+      transform-origin: 0 50%;
+    }
+    #f3-head-t {
+      font-size: 104px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+  </style>
+
+  <div id="root" data-composition-id="03-direction" data-width="1920" data-height="1080">
+    <div id="f3-bg" class="clip" data-start="0" data-duration="6.144" data-track-index="0"></div>
+    <div id="f3-cam" data-layout-allow-overflow>
+      <div id="f3-persp">
+        <div id="f3-stage" data-layout-allow-overlap>
+          <div id="f3-window" data-layout-allow-overlap>
+            <div class="f3-chrome"><i></i><i></i><i></i><span class="f3-url">ariadne.fabbrosystems.com</span></div>
+            <div class="f3-app">
+              <aside class="f3-side">
+                <img src="assets/brand/ariadne-lockup.svg" alt="" />
+                <div class="f3-group">Direction &amp; execution</div>
+                <div class="f3-nav f3-on">
+                  <svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>
+                  Dashboard
+                </div>
+                <div class="f3-nav">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="5" width="6" height="6" rx="1" /><path d="m3 17 2 2 4-4" /><path d="M13 6h8" /><path d="M13 12h8" /><path d="M13 18h8" /></svg>
+                  Tasks
+                </div>
+                <div class="f3-nav">
+                  <svg viewBox="0 0 24 24"><path d="M12 12h.01" /><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" /><path d="M22 13a18.15 18.15 0 0 1-20 0" /><rect width="20" height="14" x="2" y="6" rx="2" /></svg>
+                  Opportunities
+                </div>
+              </aside>
+              <main class="f3-main">
+                <div class="f3-util"><span>Dashboard</span><img src="assets/brand/fabbro-mark.svg" alt="" /></div>
+                <div class="f3-content">
+                  <div class="f3-kick">Monday, October 13</div>
+                  <div class="f3-title">Dashboard</div>
+                  <div class="f3-sub">Current position, active directions, and the signals that need attention.</div>
+                  <div class="f3-grid">
+                    <div>
+                      <div class="f3-card" id="f3-pos">
+                        <div class="f3-card-h">Current position <small>Kleos assessment · Oct 6</small></div>
+                        <div class="f3-tiles" id="f3-tiles"></div>
+                      </div>
+                      <div class="f3-sect">Active directions <span class="f3-count">3</span></div>
+                      <div class="f3-dirs">
+                        <div class="f3-dir" id="f3-d1">
+                          <div class="f3-dir-k">D1</div>
+                          <div class="f3-dir-t">Become a credible ML researcher</div>
+                          <div class="f3-dir-s">Build the depth, evidence and relationships to do original research.</div>
+                          <div class="f3-tags"><span class="f3-tag">Intellectual</span><span class="f3-tag">Professional</span></div>
+                          <div id="f3-glow"></div>
+                          <div id="f3-drives">2 objectives · 3 tasks</div>
+                        </div>
+                        <div class="f3-dir" id="f3-d2">
+                          <div class="f3-dir-k">D2</div>
+                          <div class="f3-dir-t">Build a sustainable creative practice</div>
+                          <div class="f3-dir-s">Publish consistently and turn writing into an audience.</div>
+                          <div class="f3-tags"><span class="f3-tag">Creative</span><span class="f3-tag">Financial</span></div>
+                        </div>
+                        <div class="f3-dir" id="f3-d3">
+                          <div class="f3-dir-k">D3</div>
+                          <div class="f3-dir-t">Train for a first marathon</div>
+                          <div class="f3-dir-s">Rebuild an aerobic base and finish a spring marathon healthy.</div>
+                          <div class="f3-tags"><span class="f3-tag">Physical</span><span class="f3-tag">Psychological</span></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="f3-card" id="f3-notices">
+                        <div class="f3-card-h">Notice board <small>3 issues</small></div>
+                        <div class="f3-notice" style="--c: #f26d6d"><b>Danger</b><span>Newsletter has no publication for 34 days.</span></div>
+                        <div class="f3-notice" style="--c: #f0a53a"><b>Major warning</b><span>thesis-experiments has no commit for 19 days.</span></div>
+                        <div class="f3-notice" style="--c: #e2c044"><b>Warning</b><span>portfolio-site has no commit for 9 days.</span></div>
+                      </div>
+                      <div class="f3-card" style="margin-top: 16px">
+                        <div class="f3-card-h">Repositories <small>Synced</small></div>
+                        <div class="f3-repo"><span>ml-evals</span><em>12m</em></div>
+                        <div class="f3-repo"><span>essay-drafts</span><em>3h</em></div>
+                        <div class="f3-repo"><span>training-log</span><em>1d</em></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            </div>
+          </div>
+          <svg id="f3-cursor" viewBox="0 0 24 24"><path d="M5 2.5 L5 19.5 L9.3 15.4 L12.2 21.6 L15 20.4 L12.2 14.3 L18.2 14.3 Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round" /></svg>
+          <div id="f3-ripple"></div>
+        </div>
+      </div>
+    </div>
+    <div id="f3-head" data-layout-allow-overlap><span id="f3-rule"></span><span id="f3-head-t" data-layout-allow-overlap>Set your direction.</span></div>
+  </div>
+
+  <script>
+    document.fonts.load('900 104px "Inter"').then(function () {
+      const POS = [
+        ["Physical", 62, 1], ["Psychological", 71, 1], ["Intellectual", 84, 2], ["Professional", 58, 2],
+        ["Financial", 46, 1], ["Relational", null, 1], ["Creative", 76, 1], ["Experiential", 68, 0],
+      ];
+      const tiles = document.getElementById("f3-tiles");
+      POS.forEach(([name, score, dirs], i) => {
+        const el = document.createElement("div");
+        el.className = "f3-tile";
+        el.innerHTML =
+          '<div class="f3-tile-top"><span>' + name + "</span>" +
+          (score === null ? '<span class="f3-score f3-na">No assessment</span>' : '<span class="f3-score" id="f3-s' + i + '">0</span>') +
+          '</div><div class="f3-track"><span class="f3-fill" id="f3-f' + i + '"></span></div>' +
+          '<div class="f3-meta">' + (dirs ? dirs + (dirs > 1 ? " directions" : " direction") : "No direction yet") + "</div>";
+        tiles.appendChild(el);
+      });
+
+      // Logical (pre-transform) offset of an element inside the stage.
+      const stage = document.getElementById("f3-stage");
+      const offsetIn = (el) => {
+        let x = 0, y = 0, n = el;
+        while (n && n !== stage) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+        return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+      };
+      const S = 1.25; // stage scale on screen
+      const toScreen = (p) => ({ x: 140 + p.x * S, y: 168 + p.y * S });
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 — headline fills the frame, the app rises beneath it in perspective.
+      const head = document.getElementById("f3-head");
+      const hw = head.offsetWidth, hh = head.offsetHeight;
+      const hx = (1920 - hw) / 2, hy = (1080 - hh) / 2 - 40;
+      tl.fromTo("#f3-head", { x: hx, y: hy + 40, opacity: 0, scale: 1 }, { y: hy, opacity: 1, duration: 0.5, ease: "expo.out" }, 0);
+      tl.fromTo("#f3-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 0.1);
+      tl.to("#f3-head", { x: 140, y: 70, scale: 0.3, duration: 0.75, ease: "expo.inOut" }, 1.024);
+      tl.fromTo("#f3-stage", { scale: S, y: 480, opacity: 0 }, { y: 0, opacity: 1, duration: 1.3, ease: "expo.out" }, 0.35);
+      tl.fromTo("#f3-window", { rotationX: 28 }, { rotationX: 0, duration: 1.5, ease: "expo.out" }, 0.35);
+      tl.fromTo("#f3-cam", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.03, duration: 3.6, ease: "none" }, 0.2);
+
+      // Scene 2 — current position counts up.
+      POS.forEach(([, score], i) => {
+        const at = 1.536 + i * 0.09;
+        if (score !== null) {
+          tl.fromTo("#f3-s" + i, { innerText: 0 }, { innerText: score, snap: { innerText: 1 }, duration: 0.9, ease: "power3.out" }, at);
+          tl.fromTo("#f3-f" + i, { scaleX: 0 }, { scaleX: score / 100, duration: 0.9, ease: "power3.out" }, at);
+        } else {
+          tl.set("#f3-f" + i, { scaleX: 0 }, 0);
+        }
+      });
+      tl.fromTo(".f3-tile", { opacity: 0.25, y: 6 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.09, ease: "power2.out" }, 1.5);
+      tl.fromTo(".f3-notice", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.12, ease: "power3.out" }, 2.048);
+
+      // Scene 3 — the three concurrent directions arrive; the cursor enters.
+      tl.fromTo(".f3-dir", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "expo.out" }, 3.072);
+
+      const d1 = offsetIn(document.getElementById("f3-d1"));
+      const tip = { x: d1.x + d1.w * 0.42, y: d1.y + d1.h * 0.42 };
+      // Cursor path (logical coords; hotspot is 5,2.5 of a 26px svg ≈ 5.4,2.7 px).
+      tl.set("#f3-cursor", { x: 1180, y: 690, opacity: 0, scale: 1 }, 0);
+      tl.to("#f3-cursor", { opacity: 1, duration: 0.1 }, 3.2);
+      tl.to("#f3-cursor", { x: 760, y: 470, duration: 0.6, ease: "power2.inOut" }, 3.3);
+      tl.to("#f3-cursor", { x: tip.x - 5, y: tip.y - 3, duration: 0.65, ease: "power3.inOut" }, 3.9);
+      // Hover state before the click.
+      tl.to("#f3-d1", { borderColor: "#3f3f46", backgroundColor: "#111113", duration: 0.2 }, 4.45);
+
+      // Scene 4 — camera punches in on the first direction; click at 4.85s.
+      const c = toScreen({ x: d1.x + d1.w / 2, y: d1.y + d1.h / 2 });
+      const Z = 2.05; // frame the card at (960, 560)
+      tl.to("#f3-cam", { scale: Z, x: Z * (960 - c.x), y: 20 + Z * (540 - c.y), duration: 1.2, ease: "expo.inOut" }, 3.85);
+      tl.to("#f3-cursor", { scale: 0.82, duration: 0.08, yoyo: true, repeat: 1, ease: "power2.out" }, 4.6);
+      tl.fromTo("#f3-ripple", { x: tip.x, y: tip.y, scale: 0.2, opacity: 0 }, { scale: 0.2, opacity: 1, duration: 0.01 }, 4.608);
+      tl.to("#f3-ripple", { scale: 1.6, opacity: 0, duration: 0.5, ease: "power2.out" }, 4.62);
+      tl.fromTo("#f3-glow", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 4.62);
+      tl.fromTo("#f3-drives", { opacity: 0, y: -6, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(2)" }, 5.12);
+      tl.to(["#f3-d2", "#f3-d3", "#f3-pos", "#f3-notices"], { opacity: 0.35, duration: 0.4 }, 4.75);
+
+      window.__timelines["03-direction"] = tl;
+      if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+    });
+  </script>
+</template>

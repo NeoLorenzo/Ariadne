@@ -1,0 +1,293 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("assets/fonts/Inter-Variable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      color: #f4f4f5;
+    }
+    #f6-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 60% 55%, #0a0f18 0%, #000 65%);
+    }
+    #f6-cam {
+      position: absolute;
+      inset: 0;
+    }
+    #f6-persp {
+      position: absolute;
+      inset: 0;
+      perspective: 2400px;
+      perspective-origin: 50% 25%;
+    }
+    .f6-panel {
+      position: absolute;
+      top: 210px;
+      height: 640px;
+      border-radius: 16px;
+      background: #0a0a0b;
+      border: 1px solid #1c1c1f;
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8), 0 -1px 0 rgba(255, 255, 255, 0.05) inset;
+      padding: 28px 30px;
+      transform-origin: 50% 0%;
+    }
+    #f6-notices {
+      left: 120px;
+      width: 640px;
+    }
+    #f6-repos {
+      left: 800px;
+      width: 1000px;
+    }
+    .f6-h {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .f6-badge {
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #f26d6d;
+      background: rgba(242, 109, 109, 0.12);
+    }
+    .f6-sync {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #a0a0a0;
+    }
+    .f6-sync i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3ecf8e;
+      box-shadow: 0 0 0 4px rgba(62, 207, 142, 0.18);
+    }
+    .f6-notice {
+      margin-top: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 18px 20px;
+      border-radius: 12px;
+      border: 1px solid #1c1c1f;
+      background: #111113;
+      position: relative;
+      overflow: hidden;
+    }
+    .f6-notice::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--c);
+    }
+    .f6-ico {
+      flex: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: color-mix(in srgb, var(--c) 16%, transparent);
+      color: var(--c);
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .f6-notice b {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--c);
+    }
+    .f6-notice span {
+      display: block;
+      margin-top: 6px;
+      font-size: 17px;
+      color: #d0d0d0;
+    }
+    .f6-cols {
+      margin: 26px 0 10px 186px;
+      display: flex;
+      justify-content: space-between;
+      width: 690px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: #7c7c84;
+    }
+    .f6-repo {
+      position: relative;
+      height: 74px;
+      display: flex;
+      align-items: center;
+      border-top: 1px solid #1c1c1f;
+    }
+    .f6-name {
+      width: 186px;
+      flex: none;
+      font-size: 17px;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+    .f6-cells {
+      display: flex;
+      gap: 4px;
+    }
+    .f6-cell {
+      display: block;
+      width: 19px;
+      height: 30px;
+      border-radius: 4px;
+      background: #151518;
+    }
+    .f6-ago {
+      margin-left: auto;
+      font-size: 17px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+    #f6-flat {
+      position: absolute;
+      top: 14px;
+      bottom: 14px;
+      border-radius: 8px;
+      border: 1.5px dashed rgba(240, 165, 58, 0.8);
+      background: rgba(240, 165, 58, 0.05);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: #f0a53a;
+      transform-origin: 0 50%;
+    }
+    #f6-head {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      white-space: nowrap;
+      transform-origin: 0 50%;
+    }
+    #f6-rule {
+      display: block;
+      width: 72px;
+      height: 6px;
+      border-radius: 3px;
+      background: #0088ff;
+      box-shadow: 0 0 24px rgba(0, 136, 255, 0.8);
+      transform-origin: 0 50%;
+    }
+    #f6-head-t {
+      font-size: 112px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+  </style>
+
+  <div id="root" data-composition-id="06-signals" data-width="1920" data-height="1080" data-duration="4.696">
+    <div id="f6-bg" class="clip" data-start="0" data-duration="4.696" data-track-index="0"></div>
+    <div id="f6-cam" data-layout-allow-overflow>
+      <div id="f6-persp">
+        <div class="f6-panel" id="f6-notices">
+          <div class="f6-h">Notice board <span class="f6-badge">4 issues</span></div>
+          <div class="f6-notice" id="f6-n0" style="--c: #f26d6d"><div class="f6-ico">!</div><div><b>Danger</b><span>Newsletter has no publication for 34 days.</span></div></div>
+          <div class="f6-notice" id="f6-n1" style="--c: #f0a53a"><div class="f6-ico">!</div><div><b>Major warning</b><span>thesis-experiments has no commit for 19 days.</span></div></div>
+          <div class="f6-notice" id="f6-n2" style="--c: #e2c044"><div class="f6-ico">!</div><div><b>Warning</b><span>portfolio-site has no commit for 9 days.</span></div></div>
+          <div class="f6-notice" id="f6-n3" style="--c: #0088ff"><div class="f6-ico">◷</div><div><b>Deadline</b><span>Frontier Safety Fellowship closes in 3 days.</span></div></div>
+        </div>
+        <div class="f6-panel" id="f6-repos">
+          <div class="f6-h">Repositories <span class="f6-sync"><i></i>Synced via GitHub App</span></div>
+          <div class="f6-cols"><span>30 DAYS AGO</span><span>TODAY</span></div>
+          <div id="f6-rows"></div>
+        </div>
+      </div>
+    </div>
+    <div id="f6-head" data-layout-allow-overlap><span id="f6-rule"></span><span id="f6-head-t" data-layout-allow-overlap>See what stalls.</span></div>
+  </div>
+
+  <script>
+    document.fonts.load('900 112px "Inter"').then(function () {
+      const REPOS = [
+        ["ml-evals", "12m", "333213230312332103320231332133", "#3ecf8e"],
+        ["essay-drafts", "3h", "102010021001020100102000101021", "#3ecf8e"],
+        ["training-log", "1d", "101101101101011010110101101100", "#3ecf8e"],
+        ["portfolio-site", "9d", "231202113020123012031000000000", "#e2c044"],
+        ["thesis-experiments", "19d", "323312021130000000000000000000", "#f0a53a"],
+      ];
+      const SHADE = ["#151518", "rgba(0,136,255,0.32)", "rgba(0,136,255,0.62)", "#0088ff"];
+      const rows = document.getElementById("f6-rows");
+      REPOS.forEach(([name, ago, act, c], r) => {
+        const el = document.createElement("div");
+        el.className = "f6-repo";
+        el.id = "f6-repo" + r;
+        el.innerHTML = '<div class="f6-name">' + name + '</div><div class="f6-cells">' +
+          act.split("").map((v, i) => '<span class="f6-cell f6-c' + i + '" style="background:' + SHADE[+v] + '"></span>').join("") +
+          '</div><div class="f6-ago" id="f6-ago' + r + '" style="color:' + (r < 3 ? c : "#a0a0a0") + '">' + ago + "</div>";
+        rows.appendChild(el);
+      });
+      // Outline the flat stretch of thesis-experiments (columns 11–29).
+      const flat = document.createElement("div");
+      flat.id = "f6-flat";
+      flat.textContent = "NO COMMITS · 19 DAYS";
+      flat.style.left = 186 + 11 * 23 - 6 + "px";
+      flat.style.width = 19 * 23 + 8 + "px";
+      document.getElementById("f6-repo4").appendChild(flat);
+
+      const tl = gsap.timeline({ paused: true });
+
+      const head = document.getElementById("f6-head");
+      const hx = (1920 - head.offsetWidth) / 2, hy = (1080 - head.offsetHeight) / 2 - 40;
+      tl.fromTo("#f6-head", { x: hx, y: hy + 40, opacity: 0 }, { y: hy, opacity: 1, duration: 0.4, ease: "expo.out" }, 0);
+      tl.fromTo("#f6-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "expo.out" }, 0.06);
+      tl.to("#f6-head", { x: 120, y: 70, scale: 0.3, duration: 0.6, ease: "expo.inOut" }, 0.62);
+      tl.fromTo("#f6-repos", { y: 420, rotationX: 24, opacity: 0 }, { y: 0, rotationX: 0, opacity: 1, duration: 1.1, ease: "expo.out" }, 0.2);
+      tl.fromTo("#f6-notices", { y: 420, rotationX: 24, opacity: 0 }, { y: 0, rotationX: 0, opacity: 1, duration: 1.1, ease: "expo.out" }, 0.32);
+      tl.set(["#f6-n0", "#f6-n1", "#f6-n2", "#f6-n3"], { opacity: 0 }, 0);
+      tl.set("#f6-flat", { opacity: 0, scaleX: 0 }, 0);
+      tl.fromTo("#f6-cam", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.06, duration: 4.1, ease: "none" }, 0);
+
+      // Heatmap sweeps in, column by column, oldest → today.
+      for (let c = 0; c < 30; c += 1) {
+        tl.fromTo(".f6-c" + c, { scaleY: 0, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.3, ease: "power3.out" }, 0.8 + c * 0.038);
+      }
+      // thesis-experiments has gone quiet — flagged.
+      tl.to("#f6-flat", { opacity: 1, scaleX: 1, duration: 0.45, ease: "expo.out" }, 2.048);
+      tl.to("#f6-ago4", { color: "#f0a53a", duration: 0.2 }, 2.1);
+      tl.to("#f6-ago4", { scale: 1.35, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, 2.1);
+      tl.to("#f6-ago3", { color: "#e2c044", duration: 0.2 }, 2.2);
+
+      // Notices land on the beats.
+      [1.536, 2.048, 2.56, 3.072].forEach((at, i) => {
+        tl.fromTo("#f6-n" + i, { opacity: 0, x: -40, scale: 0.97 }, { opacity: 1, x: 0, scale: 1, duration: 0.45, ease: "expo.out" }, at);
+      });
+
+      window.__timelines["06-signals"] = tl;
+      if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+    });
+  </script>
+</template>
