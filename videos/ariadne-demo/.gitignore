@@ -1,5 +1,6 @@
 node_modules/
-renders/
+renders/*
+!renders/ariadne-demo-v2.mp4
 snapshots/
 .hyperframes/
 audio_request.json
