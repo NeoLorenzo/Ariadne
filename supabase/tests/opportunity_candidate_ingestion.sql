@@ -10,10 +10,12 @@ declare
   v_first_id text := 'opportunity-candidate-ingest-test-' || gen_random_uuid()::text;
   v_repeat_id text := 'opportunity-candidate-ingest-test-' || gen_random_uuid()::text;
   v_identity_id text := 'opportunity-candidate-ingest-test-' || gen_random_uuid()::text;
+  v_event_id text := 'opportunity-candidate-ingest-test-' || gen_random_uuid()::text;
   v_external_id text := 'adzuna-' || gen_random_uuid()::text;
   v_first jsonb;
   v_repeat jsonb;
   v_identity jsonb;
+  v_event jsonb;
   v_invalid_rejected boolean := false;
   v_last_seen timestamptz := now() + interval '1 hour';
 begin
@@ -112,6 +114,24 @@ begin
   if coalesce((v_identity->>'created')::boolean, true) is not false
      or v_identity->>'duplicate_reason' <> 'organization_title' then
     raise exception 'Expected normalized organization/title deduplication: %', v_identity;
+  end if;
+
+  v_event := public.ingest_opportunity_candidate(
+    p_user_id => v_owner,
+    p_candidate_id => v_event_id,
+    p_source_type => 'agent',
+    p_source_name => 'Opportunity Scout',
+    p_title => 'AI Builder Meetup',
+    p_type => 'event',
+    p_content_hash => 'fnv1a-event-' || gen_random_uuid()::text,
+    p_source_external_id => 'event-' || gen_random_uuid()::text,
+    p_source_url => 'https://lu.ma/regression-event',
+    p_organization => 'Regression Community'
+  );
+
+  if coalesce((v_event->>'created')::boolean, false) is not true
+     or v_event->'candidate'->>'type' <> 'event' then
+    raise exception 'Expected event opportunity type to ingest successfully: %', v_event;
   end if;
 
   begin
